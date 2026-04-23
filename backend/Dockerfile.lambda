@@ -1,0 +1,28 @@
+# Dockerfile für AWS Lambda (Container Image)
+# FastAPI + Mangum (ASGI Adapter für Lambda)
+
+FROM public.ecr.aws/lambda/python:3.11
+
+# Install Poetry
+RUN pip install --no-cache-dir poetry==1.8.2
+
+# Set working directory
+WORKDIR ${LAMBDA_TASK_ROOT}
+
+# Copy dependency files
+COPY pyproject.toml poetry.lock ./
+
+# Install dependencies (ohne dev dependencies)
+RUN poetry config virtualenvs.create false && \
+    poetry install --no-dev --no-interaction --no-ansi
+
+# Copy application code
+COPY app ./app
+COPY alembic ./alembic
+COPY alembic.ini ./
+
+# Copy Lambda handler
+COPY lambda_handler.py ./
+
+# Set Lambda handler
+CMD ["lambda_handler.handler"]

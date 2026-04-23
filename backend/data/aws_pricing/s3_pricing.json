@@ -1,0 +1,37 @@
+{
+  "description": "AWS S3 Storage Pricing",
+  "currency": "USD",
+  "unit": "per GB per month",
+  "last_updated": "2026-04-18",
+  "storage_classes": {
+    "standard": {
+      "us-east-1": {"first_50tb": 0.023, "next_450tb": 0.022, "over_500tb": 0.021},
+      "us-west-2": {"first_50tb": 0.023, "next_450tb": 0.022, "over_500tb": 0.021},
+      "eu-central-1": {"first_50tb": 0.0245, "next_450tb": 0.0235, "over_500tb": 0.0225}
+    },
+    "intelligent_tiering": {
+      "us-east-1": {"frequent_access": 0.023, "infrequent_access": 0.0125, "archive": 0.004},
+      "us-west-2": {"frequent_access": 0.023, "infrequent_access": 0.0125, "archive": 0.004},
+      "eu-central-1": {"frequent_access": 0.0245, "infrequent_access": 0.0135, "archive": 0.0045}
+    },
+    "glacier": {
+      "us-east-1": {"storage": 0.004},
+      "us-west-2": {"storage": 0.004},
+      "eu-central-1": {"storage": 0.0045}
+    }
+  },
+  "requests": {
+    "put_post_list": {"per_1000": 0.005},
+    "get_select": {"per_1000": 0.0004},
+    "data_retrieval": {"per_1000": 0.0004}
+  },
+  "data_transfer": {
+    "out_internet": {
+      "first_10tb": 0.09,
+      "next_40tb": 0.085,
+      "next_100tb": 0.07,
+      "over_150tb": 0.05
+    },
+    "in": 0.0
+  }
+}

@@ -1,0 +1,39 @@
+[tool.poetry]
+name = "overcloud-backend"
+version = "0.1.0"
+description = ""
+authors = ["AndySchw <andy.emch1@web.de>"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = ">=0.135.1,<0.136.0"
+uvicorn = ">=0.42.0,<0.43.0"
+pydantic = ">=2.12.5,<3.0.0"
+boto3 = ">=1.42.73,<2.0.0"
+pydantic-settings = ">=2.13.1,<3.0.0"
+psycopg2-binary = ">=2.9.11,<3.0.0"
+sqlalchemy = ">=2.0.48,<3.0.0"
+alembic = ">=1.18.4,<2.0.0"
+python-jose = ">=3.5.0,<4.0.0"
+passlib = ">=1.7.4,<2.0.0"
+bcrypt = ">=5.0.0,<6.0.0"
+python-multipart = ">=0.0.22,<0.0.23"
+jinja2 = ">=3.1.6,<4.0.0"
+python-dotenv = ">=1.2.2,<2.0.0"
+jsonschema = ">=4.23.0,<5.0.0"
+mangum = ">=0.18.0,<0.19.0"
+boto3-stubs = {extras = ["dynamodb", "s3"], version = ">=1.42.73,<2.0.0"}
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=9.0.2,<10.0.0"
+pytest-asyncio = ">=1.3.0,<2.0.0"
+pytest-cov = ">=7.1.0,<8.0.0"
+black = ">=26.3.1,<27.0.0"
+ruff = ">=0.15.7,<0.16.0"
+mypy = ">=1.19.1,<2.0.0"
+httpx = ">=0.28.1,<0.29.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

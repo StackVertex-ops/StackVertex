@@ -1,0 +1,16 @@
+# Dev Environment - Example Variables
+# Copy to terraform.tfvars and fill in values
+
+project_name = "overcloud"
+environment  = "dev"
+aws_region   = "eu-central-1"
+
+# Database Credentials (CHANGE THESE!)
+db_master_username = "overcloud_admin"
+db_master_password = "CHANGE_ME_MIN_16_CHARS_STRONG_PASSWORD"
+
+# Terraform State (from bootstrap output)
+terraform_state_bucket = "overcloud-terraform-state-123456789012"
+
+# Lambda Image (optional, wird via CI/CD deployed)
+# lambda_image_uri = "123456789012.dkr.ecr.eu-central-1.amazonaws.com/overcloud-dev-lambda:latest"

@@ -1,0 +1,67 @@
+{
+  "minimal": {
+    "name": "Minimal Architecture",
+    "description": "Minimal test architecture",
+    "version": "1.0.0",
+    "owner": "test-user",
+    "architecture_json": {
+      "version": "1.0.0",
+      "metadata": {
+        "name": "Minimal Architecture",
+        "provider": "aws",
+        "region": "us-east-1",
+        "created_at": "2026-04-17T00:00:00Z",
+        "updated_at": "2026-04-17T00:00:00Z"
+      },
+      "requirements": {},
+      "architecture": {
+        "components": [],
+        "relationships": []
+      }
+    }
+  },
+  "simple_web": {
+    "name": "Simple Web App",
+    "description": "Simple web application",
+    "version": "1.0.0",
+    "owner": "test-user",
+    "architecture_json": {
+      "version": "1.0.0",
+      "metadata": {
+        "name": "Simple Web App",
+        "provider": "aws",
+        "region": "eu-central-1",
+        "created_at": "2026-04-17T00:00:00Z",
+        "updated_at": "2026-04-17T00:00:00Z"
+      },
+      "requirements": {
+        "functional": {
+          "workload_type": "web_application"
+        }
+      },
+      "architecture": {
+        "components": [
+          {
+            "id": "vpc-001",
+            "type": "network",
+            "name": "Main VPC",
+            "provider_service": "vpc",
+            "configuration": {
+              "cidr_block": "10.0.0.0/16"
+            }
+          },
+          {
+            "id": "ec2-001",
+            "type": "compute",
+            "name": "Web Server",
+            "provider_service": "ec2",
+            "configuration": {
+              "instance_type": "t3.micro"
+            }
+          }
+        ],
+        "relationships": []
+      }
+    }
+  }
+}

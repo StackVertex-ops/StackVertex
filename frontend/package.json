@@ -1,0 +1,27 @@
+{
+  "name": "overcloud-frontend",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "cloud",
+    "infrastructure",
+    "iac",
+    "terraform"
+  ],
+  "author": "AndySchw",
+  "license": "MIT",
+  "description": "OverCloud Frontend - Cloud infrastructure management UI",
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.2.2",
+    "tailwindcss": "^4.2.2",
+    "vite": "^8.0.1"
+  },
+  "dependencies": {
+    "jsonlint-mod": "^1.7.6"
+  }
+}

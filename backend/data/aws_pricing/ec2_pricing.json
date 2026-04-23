@@ -1,0 +1,38 @@
+{
+  "description": "AWS EC2 On-Demand Pricing (simplified, Linux/UNIX)",
+  "currency": "USD",
+  "unit": "per hour",
+  "last_updated": "2026-04-18",
+  "regions": {
+    "us-east-1": {
+      "t3.micro": {"hourly": 0.0104, "vcpu": 2, "memory_gb": 1},
+      "t3.small": {"hourly": 0.0208, "vcpu": 2, "memory_gb": 2},
+      "t3.medium": {"hourly": 0.0416, "vcpu": 2, "memory_gb": 4},
+      "t3.large": {"hourly": 0.0832, "vcpu": 2, "memory_gb": 8},
+      "t3.xlarge": {"hourly": 0.1664, "vcpu": 4, "memory_gb": 16},
+      "m5.large": {"hourly": 0.096, "vcpu": 2, "memory_gb": 8},
+      "m5.xlarge": {"hourly": 0.192, "vcpu": 4, "memory_gb": 16},
+      "m5.2xlarge": {"hourly": 0.384, "vcpu": 8, "memory_gb": 32},
+      "c5.large": {"hourly": 0.085, "vcpu": 2, "memory_gb": 4},
+      "c5.xlarge": {"hourly": 0.17, "vcpu": 4, "memory_gb": 8},
+      "r5.large": {"hourly": 0.126, "vcpu": 2, "memory_gb": 16},
+      "r5.xlarge": {"hourly": 0.252, "vcpu": 4, "memory_gb": 32}
+    },
+    "us-west-2": {
+      "t3.micro": {"hourly": 0.0104, "vcpu": 2, "memory_gb": 1},
+      "t3.small": {"hourly": 0.0208, "vcpu": 2, "memory_gb": 2},
+      "t3.medium": {"hourly": 0.0416, "vcpu": 2, "memory_gb": 4},
+      "t3.large": {"hourly": 0.0832, "vcpu": 2, "memory_gb": 8},
+      "m5.large": {"hourly": 0.096, "vcpu": 2, "memory_gb": 8},
+      "m5.xlarge": {"hourly": 0.192, "vcpu": 4, "memory_gb": 16}
+    },
+    "eu-central-1": {
+      "t3.micro": {"hourly": 0.0116, "vcpu": 2, "memory_gb": 1},
+      "t3.small": {"hourly": 0.0232, "vcpu": 2, "memory_gb": 2},
+      "t3.medium": {"hourly": 0.0464, "vcpu": 2, "memory_gb": 4},
+      "t3.large": {"hourly": 0.0928, "vcpu": 2, "memory_gb": 8},
+      "m5.large": {"hourly": 0.107, "vcpu": 2, "memory_gb": 8},
+      "m5.xlarge": {"hourly": 0.214, "vcpu": 4, "memory_gb": 16}
+    }
+  }
+}

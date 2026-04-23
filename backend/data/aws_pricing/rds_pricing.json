@@ -1,0 +1,33 @@
+{
+  "description": "AWS RDS On-Demand Pricing (PostgreSQL, Single-AZ)",
+  "currency": "USD",
+  "unit": "per hour",
+  "last_updated": "2026-04-18",
+  "regions": {
+    "us-east-1": {
+      "db.t3.micro": {"hourly": 0.017, "vcpu": 2, "memory_gb": 1, "storage_type": "gp3"},
+      "db.t3.small": {"hourly": 0.034, "vcpu": 2, "memory_gb": 2, "storage_type": "gp3"},
+      "db.t3.medium": {"hourly": 0.068, "vcpu": 2, "memory_gb": 4, "storage_type": "gp3"},
+      "db.t3.large": {"hourly": 0.136, "vcpu": 2, "memory_gb": 8, "storage_type": "gp3"},
+      "db.m5.large": {"hourly": 0.175, "vcpu": 2, "memory_gb": 8, "storage_type": "gp3"},
+      "db.m5.xlarge": {"hourly": 0.35, "vcpu": 4, "memory_gb": 16, "storage_type": "gp3"},
+      "db.r5.large": {"hourly": 0.24, "vcpu": 2, "memory_gb": 16, "storage_type": "gp3"},
+      "db.r5.xlarge": {"hourly": 0.48, "vcpu": 4, "memory_gb": 32, "storage_type": "gp3"}
+    },
+    "us-west-2": {
+      "db.t3.micro": {"hourly": 0.017, "vcpu": 2, "memory_gb": 1, "storage_type": "gp3"},
+      "db.t3.small": {"hourly": 0.034, "vcpu": 2, "memory_gb": 2, "storage_type": "gp3"},
+      "db.m5.large": {"hourly": 0.175, "vcpu": 2, "memory_gb": 8, "storage_type": "gp3"}
+    },
+    "eu-central-1": {
+      "db.t3.micro": {"hourly": 0.019, "vcpu": 2, "memory_gb": 1, "storage_type": "gp3"},
+      "db.t3.small": {"hourly": 0.038, "vcpu": 2, "memory_gb": 2, "storage_type": "gp3"},
+      "db.m5.large": {"hourly": 0.195, "vcpu": 2, "memory_gb": 8, "storage_type": "gp3"}
+    }
+  },
+  "storage": {
+    "gp3": {"hourly_per_gb": 0.000137},
+    "gp2": {"hourly_per_gb": 0.000137},
+    "io1": {"hourly_per_gb": 0.000171}
+  }
+}

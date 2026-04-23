@@ -1,0 +1,45 @@
+{
+  "description": "AWS Lambda Pricing",
+  "currency": "USD",
+  "last_updated": "2026-04-18",
+  "regions": {
+    "us-east-1": {
+      "requests": {
+        "free_tier": 1000000,
+        "per_million": 0.20
+      },
+      "compute": {
+        "free_tier_gb_seconds": 400000,
+        "per_gb_second": 0.0000166667
+      },
+      "memory_tiers": {
+        "128": {"price_multiplier": 1.0},
+        "256": {"price_multiplier": 2.0},
+        "512": {"price_multiplier": 4.0},
+        "1024": {"price_multiplier": 8.0},
+        "2048": {"price_multiplier": 16.0},
+        "3008": {"price_multiplier": 24.0}
+      }
+    },
+    "us-west-2": {
+      "requests": {
+        "free_tier": 1000000,
+        "per_million": 0.20
+      },
+      "compute": {
+        "free_tier_gb_seconds": 400000,
+        "per_gb_second": 0.0000166667
+      }
+    },
+    "eu-central-1": {
+      "requests": {
+        "free_tier": 1000000,
+        "per_million": 0.22
+      },
+      "compute": {
+        "free_tier_gb_seconds": 400000,
+        "per_gb_second": 0.0000183333
+      }
+    }
+  }
+}

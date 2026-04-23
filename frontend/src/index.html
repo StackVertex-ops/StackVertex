@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OverCloud - Cloud Infrastructure Made Simple</title>
+    <meta name="description" content="Model, version, and deploy cloud infrastructure from requirements">
+    <link rel="icon" type="image/svg+xml" href="/assets/logo.svg">
+</head>
+<body class="bg-gray-50 dark:bg-gray-900">
+    <!-- Main App Container -->
+    <div id="app">
+        <!-- Header -->
+        <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+            <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+                            OverCloud
+                        </h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <a href="#/" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                            Dashboard
+                        </a>
+                        <a href="#/architectures" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                            Architectures
+                        </a>
+                        <a href="#/deployments" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                            Deployments
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="text-center">
+                <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                    Welcome to OverCloud
+                </h2>
+                <p class="text-xl text-gray-600 dark:text-gray-400 mb-8">
+                    Cloud infrastructure made understandable, versionable, and deployable.
+                </p>
+
+                <!-- Status Card -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 max-w-md mx-auto">
+                    <div class="flex items-center justify-center space-x-2 mb-4">
+                        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-gray-700 dark:text-gray-300">System Status</span>
+                    </div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400" id="api-status">
+                        Connecting to API...
+                    </p>
+                </div>
+
+                <!-- Feature Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                        <div class="text-3xl mb-4">📋</div>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                            Requirements-Driven
+                        </h3>
+                        <p class="text-gray-600 dark:text-gray-400">
+                            Describe what you need, not how to build it
+                        </p>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                        <div class="text-3xl mb-4">📄</div>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                            JSON-First
+                        </h3>
+                        <p class="text-gray-600 dark:text-gray-400">
+                            Versionable, inspectable source of truth
+                        </p>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                        <div class="text-3xl mb-4">🔍</div>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                            Transparent
+                        </h3>
+                        <p class="text-gray-600 dark:text-gray-400">
+                            See cost, security, and impact before deploying
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="/js/main.js"></script>
+</body>
+</html>

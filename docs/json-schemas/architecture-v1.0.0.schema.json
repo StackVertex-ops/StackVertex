@@ -1,0 +1,697 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://overcloud.io/schemas/architecture/v1.0.0",
+  "title": "OverCloud Architecture Definition",
+  "description": "Complete definition of a cloud infrastructure architecture, including requirements, decisions, components, and evaluations.",
+  "type": "object",
+  "required": ["version", "metadata", "requirements", "architecture"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of this architecture definition",
+      "examples": ["1.0.0"]
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Tracking and administrative information",
+      "required": ["id", "name", "created_at", "updated_at", "provider"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for this architecture"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Human-readable name for this architecture"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Optional description of what this architecture does"
+        },
+        "provider": {
+          "type": "string",
+          "enum": ["aws", "azure", "gcp"],
+          "description": "Target cloud provider"
+        },
+        "region": {
+          "type": "string",
+          "description": "Primary deployment region (provider-specific format)",
+          "examples": ["us-east-1", "eastus", "us-central1"]
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when this architecture was first created"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of last modification"
+        },
+        "created_by": {
+          "type": "string",
+          "description": "User ID who created this architecture"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "User-defined tags for organization",
+          "examples": [["production", "webapp", "backend"]]
+        },
+        "parent_version": {
+          "type": "string",
+          "format": "uuid",
+          "description": "ID of the previous version (if this is an update)"
+        }
+      }
+    },
+    "requirements": {
+      "type": "object",
+      "description": "User-defined requirements that drove architectural decisions",
+      "properties": {
+        "functional": {
+          "type": "object",
+          "description": "What the system needs to do",
+          "properties": {
+            "workload_type": {
+              "type": "string",
+              "enum": [
+                "web_application",
+                "api_service",
+                "static_website",
+                "data_processing",
+                "microservices",
+                "serverless_function",
+                "container_workload",
+                "batch_job"
+              ],
+              "description": "Primary type of workload"
+            },
+            "expected_traffic": {
+              "type": "object",
+              "properties": {
+                "concurrent_users": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Expected concurrent users"
+                },
+                "requests_per_second": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Expected requests per second at peak"
+                },
+                "data_transfer_gb_month": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "Expected monthly data transfer in GB"
+                }
+              }
+            },
+            "storage_needs": {
+              "type": "object",
+              "properties": {
+                "database_size_gb": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "file_storage_gb": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "requires_object_storage": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "compute_needs": {
+              "type": "object",
+              "properties": {
+                "cpu_intensive": {
+                  "type": "boolean"
+                },
+                "memory_intensive": {
+                  "type": "boolean"
+                },
+                "gpu_required": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "non_functional": {
+          "type": "object",
+          "description": "Quality attributes and constraints",
+          "properties": {
+            "availability": {
+              "type": "object",
+              "properties": {
+                "target_uptime_percent": {
+                  "type": "number",
+                  "minimum": 90,
+                  "maximum": 100,
+                  "description": "Target uptime percentage (e.g., 99.9 for three nines)"
+                },
+                "multi_az": {
+                  "type": "boolean",
+                  "description": "Require multi-availability zone deployment"
+                },
+                "disaster_recovery": {
+                  "type": "boolean",
+                  "description": "Require disaster recovery capabilities"
+                }
+              }
+            },
+            "scalability": {
+              "type": "object",
+              "properties": {
+                "auto_scaling": {
+                  "type": "boolean",
+                  "description": "Require automatic scaling"
+                },
+                "scale_to_zero": {
+                  "type": "boolean",
+                  "description": "Allow scaling to zero instances (serverless)"
+                },
+                "global_distribution": {
+                  "type": "boolean",
+                  "description": "Require multi-region distribution"
+                }
+              }
+            },
+            "security": {
+              "type": "object",
+              "properties": {
+                "compliance_requirements": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": ["GDPR", "HIPAA", "SOC2", "PCI-DSS", "ISO27001"]
+                  },
+                  "description": "Regulatory compliance requirements"
+                },
+                "data_encryption": {
+                  "type": "object",
+                  "properties": {
+                    "at_rest": {
+                      "type": "boolean"
+                    },
+                    "in_transit": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "network_isolation": {
+                  "type": "boolean",
+                  "description": "Require private network (VPC/VNet)"
+                },
+                "public_access": {
+                  "type": "boolean",
+                  "description": "Allow public internet access"
+                }
+              }
+            },
+            "performance": {
+              "type": "object",
+              "properties": {
+                "max_latency_ms": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Maximum acceptable latency in milliseconds"
+                },
+                "cdn_required": {
+                  "type": "boolean",
+                  "description": "Require CDN for content delivery"
+                }
+              }
+            },
+            "cost": {
+              "type": "object",
+              "properties": {
+                "monthly_budget_usd": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "Maximum monthly budget in USD"
+                },
+                "cost_optimization_priority": {
+                  "type": "string",
+                  "enum": ["low", "medium", "high"],
+                  "description": "How important is cost optimization"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "decisions": {
+      "type": "object",
+      "description": "System-made decisions based on requirements",
+      "properties": {
+        "network": {
+          "type": "object",
+          "properties": {
+            "vpc_required": {
+              "type": "boolean",
+              "description": "Decision: Create isolated network"
+            },
+            "subnet_strategy": {
+              "type": "string",
+              "enum": ["single_public", "public_private", "multi_tier"],
+              "description": "How to structure subnets"
+            },
+            "reasoning": {
+              "type": "string",
+              "description": "Why this network architecture was chosen"
+            }
+          }
+        },
+        "compute": {
+          "type": "object",
+          "properties": {
+            "service_type": {
+              "type": "string",
+              "enum": ["vm", "container", "serverless", "managed"],
+              "description": "Type of compute service chosen"
+            },
+            "instance_size": {
+              "type": "string",
+              "description": "Recommended instance/function size"
+            },
+            "reasoning": {
+              "type": "string",
+              "description": "Why this compute option was chosen"
+            }
+          }
+        },
+        "database": {
+          "type": "object",
+          "properties": {
+            "database_type": {
+              "type": "string",
+              "enum": ["relational", "nosql", "cache", "none"],
+              "description": "Type of database recommended"
+            },
+            "managed_service": {
+              "type": "boolean",
+              "description": "Use managed database service vs self-hosted"
+            },
+            "reasoning": {
+              "type": "string"
+            }
+          }
+        },
+        "storage": {
+          "type": "object",
+          "properties": {
+            "object_storage": {
+              "type": "boolean",
+              "description": "Include object storage (S3/Blob/GCS)"
+            },
+            "block_storage": {
+              "type": "boolean",
+              "description": "Include block storage (EBS/Disk)"
+            },
+            "reasoning": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "architecture": {
+      "type": "object",
+      "description": "Actual cloud resources and their relationships",
+      "required": ["components", "relationships"],
+      "properties": {
+        "components": {
+          "type": "array",
+          "description": "List of cloud resources",
+          "items": {
+            "type": "object",
+            "required": ["id", "type", "name", "provider_service"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9-]+$",
+                "description": "Unique identifier for this component (used in Terraform)"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "network",
+                  "compute",
+                  "storage",
+                  "database",
+                  "load_balancer",
+                  "cdn",
+                  "dns",
+                  "security_group",
+                  "iam_role",
+                  "function",
+                  "container",
+                  "queue",
+                  "cache"
+                ],
+                "description": "Logical type of this component"
+              },
+              "name": {
+                "type": "string",
+                "description": "Human-readable name"
+              },
+              "provider_service": {
+                "type": "string",
+                "description": "Actual cloud service (e.g., 'ec2', 'lambda', 'app_service')"
+              },
+              "configuration": {
+                "type": "object",
+                "description": "Service-specific configuration",
+                "additionalProperties": true
+              },
+              "artifacts": {
+                "type": "array",
+                "description": "Deployment artifacts for this component",
+                "items": {
+                  "type": "object",
+                  "required": ["type"],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["zip", "docker_image", "ami", "script", "static_files"],
+                      "description": "Type of artifact"
+                    },
+                    "source": {
+                      "type": "object",
+                      "description": "Where to get the artifact",
+                      "oneOf": [
+                        {
+                          "properties": {
+                            "type": {
+                              "const": "upload"
+                            },
+                            "platform_storage": {
+                              "type": "string",
+                              "description": "Path in OverCloud's artifact storage"
+                            }
+                          },
+                          "required": ["type", "platform_storage"]
+                        },
+                        {
+                          "properties": {
+                            "type": {
+                              "const": "customer_storage"
+                            },
+                            "storage_url": {
+                              "type": "string",
+                              "format": "uri",
+                              "description": "Customer's S3/Blob/GCS URL"
+                            }
+                          },
+                          "required": ["type", "storage_url"]
+                        },
+                        {
+                          "properties": {
+                            "type": {
+                              "const": "registry"
+                            },
+                            "image": {
+                              "type": "string",
+                              "description": "Docker image (e.g., 'nginx:latest')"
+                            }
+                          },
+                          "required": ["type", "image"]
+                        }
+                      ]
+                    },
+                    "deployment_method": {
+                      "type": "string",
+                      "enum": ["user_data", "container_image", "function_code", "mount"],
+                      "description": "How to deploy this artifact"
+                    }
+                  }
+                }
+              },
+              "tags": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "Cloud provider tags"
+              }
+            }
+          }
+        },
+        "relationships": {
+          "type": "array",
+          "description": "Connections between components",
+          "items": {
+            "type": "object",
+            "required": ["from", "to", "type"],
+            "properties": {
+              "from": {
+                "type": "string",
+                "description": "Source component ID"
+              },
+              "to": {
+                "type": "string",
+                "description": "Target component ID"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["network", "depends_on", "accesses", "triggers"],
+                "description": "Type of relationship"
+              },
+              "configuration": {
+                "type": "object",
+                "description": "Relationship-specific settings (e.g., port numbers)",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "description": "Calculated impact analysis",
+      "properties": {
+        "cost": {
+          "type": "object",
+          "properties": {
+            "estimated_monthly_usd": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Estimated monthly cost in USD"
+            },
+            "breakdown": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "component_id": {
+                    "type": "string"
+                  },
+                  "component_name": {
+                    "type": "string"
+                  },
+                  "cost_usd": {
+                    "type": "number"
+                  },
+                  "billing_model": {
+                    "type": "string",
+                    "enum": ["hourly", "per_request", "per_gb", "monthly"]
+                  }
+                }
+              }
+            },
+            "confidence": {
+              "type": "string",
+              "enum": ["low", "medium", "high"],
+              "description": "Confidence in cost estimate"
+            },
+            "warnings": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Cost-related warnings (e.g., 'exceeds budget')"
+            }
+          }
+        },
+        "security": {
+          "type": "object",
+          "properties": {
+            "score": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100,
+              "description": "Overall security score (100 = best)"
+            },
+            "issues": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "severity": {
+                    "type": "string",
+                    "enum": ["critical", "high", "medium", "low", "info"]
+                  },
+                  "component_id": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "recommendation": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "scalability": {
+          "type": "object",
+          "properties": {
+            "score": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "auto_scaling_enabled": {
+              "type": "boolean"
+            },
+            "bottlenecks": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "component_id": {
+                    "type": "string"
+                  },
+                  "issue": {
+                    "type": "string"
+                  },
+                  "recommendation": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "availability": {
+          "type": "object",
+          "properties": {
+            "score": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "estimated_uptime_percent": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "single_points_of_failure": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "complexity": {
+          "type": "object",
+          "properties": {
+            "score": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100,
+              "description": "Complexity score (0 = simple, 100 = very complex)"
+            },
+            "component_count": {
+              "type": "integer"
+            },
+            "recommendations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Suggestions to simplify architecture"
+            }
+          }
+        },
+        "alternatives": {
+          "type": "array",
+          "description": "Suggested alternative approaches",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "trade_offs": {
+                "type": "object",
+                "properties": {
+                  "cost_change_percent": {
+                    "type": "number"
+                  },
+                  "complexity_change": {
+                    "type": "string",
+                    "enum": ["simpler", "same", "more_complex"]
+                  },
+                  "pros": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "cons": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "generated": {
+      "type": "object",
+      "description": "Generated outputs (Terraform, etc.)",
+      "properties": {
+        "terraform": {
+          "type": "object",
+          "properties": {
+            "version": {
+              "type": "string",
+              "description": "Terraform version used"
+            },
+            "generated_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "hash": {
+              "type": "string",
+              "description": "SHA-256 hash of generated Terraform code"
+            }
+          }
+        }
+      }
+    }
+  }
+}
