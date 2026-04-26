@@ -142,3 +142,12 @@ class S3Storage:
             return True
         except Exception:
             return False
+
+
+def get_s3_storage() -> S3Storage:
+    """Get S3Storage instance (FastAPI Dependency).
+
+    Returns:
+        S3Storage instance
+    """
+    return S3Storage()

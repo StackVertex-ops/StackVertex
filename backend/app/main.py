@@ -49,8 +49,24 @@ async def health_check():
 
 
 # API Routes
-from app.api import validation, architectures, costs, deployments, websockets, audit
+from app.api import (
+    validation,
+    architectures,
+    costs,
+    deployments,
+    websockets,
+    audit,
+    auth,
+    users,
+    organisations,
+)
 
+# Authentication & User Management
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["authentication"])
+app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
+app.include_router(organisations.router, prefix="/api/v1/organisations", tags=["organisations"])
+
+# Core Features
 app.include_router(validation.router, prefix="/api/v1", tags=["validation"])
 app.include_router(architectures.router, prefix="/api/v1", tags=["architectures"])
 app.include_router(costs.router, prefix="/api/v1", tags=["costs"])

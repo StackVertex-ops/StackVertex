@@ -39,20 +39,11 @@ def get_dynamodb_resource(
     return boto3.resource("dynamodb", **kwargs)
 
 
-def get_dynamodb_table(
-    table_name: Optional[str] = None,
-    resource: Optional[DynamoDBServiceResource] = None
-) -> Table:
-    """Get DynamoDB table instance.
-
-    Args:
-        table_name: Table name (defaults to settings.DYNAMODB_TABLE_NAME)
-        resource: Existing DynamoDB resource (creates new if None)
+def get_dynamodb_table() -> Table:
+    """Get DynamoDB table instance (FastAPI Dependency).
 
     Returns:
         DynamoDB Table resource
     """
-    if resource is None:
-        resource = get_dynamodb_resource()
-
-    return resource.Table(table_name or settings.DYNAMODB_TABLE_NAME)
+    resource = get_dynamodb_resource()
+    return resource.Table(settings.DYNAMODB_TABLE_NAME)

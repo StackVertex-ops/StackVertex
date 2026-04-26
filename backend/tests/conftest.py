@@ -328,3 +328,21 @@ def audit_log_repository(mock_dynamodb_table):
     from app.repositories.audit_log import AuditLogRepository
 
     return AuditLogRepository(table=mock_dynamodb_table)
+
+
+@pytest.fixture
+def user_repository(mock_dynamodb_table):
+    """UserRepository mit mocked DynamoDB."""
+    from app.repositories.user import UserRepository
+
+    return UserRepository(table=mock_dynamodb_table)
+
+
+@pytest.fixture
+def organisation_repository(mock_dynamodb_table, mock_s3_bucket):
+    """OrganisationRepository mit mocked AWS resources."""
+    from app.repositories.organisation import OrganisationRepository
+    from app.db.s3_storage import S3Storage
+
+    s3_storage = S3Storage(bucket_name="overcloud-test-bucket")
+    return OrganisationRepository(table=mock_dynamodb_table, s3_storage=s3_storage)

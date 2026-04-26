@@ -1,0 +1,147 @@
+"""User Pydantic Schemas.
+
+API Request/Response Models für User Management.
+"""
+
+from datetime import datetime
+from typing import Optional, List
+from uuid import UUID
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
+
+from app.models.user import AuthProvider, UserRole, UserStatus
+
+
+# ============================================================================
+# User Base Schemas
+# ============================================================================
+
+
+class UserBase(BaseModel):
+    """Base User Schema mit gemeinsamen Feldern."""
+
+    email: EmailStr = Field(..., description="User email (unique)")
+    name: str = Field(..., min_length=1, max_length=255, description="Display name")
+
+
+class UserCreate(BaseModel):
+    """Schema für User Registration.
+
+    Nur Email + Name, Password wird via Auth Provider gehandhabt.
+    """
+
+    email: EmailStr
+    name: str = Field(..., min_length=1, max_length=255)
+    password: str = Field(..., min_length=8, max_length=128, description="Plain password (wird gehasht)")
+
+    # Optional: Auth Provider Info (für OAuth)
+    auth_provider: AuthProvider = Field(default=AuthProvider.EMAIL)
+    auth_provider_id: Optional[str] = Field(None, description="OAuth Provider User ID")
+
+
+class UserUpdate(BaseModel):
+    """Schema für User Profile Update.
+
+    Alle Felder optional.
+    """
+
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    # Email change requires verification
+    # Password change via separate endpoint
+
+
+class UserLogin(BaseModel):
+    """Schema für User Login."""
+
+    email: EmailStr
+    password: str
+
+
+# ============================================================================
+# User Response Schemas
+# ============================================================================
+
+
+class UserResponse(UserBase):
+    """User Response (Public Info).
+
+    Wird zurückgegeben bei GET /users/{id}.
+    KEIN Password Hash!
+    """
+
+    id: UUID
+    auth_provider: AuthProvider
+    status: UserStatus
+    personal_org_id: UUID = Field(..., description="Personal Organisation ID")
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserProfileResponse(UserResponse):
+    """Extended User Profile (für authenticated User selbst).
+
+    Enthält zusätzliche private Info.
+    """
+
+    # Additional private info that only the user themselves should see
+    # z.B. email verification status, payment info, etc.
+    pass
+
+
+class UserMembershipResponse(BaseModel):
+    """User's Membership in einer Organisation."""
+
+    organisation_id: UUID
+    organisation_name: str
+    role: UserRole
+    joined_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserWithOrganisationsResponse(UserResponse):
+    """User Response mit ihren Organisations."""
+
+    organisations: List[UserMembershipResponse] = Field(default_factory=list)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# ============================================================================
+# Authentication Response Schemas
+# ============================================================================
+
+
+class TokenResponse(BaseModel):
+    """JWT Token Response nach Login."""
+
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int = Field(..., description="Token lifetime in seconds")
+    user: UserResponse
+
+
+class TokenPayload(BaseModel):
+    """JWT Token Payload (was im Token drin ist)."""
+
+    sub: str = Field(..., description="User ID")
+    email: str
+    org_id: Optional[str] = Field(None, description="Current active organisation")
+    exp: int = Field(..., description="Expiration timestamp")
+
+
+# ============================================================================
+# User List Response
+# ============================================================================
+
+
+class UserListResponse(BaseModel):
+    """Paginated User List Response."""
+
+    items: List[UserResponse]
+    total: int
+    skip: int
+    limit: int
+
+    model_config = ConfigDict(from_attributes=True)
