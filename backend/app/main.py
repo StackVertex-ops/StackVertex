@@ -62,9 +62,12 @@ app.include_router(audit.router, prefix="/api/v1", tags=["audit"])
 if __name__ == "__main__":
     import uvicorn
 
+    # Use configurable host/port from settings
+    # For Docker/containers: Set HOST=0.0.0.0 in .env
+    # For local dev: Default 127.0.0.1 (localhost only) is secure
     uvicorn.run(
         "app.main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
+        host=settings.HOST,
+        port=settings.PORT,
+        reload=settings.DEBUG,
     )

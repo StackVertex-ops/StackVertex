@@ -3,6 +3,8 @@
 Loads configuration from environment variables using Pydantic Settings.
 """
 
+import tempfile
+from pathlib import Path
 from typing import List, Union
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -14,6 +16,12 @@ class Settings(BaseSettings):
     # App Settings
     APP_NAME: str = "OverCloud API"
     DEBUG: bool = True
+
+    # Server Settings
+    # In production: Set HOST="127.0.0.1" or specific IP
+    # 0.0.0.0 binds to all interfaces (OK for containers, but security risk otherwise)
+    HOST: str = "127.0.0.1"  # Secure default: localhost only
+    PORT: int = 8000
 
     # CORS Settings
     CORS_ORIGINS: Union[List[str], str] = [
@@ -54,7 +62,8 @@ class Settings(BaseSettings):
 
     # Terraform Settings
     TERRAFORM_BINARY: str = "terraform"
-    TERRAFORM_WORKSPACE_DIR: str = "/tmp/overcloud/deployments"
+    # Use system temp dir by default (secure, cross-platform)
+    TERRAFORM_WORKSPACE_DIR: str = str(Path(tempfile.gettempdir()) / "overcloud" / "deployments")
     TERRAFORM_TEMPLATE_DIR: str = "backend/templates/terraform"
     TERRAFORM_TIMEOUT: int = 600  # seconds (10 minutes)
 

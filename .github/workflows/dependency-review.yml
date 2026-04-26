@@ -1,0 +1,36 @@
+name: Dependency Review
+
+on:
+  pull_request:
+    branches: [ main, master ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  dependency-review:
+    name: Dependency Security Review
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          # Fail on critical vulnerabilities
+          fail-on-severity: critical
+          # Allow licenses (adjust as needed)
+          allow-licenses: MIT, Apache-2.0, BSD-3-Clause, BSD-2-Clause, ISC, PSF-2.0
+          # Deny licenses
+          deny-licenses: GPL-3.0, AGPL-3.0
+          # Comment on PR
+          comment-summary-in-pr: always
+          # Show all dependencies
+          show-openssf-scorecard: true
+
+      - name: Upload SBOM
+        uses: advanced-security/component-detection-dependency-submission-action@v0.0.2
+        continue-on-error: true

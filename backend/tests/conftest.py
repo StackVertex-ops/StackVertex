@@ -110,25 +110,221 @@ def temp_terraform_dir() -> Generator[Path, None, None]:
 
 
 # =============================================================================
-# DynamoDB Mock Fixtures (TODO: Implement with moto or DynamoDB Local)
+# DynamoDB & S3 Mock Fixtures (moto-basiert)
 # =============================================================================
 
 
 @pytest.fixture
-def mock_dynamodb_table():
-    """Mock DynamoDB table for testing.
-
-    TODO: Implement using moto or DynamoDB Local
-    """
-    # Placeholder - tests should mock at repository level for now
-    pass
+def aws_credentials():
+    """Fake AWS credentials für moto."""
+    import os
+    os.environ["AWS_ACCESS_KEY_ID"] = "testing"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
+    os.environ["AWS_SECURITY_TOKEN"] = "testing"
+    os.environ["AWS_SESSION_TOKEN"] = "testing"
+    os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
 
 
 @pytest.fixture
-def mock_s3_bucket():
-    """Mock S3 bucket for testing.
+def mock_dynamodb_resource(aws_credentials):
+    """Mocked DynamoDB Resource mit moto."""
+    import boto3
+    from moto import mock_aws
 
-    TODO: Implement using moto
-    """
-    # Placeholder - tests should mock at repository level for now
-    pass
+    with mock_aws():
+        yield boto3.resource("dynamodb", region_name="us-east-1")
+
+
+@pytest.fixture
+def mock_dynamodb_table(mock_dynamodb_resource):
+    """Mocked DynamoDB Table mit vollem Schema (alle 6 GSIs)."""
+    from mypy_boto3_dynamodb.service_resource import Table
+
+    table: Table = mock_dynamodb_resource.create_table(
+        TableName="overcloud-test-table",
+        KeySchema=[
+            {"AttributeName": "PK", "KeyType": "HASH"},
+            {"AttributeName": "SK", "KeyType": "RANGE"}
+        ],
+        AttributeDefinitions=[
+            {"AttributeName": "PK", "AttributeType": "S"},
+            {"AttributeName": "SK", "AttributeType": "S"},
+            {"AttributeName": "GSI1PK", "AttributeType": "S"},
+            {"AttributeName": "GSI1SK", "AttributeType": "S"},
+            {"AttributeName": "GSI2PK", "AttributeType": "S"},
+            {"AttributeName": "GSI2SK", "AttributeType": "S"},
+            {"AttributeName": "GSI3PK", "AttributeType": "S"},
+            {"AttributeName": "GSI3SK", "AttributeType": "S"},
+            {"AttributeName": "GSI4PK", "AttributeType": "S"},
+            {"AttributeName": "GSI4SK", "AttributeType": "S"},
+            {"AttributeName": "GSI5PK", "AttributeType": "S"},
+            {"AttributeName": "GSI5SK", "AttributeType": "S"},
+            {"AttributeName": "GSI6PK", "AttributeType": "S"},
+            {"AttributeName": "GSI6SK", "AttributeType": "S"},
+        ],
+        GlobalSecondaryIndexes=[
+            {
+                "IndexName": "GSI1",
+                "KeySchema": [
+                    {"AttributeName": "GSI1PK", "KeyType": "HASH"},
+                    {"AttributeName": "GSI1SK", "KeyType": "RANGE"}
+                ],
+                "Projection": {"ProjectionType": "ALL"}
+            },
+            {
+                "IndexName": "GSI2",
+                "KeySchema": [
+                    {"AttributeName": "GSI2PK", "KeyType": "HASH"},
+                    {"AttributeName": "GSI2SK", "KeyType": "RANGE"}
+                ],
+                "Projection": {"ProjectionType": "ALL"}
+            },
+            {
+                "IndexName": "GSI3",
+                "KeySchema": [
+                    {"AttributeName": "GSI3PK", "KeyType": "HASH"},
+                    {"AttributeName": "GSI3SK", "KeyType": "RANGE"}
+                ],
+                "Projection": {"ProjectionType": "ALL"}
+            },
+            {
+                "IndexName": "GSI4",
+                "KeySchema": [
+                    {"AttributeName": "GSI4PK", "KeyType": "HASH"},
+                    {"AttributeName": "GSI4SK", "KeyType": "RANGE"}
+                ],
+                "Projection": {"ProjectionType": "ALL"}
+            },
+            {
+                "IndexName": "GSI5",
+                "KeySchema": [
+                    {"AttributeName": "GSI5PK", "KeyType": "HASH"},
+                    {"AttributeName": "GSI5SK", "KeyType": "RANGE"}
+                ],
+                "Projection": {"ProjectionType": "ALL"}
+            },
+            {
+                "IndexName": "GSI6",
+                "KeySchema": [
+                    {"AttributeName": "GSI6PK", "KeyType": "HASH"},
+                    {"AttributeName": "GSI6SK", "KeyType": "RANGE"}
+                ],
+                "Projection": {"ProjectionType": "ALL"}
+            },
+        ],
+        BillingMode="PAY_PER_REQUEST"
+    )
+
+    # Wait for table to be ready
+    table.meta.client.get_waiter("table_exists").wait(TableName="overcloud-test-table")
+
+    return table
+
+
+@pytest.fixture
+def mock_s3_resource(aws_credentials):
+    """Mocked S3 Resource mit moto."""
+    import boto3
+    from moto import mock_aws
+
+    with mock_aws():
+        yield boto3.resource("s3", region_name="us-east-1")
+
+
+@pytest.fixture
+def mock_s3_bucket(mock_s3_resource):
+    """Mocked S3 Bucket für Large Item Testing."""
+    bucket_name = "overcloud-test-bucket"
+    bucket = mock_s3_resource.create_bucket(Bucket=bucket_name)
+    return bucket
+
+
+# =============================================================================
+# Sample Large Data Fixtures
+# =============================================================================
+
+
+@pytest.fixture
+def sample_large_architecture_json() -> Dict[str, Any]:
+    """Generate architecture JSON > 300KB für S3 Offload Testing."""
+    # Create base structure
+    arch = {
+        "version": "1.0.0",
+        "metadata": {
+            "name": "Large Architecture",
+            "description": "Test architecture exceeding 300KB"
+        },
+        "components": []
+    }
+
+    # Add many components to exceed 300KB threshold
+    # Each component is ~3KB, need ~100 components for 300KB
+    for i in range(120):
+        component = {
+            "id": f"component-{i}",
+            "type": "ecs_service",
+            "properties": {
+                "image": f"nginx:latest-{i}",
+                "port": 80 + i,
+                "cpu": 512,
+                "memory": 1024,
+                "environment": {
+                    f"VAR_{j}": "x" * 100 for j in range(20)
+                },
+                "tags": {
+                    f"tag_{k}": "value" * 50 for k in range(10)
+                }
+            }
+        }
+        arch["components"].append(component)
+
+    # Verify size > 300KB
+    json_str = json.dumps(arch, ensure_ascii=False)
+    assert len(json_str.encode("utf-8")) > 300_000, "Test data must exceed 300KB"
+
+    return arch
+
+
+# =============================================================================
+# Repository Fixtures
+# =============================================================================
+
+
+@pytest.fixture
+def base_repository(mock_dynamodb_table, mock_s3_bucket):
+    """BaseRepository mit mocked AWS resources."""
+    from app.repositories.base import BaseRepository
+    from app.db.s3_storage import S3Storage
+
+    # Create S3Storage with mocked client
+    s3_storage = S3Storage(bucket_name="overcloud-test-bucket")
+
+    return BaseRepository(table=mock_dynamodb_table, s3_storage=s3_storage)
+
+
+@pytest.fixture
+def architecture_repository(mock_dynamodb_table, mock_s3_bucket):
+    """ArchitectureRepository mit mocked AWS resources."""
+    from app.repositories.architecture import ArchitectureRepository
+    from app.db.s3_storage import S3Storage
+
+    s3_storage = S3Storage(bucket_name="overcloud-test-bucket")
+    return ArchitectureRepository(table=mock_dynamodb_table, s3_storage=s3_storage)
+
+
+@pytest.fixture
+def deployment_repository(mock_dynamodb_table, mock_s3_bucket):
+    """DeploymentRepository mit mocked AWS resources."""
+    from app.repositories.deployment import DeploymentRepository
+    from app.db.s3_storage import S3Storage
+
+    s3_storage = S3Storage(bucket_name="overcloud-test-bucket")
+    return DeploymentRepository(table=mock_dynamodb_table, s3_storage=s3_storage)
+
+
+@pytest.fixture
+def audit_log_repository(mock_dynamodb_table):
+    """AuditLogRepository mit mocked DynamoDB."""
+    from app.repositories.audit_log import AuditLogRepository
+
+    return AuditLogRepository(table=mock_dynamodb_table)

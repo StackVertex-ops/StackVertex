@@ -6,7 +6,7 @@ Generiert Terraform HCL Code aus Architecture JSON.
 import logging
 from pathlib import Path
 from typing import Dict, Any, List, Optional
-from jinja2 import Environment, FileSystemLoader, TemplateNotFound
+from jinja2 import Environment, FileSystemLoader, TemplateNotFound, select_autoescape
 
 from app.core.terraform_generator.component_mapper import ComponentMapper
 from app.core.terraform_generator.file_builder import TerraformFileBuilder, TerraformProject
@@ -47,8 +47,10 @@ class TerraformGenerator:
         logger.info(f"Template directory: {self.template_dir}")
 
         # Jinja2 Environment
+        # autoescape aktiviert für HTML/XML (nicht für .tf Templates)
         self.jinja_env = Environment(
             loader=FileSystemLoader(self.template_dir),
+            autoescape=select_autoescape(enabled_extensions=('html', 'xml')),
             trim_blocks=True,
             lstrip_blocks=True,
         )
