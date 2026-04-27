@@ -56,9 +56,27 @@ class Settings(BaseSettings):
     AWS_SECRET_ACCESS_KEY: str | None = None
 
     # Security
-    SECRET_KEY: str = "your-secret-key-change-in-production"  # Change in .env!
+    SECRET_KEY: str  # REQUIRED in .env - min 32 chars, cryptographically random
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
+    ENV: str = "development"  # development, staging, production
+    TESTING: bool = False  # Set True in tests to disable rate limiting
+
+    # Stripe Payment
+    STRIPE_SECRET_KEY: str | None = None  # sk_test_... or sk_live_...
+    STRIPE_PUBLISHABLE_KEY: str | None = None  # pk_test_... or pk_live_...
+    STRIPE_WEBHOOK_SECRET: str | None = None  # whsec_...
+    STRIPE_ENABLED: bool = False  # Enable Stripe integration
+
+    @field_validator("SECRET_KEY")
+    @classmethod
+    def validate_secret_key(cls, v):
+        """Ensure SECRET_KEY is strong enough."""
+        if len(v) < 32:
+            raise ValueError("SECRET_KEY must be at least 32 characters long")
+        if v in ["your-secret-key-change-in-production", "secret", "changeme", "test"]:
+            raise ValueError("SECRET_KEY must not use common/default values")
+        return v
 
     # Terraform Settings
     TERRAFORM_BINARY: str = "terraform"

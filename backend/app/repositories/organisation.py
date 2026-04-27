@@ -29,14 +29,16 @@ logger = logging.getLogger(__name__)
 class OrganisationRepository(BaseRepository):
     """Repository für Organisation Management."""
 
-    def __init__(self, table: Table, s3_storage=None):
+    def __init__(self, table: Table, s3_storage=None, secrets_manager=None):
         """Initialize OrganisationRepository.
 
         Args:
             table: DynamoDB Table Resource
             s3_storage: S3 Storage for large items (optional)
+            secrets_manager: SecretsManager for encrypting AWS credentials (optional)
         """
         super().__init__(table, s3_storage)
+        self.secrets_manager = secrets_manager
 
     # ========================================================================
     # Create
@@ -61,6 +63,7 @@ class OrganisationRepository(BaseRepository):
             Organisation item
         """
         org_id = uuid4()
+        now = datetime.utcnow().isoformat()
 
         # Organisation Item
         org_item = {
@@ -74,6 +77,8 @@ class OrganisationRepository(BaseRepository):
             "status": OrganisationStatus.ACTIVE.value,
             "aws_role_arn": None,
             "aws_account_id": None,
+            "created_at": now,
+            "updated_at": now,
             # Quota tracking
             "quota": {
                 "active_deployments": 0,
@@ -94,6 +99,7 @@ class OrganisationRepository(BaseRepository):
             "SK": f"USER#{str(owner_user_id)}",
             "user_id": str(owner_user_id),
             "role": UserRole.OWNER.value,
+            "created_at": now,
         }
 
         # Reverse Membership (USER → ORG)
@@ -103,6 +109,7 @@ class OrganisationRepository(BaseRepository):
             "org_id": str(org_id),
             "org_name": name,
             "role": UserRole.OWNER.value,
+            "joined_at": now,
         }
 
         # Batch write
@@ -179,23 +186,23 @@ class OrganisationRepository(BaseRepository):
             (items, total_count)
         """
         if owner_user_id:
-            # Query by owner (GSI2)
+            # Query by owner (GSI2) - get ALL items first
             items, _ = self._query(
                 key_condition=Key("GSI2PK").eq(f"owner#{str(owner_user_id)}"),
-                index_name="GSI2",
-                limit=limit + skip
+                index_name="GSI2"
             )
         else:
-            # Query all (GSI1)
+            # Query all (GSI1) - get ALL items first
             items, _ = self._query(
                 key_condition=Key("GSI1PK").eq("organisation"),
-                index_name="GSI1",
-                limit=limit + skip
+                index_name="GSI1"
             )
+
+        # Calculate total before pagination
+        total = len(items)
 
         # Manual pagination
         paginated_items = items[skip:skip + limit] if items else []
-        total = len(items)
 
         return paginated_items, total
 
@@ -254,7 +261,7 @@ class OrganisationRepository(BaseRepository):
         aws_role_arn: str,
         aws_account_id: str
     ) -> Optional[dict]:
-        """Update AWS IAM Role credentials.
+        """Update AWS IAM Role credentials (ENCRYPTED).
 
         Args:
             org_id: Organisation UUID
@@ -263,17 +270,81 @@ class OrganisationRepository(BaseRepository):
 
         Returns:
             Updated organisation
+
+        Security:
+            ✅ AWS Role ARN is encrypted in AWS Secrets Manager (KMS)
+            ✅ Only secret reference stored in DynamoDB
+            ✅ Encryption at rest + in transit
         """
-        # TODO: Encrypt aws_role_arn before storing (AWS Secrets Manager)
+        updates = {
+            "aws_account_id": aws_account_id,
+            "aws_verified_at": datetime.utcnow().isoformat(),
+        }
+
+        # Encrypt AWS Role ARN in Secrets Manager
+        if self.secrets_manager:
+            try:
+                secret_name = self.secrets_manager.store_aws_role_arn(
+                    str(org_id),
+                    aws_role_arn
+                )
+                updates["aws_role_arn_secret"] = secret_name
+                logger.info(
+                    f"Encrypted AWS credentials for org {org_id}",
+                    extra={"org_id": str(org_id), "secret_name": secret_name}
+                )
+            except Exception as e:
+                logger.error(f"Failed to encrypt AWS credentials: {e}")
+                raise HTTPException(
+                    status_code=500,
+                    detail="Failed to securely store AWS credentials"
+                )
+        else:
+            # Fallback for tests/dev without SecretsManager
+            logger.warning(
+                f"Storing AWS credentials in PLAINTEXT (SecretsManager not configured)",
+                extra={"org_id": str(org_id)}
+            )
+            updates["aws_role_arn"] = aws_role_arn  # ⚠️ PLAINTEXT fallback
+
         return self._update_item(
             f"ORG#{str(org_id)}",
             "METADATA",
-            {
-                "aws_role_arn": aws_role_arn,
-                "aws_account_id": aws_account_id,
-                "aws_verified_at": datetime.utcnow().isoformat(),
-            }
+            updates
         )
+
+    def get_aws_role_arn(self, org_id: UUID) -> Optional[str]:
+        """Retrieve decrypted AWS Role ARN.
+
+        Args:
+            org_id: Organisation UUID
+
+        Returns:
+            Decrypted AWS Role ARN or None
+
+        Security:
+            ✅ Transparently decrypts from AWS Secrets Manager
+            ✅ Falls back to plaintext for tests/dev
+        """
+        org = self.get(org_id)
+        if not org:
+            return None
+
+        # Decrypt from Secrets Manager if available
+        if self.secrets_manager and "aws_role_arn_secret" in org:
+            try:
+                return self.secrets_manager.retrieve_aws_role_arn(
+                    org["aws_role_arn_secret"]
+                )
+            except Exception as e:
+                logger.error(
+                    f"Failed to decrypt AWS credentials for org {org_id}: {e}",
+                    extra={"org_id": str(org_id)}
+                )
+                return None
+        else:
+            # Fallback to plaintext (tests/dev)
+            return org.get("aws_role_arn")
 
     # ========================================================================
     # Member Management
@@ -299,6 +370,8 @@ class OrganisationRepository(BaseRepository):
         Returns:
             Membership item
         """
+        now = datetime.utcnow().isoformat()
+
         # Membership Item
         membership_item = {
             "PK": f"ORG#{str(org_id)}",
@@ -307,6 +380,7 @@ class OrganisationRepository(BaseRepository):
             "email": user_email,
             "name": user_name,
             "role": role.value,
+            "created_at": now,
         }
 
         # Reverse Membership
@@ -317,6 +391,7 @@ class OrganisationRepository(BaseRepository):
             "org_id": str(org_id),
             "org_name": org["name"] if org else "Unknown",
             "role": role.value,
+            "joined_at": now,
         }
 
         # Batch write
@@ -458,7 +533,7 @@ class OrganisationRepository(BaseRepository):
 
         Args:
             org_id: Organisation UUID
-            quota_key: Quota key to check
+            quota_key: Quota key to check (can be "max_*" or just the key)
 
         Returns:
             (can_proceed, current_value, max_allowed)
@@ -468,13 +543,18 @@ class OrganisationRepository(BaseRepository):
             return False, 0, 0
 
         plan = OrganisationPlan(org.get("plan", OrganisationPlan.FREE.value))
-        max_allowed = get_quota(plan, quota_key)
+
+        # Ensure "max_" prefix for PLAN_QUOTAS lookup
+        max_key = quota_key if quota_key.startswith("max_") else f"max_{quota_key}"
+        max_allowed = get_quota(plan, max_key)
 
         # -1 = unlimited
         if isinstance(max_allowed, int) and max_allowed == -1:
             return True, 0, -1
 
-        current_value = org.get("quota", {}).get(quota_key, 0)
+        # Strip "max_" prefix to get actual quota key in org["quota"]
+        current_key = quota_key.replace("max_", "") if quota_key.startswith("max_") else quota_key
+        current_value = org.get("quota", {}).get(current_key, 0)
 
         can_proceed = current_value < max_allowed
 
@@ -506,7 +586,7 @@ class OrganisationRepository(BaseRepository):
             delete_keys.append({"PK": f"USER#{user_id}", "SK": f"ORG#{str(org_id)}"})
 
         if delete_keys:
-            self._batch_write_items(delete_keys=delete_keys)
+            self._batch_write_items(items=[], delete_keys=delete_keys)
 
         # Delete organisation metadata
         deleted = self._delete_item(f"ORG#{str(org_id)}", "METADATA")

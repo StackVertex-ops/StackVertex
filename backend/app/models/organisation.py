@@ -40,17 +40,35 @@ class OrganisationType(str, Enum):
     ENTERPRISE = "enterprise"  # Enterprise organisation with SLA
 
 
+# Plan Pricing (EUR)
+PLAN_PRICING = {
+    OrganisationPlan.FREE: {
+        "monthly": 0,
+        "yearly": 0,
+    },
+    OrganisationPlan.PRO: {
+        "monthly": 29.00,  # €29/month
+        "yearly": 290.00,  # €290/year (17% discount = 10 months)
+    },
+    OrganisationPlan.ENTERPRISE: {
+        "monthly": 149.00,  # €149/month
+        "yearly": 1491.00,  # €1,491/year (17% discount)
+    },
+}
+
 # Plan Quotas (hardcoded limits)
 PLAN_QUOTAS = {
     OrganisationPlan.FREE: {
-        "max_active_deployments": 1,
-        "max_members": 3,
-        "max_architectures": 50,
+        "max_active_deployments": 1,  # Nur 1 kleines Deployment
+        "max_members": 1,  # Nur Owner (keine Team-Members)
+        "max_architectures": 10,  # Begrenzt für Testing
         "monitoring_level": MonitoringLevel.BASIC,
-        "monitoring_interval_seconds": 300,  # 5 minutes
-        "terraform_json_exports": -1,  # unlimited
+        "monitoring_interval_seconds": 600,  # 10 minutes (langsamer als PRO)
+        "terraform_json_exports": -1,  # JSON Export unlimited (Core Feature!)
+        "terraform_apply": False,  # ❌ KEIN echtes Deployment! Nur JSON Export
         "cost_estimation": True,
         "multi_cloud": False,
+        "max_deployment_components": 3,  # Max 3 Components pro Architecture (klein)
     },
     OrganisationPlan.PRO: {
         "max_active_deployments": 10,
@@ -59,11 +77,13 @@ PLAN_QUOTAS = {
         "monitoring_level": MonitoringLevel.ADVANCED,
         "monitoring_interval_seconds": 60,  # 1 minute
         "terraform_json_exports": -1,  # unlimited
+        "terraform_apply": True,  # ✅ Echte Deployments möglich
         "cost_estimation": True,
         "multi_cloud": False,
         "deployment_history_days": 90,
         "cost_tracking": True,
         "alerts": True,
+        "max_deployment_components": -1,  # Unlimited Components
     },
     OrganisationPlan.ENTERPRISE: {
         "max_active_deployments": -1,  # unlimited
@@ -72,6 +92,7 @@ PLAN_QUOTAS = {
         "monitoring_level": MonitoringLevel.ENTERPRISE,
         "monitoring_interval_seconds": 30,  # 30 seconds
         "terraform_json_exports": -1,  # unlimited
+        "terraform_apply": True,  # ✅ Echte Deployments
         "cost_estimation": True,
         "multi_cloud": True,  # AWS + Azure + GCP
         "deployment_history_days": 365,
@@ -81,6 +102,9 @@ PLAN_QUOTAS = {
         "dedicated_support": True,
         "blue_green_deployments": True,
         "drift_detection": True,
+        "max_deployment_components": -1,  # Unlimited
+        "priority_support": True,
+        "custom_integrations": True,
     },
 }
 
@@ -110,3 +134,41 @@ def can_exceed_quota(plan: OrganisationPlan, quota_key: str) -> bool:
     """
     quota = get_quota(plan, quota_key)
     return isinstance(quota, int) and quota == -1
+
+
+def get_plan_price(plan: OrganisationPlan, interval: str = "monthly") -> float:
+    """Get price for a plan.
+
+    Args:
+        plan: Organisation plan
+        interval: Billing interval ("monthly" or "yearly")
+
+    Returns:
+        Price in EUR
+    """
+    return PLAN_PRICING[plan].get(interval, 0.0)
+
+
+def calculate_yearly_discount(plan: OrganisationPlan) -> float:
+    """Calculate yearly discount percentage.
+
+    Args:
+        plan: Organisation plan
+
+    Returns:
+        Discount percentage (e.g., 17.0 for 17%)
+    """
+    if plan == OrganisationPlan.FREE:
+        return 0.0
+
+    monthly_price = get_plan_price(plan, "monthly")
+    yearly_price = get_plan_price(plan, "yearly")
+
+    if monthly_price == 0:
+        return 0.0
+
+    # Yearly discount: (1 - (yearly / (monthly * 12))) * 100
+    full_year_price = monthly_price * 12
+    discount = (1 - (yearly_price / full_year_price)) * 100
+
+    return round(discount, 1)

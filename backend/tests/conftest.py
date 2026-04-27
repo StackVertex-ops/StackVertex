@@ -239,6 +239,25 @@ def mock_s3_bucket(mock_s3_resource):
     return bucket
 
 
+@pytest.fixture
+def mock_secrets_manager_client(aws_credentials):
+    """Mocked AWS Secrets Manager Client mit moto."""
+    import boto3
+    from moto import mock_aws
+
+    with mock_aws():
+        yield boto3.client("secretsmanager", region_name="us-east-1")
+
+
+@pytest.fixture
+def mock_secrets_manager(mock_secrets_manager_client):
+    """Mocked SecretsManager Service für Testing."""
+    from app.services.secrets_manager import SecretsManager
+
+    # SecretsManager nutzt den gemockten Client
+    return SecretsManager(client=mock_secrets_manager_client)
+
+
 # =============================================================================
 # Sample Large Data Fixtures
 # =============================================================================
@@ -339,10 +358,14 @@ def user_repository(mock_dynamodb_table):
 
 
 @pytest.fixture
-def organisation_repository(mock_dynamodb_table, mock_s3_bucket):
-    """OrganisationRepository mit mocked AWS resources."""
+def organisation_repository(mock_dynamodb_table, mock_s3_bucket, mock_secrets_manager):
+    """OrganisationRepository mit mocked AWS resources und SecretsManager."""
     from app.repositories.organisation import OrganisationRepository
     from app.db.s3_storage import S3Storage
 
     s3_storage = S3Storage(bucket_name="overcloud-test-bucket")
-    return OrganisationRepository(table=mock_dynamodb_table, s3_storage=s3_storage)
+    return OrganisationRepository(
+        table=mock_dynamodb_table,
+        s3_storage=s3_storage,
+        secrets_manager=mock_secrets_manager
+    )

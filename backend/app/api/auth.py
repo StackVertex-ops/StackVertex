@@ -7,13 +7,16 @@ import logging
 from datetime import datetime, timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.config import settings
 from app.db.dynamodb import get_dynamodb_table
 from app.repositories.user import UserRepository
+from app.services.account_lockout import AccountLockoutService, get_account_lockout_service
 from app.schemas.user import (
     UserCreate,
     UserResponse,
@@ -28,6 +31,9 @@ router = APIRouter()
 
 # OAuth2 scheme for token authentication
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+
+# Rate limiter
+limiter = Limiter(key_func=get_remote_address)
 
 
 # ============================================================================
@@ -125,7 +131,9 @@ async def get_current_user(
 
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("100/minute" if settings.TESTING else "5/minute")
 async def register(
+    request: Request,
     user_create: UserCreate,
     user_repo: UserRepository = Depends(get_user_repository)
 ):
@@ -172,23 +180,66 @@ async def register(
 
 
 @router.post("/login", response_model=TokenResponse)
+@limiter.limit("1000/minute" if settings.TESTING else "10/minute")
 async def login(
+    request: Request,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    user_repo: UserRepository = Depends(get_user_repository)
+    user_repo: UserRepository = Depends(get_user_repository),
+    table=Depends(get_dynamodb_table)
 ):
     """Login with email + password.
 
     Returns JWT access token.
+
+    Security:
+        - Rate limited to 10 attempts/minute per IP
+        - Account locked after 5 failed attempts (15 min lockout)
+        - Failed attempts reset after 30min window
     """
+    email = form_data.username.lower()
+    ip_address = request.client.host if request.client else "unknown"
+
+    # Create lockout service
+    lockout_service = AccountLockoutService(table=table)
+
+    # Check if account is locked
+    is_locked, locked_until = lockout_service.is_account_locked(email)
+    if is_locked:
+        minutes_remaining = int((locked_until - datetime.utcnow()).total_seconds() / 60)
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Account locked due to too many failed login attempts. Try again in {minutes_remaining} minutes."
+        )
+
     # Authenticate user
-    user = user_repo.authenticate(form_data.username, form_data.password)
+    user = user_repo.authenticate(email, form_data.password)
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
+        # Record failed login attempt
+        is_now_locked, failed_count, locked_until = lockout_service.record_failed_login(
+            email, ip_address
         )
+
+        logger.warning(
+            f"Failed login attempt for {email}",
+            extra={"email": email, "ip": ip_address, "failed_count": failed_count}
+        )
+
+        if is_now_locked:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Too many failed login attempts. Account locked for {lockout_service.LOCKOUT_DURATION_MINUTES} minutes."
+            )
+        else:
+            remaining_attempts = lockout_service.MAX_FAILED_ATTEMPTS - failed_count
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"Incorrect email or password. {remaining_attempts} attempts remaining.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+    # Successful login - clear failed attempts
+    lockout_service.record_successful_login(email)
 
     logger.info(
         f"User logged in: {user['id']}",
@@ -229,7 +280,7 @@ async def get_current_user_profile(
             organisation_id=UUID(org["org_id"]),
             organisation_name=org["org_name"],
             role=org["role"],
-            joined_at=datetime.fromisoformat(org.get("joined_at", org.get("created_at")))
+            joined_at=datetime.fromisoformat(org["joined_at"]) if "joined_at" in org else datetime.utcnow()
         )
         for org in orgs
     ]

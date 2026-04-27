@@ -5,6 +5,7 @@ Organisation CRUD, Member Management, AWS Credentials, Plan Upgrades.
 
 import logging
 import re
+from datetime import datetime
 from typing import Annotated, Optional
 from uuid import UUID
 
@@ -14,6 +15,7 @@ from app.db.dynamodb import get_dynamodb_table
 from app.db.s3_storage import get_s3_storage
 from app.repositories.organisation import OrganisationRepository
 from app.repositories.user import UserRepository
+from app.services.secrets_manager import SecretsManager, get_secrets_manager
 from app.schemas.organisation import (
     OrganisationCreate,
     OrganisationUpdate,
@@ -44,10 +46,11 @@ router = APIRouter()
 
 def get_organisation_repository(
     table=Depends(get_dynamodb_table),
-    s3=Depends(get_s3_storage)
+    s3=Depends(get_s3_storage),
+    secrets_manager: SecretsManager = Depends(get_secrets_manager)
 ) -> OrganisationRepository:
-    """Get OrganisationRepository instance."""
-    return OrganisationRepository(table=table, s3_storage=s3)
+    """Get OrganisationRepository instance with AWS Secrets Manager."""
+    return OrganisationRepository(table=table, s3_storage=s3, secrets_manager=secrets_manager)
 
 
 def get_user_repository(table=Depends(get_dynamodb_table)) -> UserRepository:
@@ -165,7 +168,9 @@ async def create_organisation(
         monitoring_level=get_quota(plan, "monitoring_level"),
     )
 
-    return OrganisationResponse(**org, quota=quota_response)
+    # Remove quota dict from org before spreading (to avoid duplicate keyword arg)
+    org_without_quota = {k: v for k, v in org.items() if k != "quota"}
+    return OrganisationResponse(**org_without_quota, quota=quota_response)
 
 
 @router.get("", response_model=OrganisationListResponse)
@@ -205,7 +210,8 @@ async def list_organisations(
             monitoring_level=get_quota(plan, "monitoring_level"),
         )
 
-        org_responses.append(OrganisationResponse(**org, quota=quota_response))
+        org_without_quota = {k: v for k, v in org.items() if k != "quota"}
+        org_responses.append(OrganisationResponse(**org_without_quota, quota=quota_response))
 
     return OrganisationListResponse(
         items=org_responses,
@@ -236,7 +242,7 @@ async def get_organisation(
             email=m["email"],
             name=m["name"],
             role=UserRole(m["role"]),
-            joined_at=m.get("created_at")
+            joined_at=datetime.fromisoformat(m["created_at"]) if "created_at" in m else datetime.utcnow()
         )
         for m in members
     ]
@@ -255,8 +261,9 @@ async def get_organisation(
         monitoring_level=get_quota(plan, "monitoring_level"),
     )
 
+    org_without_quota = {k: v for k, v in org.items() if k != "quota"}
     return OrganisationDetailResponse(
-        **org,
+        **org_without_quota,
         quota=quota_response,
         members=member_responses
     )
@@ -302,7 +309,8 @@ async def update_organisation(
         monitoring_level=get_quota(plan, "monitoring_level"),
     )
 
-    return OrganisationResponse(**updated_org, quota=quota_response)
+    org_without_quota = {k: v for k, v in updated_org.items() if k != "quota"}
+    return OrganisationResponse(**org_without_quota, quota=quota_response)
 
 
 @router.delete("/{org_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -561,7 +569,8 @@ async def get_aws_credentials_status(
     """
     org = await check_org_permission(org_id, current_user, UserRole.MEMBER, org_repo)
 
-    connected = org.get("aws_role_arn") is not None
+    # Check both encrypted (aws_role_arn_secret) and plaintext (aws_role_arn) storage
+    connected = org.get("aws_role_arn_secret") is not None or org.get("aws_role_arn") is not None
     aws_account_id = org.get("aws_account_id")
 
     partial_arn = None
@@ -624,4 +633,5 @@ async def upgrade_plan(
         monitoring_level=get_quota(plan_upgrade.new_plan, "monitoring_level"),
     )
 
-    return OrganisationResponse(**updated_org, quota=quota_response)
+    org_without_quota = {k: v for k, v in updated_org.items() if k != "quota"}
+    return OrganisationResponse(**org_without_quota, quota=quota_response)

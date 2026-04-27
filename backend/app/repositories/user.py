@@ -59,6 +59,7 @@ class UserRepository(BaseRepository):
         """
         user_id = uuid4()
         personal_org_id = uuid4()
+        now = datetime.utcnow().isoformat()
 
         # Hash password (bcrypt has 72-byte limit)
         password_truncated = password[:72] if len(password) > 72 else password
@@ -76,6 +77,8 @@ class UserRepository(BaseRepository):
             "auth_provider_id": auth_provider_id,
             "status": UserStatus.ACTIVE.value,
             "personal_org_id": str(personal_org_id),
+            "created_at": now,
+            "updated_at": now,
             # GSI1: Query by email
             "GSI1PK": "user_by_email",
             "GSI1SK": email.lower(),
@@ -91,6 +94,13 @@ class UserRepository(BaseRepository):
             "owner_user_id": str(user_id),
             "plan": OrganisationPlan.FREE.value,
             "status": "active",
+            "created_at": now,
+            "updated_at": now,
+            "quota": {
+                "active_deployments": 0,
+                "members": 1,
+                "architectures": 0,
+            },
             # GSI1: Query all organisations
             "GSI1PK": "organisation",
             "GSI1SK": str(personal_org_id),
