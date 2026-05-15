@@ -14,6 +14,7 @@ from app.repositories.user import UserRepository
 from app.schemas.user import (
     UserResponse,
     UserUpdate,
+    UserPasswordUpdate,
     UserListResponse,
 )
 from app.api.auth import get_current_user
@@ -150,3 +151,81 @@ async def delete_user(
     )
 
     return None
+
+
+@router.get("/{user_id}/organisations", response_model=list[dict])
+async def get_user_organisations(
+    user_id: UUID,
+    current_user: Annotated[dict, Depends(get_current_user)] = None,
+    user_repo: UserRepository = Depends(get_user_repository)
+):
+    """Get all organisations user is member of.
+
+    Users can only view their own organisations.
+    """
+    # Check if user is requesting their own organisations
+    if str(user_id) != current_user["id"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only view your own organisations"
+        )
+
+    organisations = user_repo.get_organisations(user_id)
+
+    return organisations
+
+
+@router.patch("/{user_id}/password", response_model=dict)
+async def update_password(
+    user_id: UUID,
+    password_update: UserPasswordUpdate,
+    current_user: Annotated[dict, Depends(get_current_user)] = None,
+    user_repo: UserRepository = Depends(get_user_repository)
+):
+    """Update user password.
+
+    Users can only update their own password.
+    Requires current password for verification.
+    """
+    # Check if user is updating their own password
+    if str(user_id) != current_user["id"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only update your own password"
+        )
+
+    # Get user
+    user = user_repo.get(user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Verify current password
+    if not user_repo.verify_password(password_update.current_password, user.get("password_hash", "")):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Current password is incorrect"
+        )
+
+    # Hash new password (using passlib directly like in UserRepository.create)
+    from passlib.context import CryptContext
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    new_password_hash = pwd_context.hash(password_update.new_password)
+
+    # Update password
+    updated_user = user_repo.update(user_id, {"password_hash": new_password_hash})
+
+    if not updated_user:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update password"
+        )
+
+    logger.info(
+        f"Password updated for user: {user_id}",
+        extra={"user_id": str(user_id)}
+    )
+
+    return {"message": "Password updated successfully"}

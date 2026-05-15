@@ -49,6 +49,13 @@ class UserUpdate(BaseModel):
     # Password change via separate endpoint
 
 
+class UserPasswordUpdate(BaseModel):
+    """Schema für Password Update."""
+
+    current_password: str = Field(..., description="Current password for verification")
+    new_password: str = Field(..., min_length=8, max_length=128, description="New password")
+
+
 class UserLogin(BaseModel):
     """Schema für User Login."""
 

@@ -501,6 +501,32 @@ async def update_member_role(
     )
 
 
+@router.get("/{org_id}/members", response_model=list[OrganisationMemberResponse])
+async def list_members(
+    org_id: UUID,
+    current_user: Annotated[dict, Depends(get_current_user)] = None,
+    org_repo: OrganisationRepository = Depends(get_organisation_repository)
+):
+    """List all members of an organisation.
+
+    Requires: MEMBER role
+    """
+    await check_org_permission(org_id, current_user, UserRole.MEMBER, org_repo)
+
+    members = org_repo.get_members(org_id)
+
+    return [
+        OrganisationMemberResponse(
+            user_id=UUID(m["user_id"]),
+            email=m["email"],
+            name=m["name"],
+            role=UserRole(m["role"]),
+            joined_at=m.get("created_at")
+        )
+        for m in members
+    ]
+
+
 # ============================================================================
 # AWS Credentials
 # ============================================================================
@@ -591,6 +617,43 @@ async def get_aws_credentials_status(
         aws_role_arn_partial=partial_arn,
         verified_at=org.get("aws_verified_at"),
         last_used_at=org.get("aws_last_used_at")
+    )
+
+
+# ============================================================================
+# Quota Management
+# ============================================================================
+
+
+@router.get("/{org_id}/quota", response_model=OrganisationQuotaResponse)
+async def get_quota(
+    org_id: UUID,
+    current_user: Annotated[dict, Depends(get_current_user)] = None,
+    org_repo: OrganisationRepository = Depends(get_organisation_repository)
+):
+    """Get organisation quota usage and limits.
+
+    Requires: MEMBER role
+    """
+    org = await check_org_permission(org_id, current_user, UserRole.MEMBER, org_repo)
+
+    # Get current usage
+    quota = org_repo.get_quota(org_id)
+
+    # Get plan limits
+    plan = OrganisationPlan(org["plan"])
+    max_active_deployments = plan.max_active_deployments()
+    max_members = plan.max_members()
+    max_architectures = plan.max_architectures()
+
+    return OrganisationQuotaResponse(
+        active_deployments=quota.get("active_deployments", 0),
+        max_active_deployments=max_active_deployments,
+        members=quota.get("members", 1),
+        max_members=max_members,
+        architectures=quota.get("architectures", 0),
+        max_architectures=max_architectures,
+        monitoring_level=org.get("monitoring_level", "basic")
     )
 
 
