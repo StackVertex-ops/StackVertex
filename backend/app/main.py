@@ -3,6 +3,8 @@
 This is the entry point for the OverCloud backend API.
 """
 
+import logging
+
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -13,6 +15,19 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from app.config import settings
+from app.core.logging import setup_logging
+
+# Setup logging BEFORE creating app
+setup_logging(
+    level=settings.LOG_LEVEL,
+    json_format=settings.LOG_JSON_FORMAT,
+    enable_cloudwatch=settings.ENABLE_CLOUDWATCH,
+    enable_sentry=settings.ENABLE_SENTRY,
+    sentry_dsn=settings.SENTRY_DSN,
+    environment=settings.ENV,
+)
+
+logger = logging.getLogger(__name__)
 
 # Create FastAPI app
 app = FastAPI(
@@ -93,12 +108,18 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):
     """Handle unexpected exceptions - never expose internals in production."""
-    if settings.ENV == "production":
-        # Log the error (for monitoring)
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    # Log error with context
+    logger.error(
+        f"Unhandled exception: {exc}",
+        exc_info=True,
+        extra={
+            "path": request.url.path,
+            "method": request.method,
+            "client_host": request.client.host if request.client else None,
+        }
+    )
 
+    if settings.ENV == "production":
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={"detail": "Internal server error"}
@@ -106,6 +127,20 @@ async def generic_exception_handler(request: Request, exc: Exception):
     else:
         # Development: show full traceback
         raise exc
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Log application startup."""
+    logger.info(
+        "OverCloud API starting",
+        extra={
+            "version": "0.1.0",
+            "environment": settings.ENV,
+            "debug": settings.DEBUG,
+            "log_level": settings.LOG_LEVEL,
+        }
+    )
 
 
 @app.get("/")

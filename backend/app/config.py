@@ -95,6 +95,13 @@ class Settings(BaseSettings):
     DEPLOYMENT_RETENTION_DAYS: int = 30
     MAX_CONCURRENT_DEPLOYMENTS: int = 5
 
+    # Logging & Monitoring
+    LOG_LEVEL: str = "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+    LOG_JSON_FORMAT: bool = False  # Enable JSON logging (True for production)
+    ENABLE_CLOUDWATCH: bool = False  # Send logs to AWS CloudWatch
+    ENABLE_SENTRY: bool = False  # Enable Sentry error tracking
+    SENTRY_DSN: str | None = None  # Sentry DSN (https://xxx@sentry.io/xxx)
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
