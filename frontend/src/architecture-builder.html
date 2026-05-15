@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Architecture Builder - OverCloud</title>
+    <meta name="description" content="Build cloud architectures visually with drag & drop">
+    <link rel="icon" type="image/svg+xml" href="/assets/logo.svg">
+</head>
+<body class="bg-gray-50 dark:bg-gray-900">
+    <!-- App Container -->
+    <div id="app" class="flex flex-col h-screen">
+        <!-- Header -->
+        <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+            <nav class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center space-x-4">
+                        <a href="#/" class="text-2xl font-bold text-gray-900 dark:text-white">
+                            OverCloud
+                        </a>
+                        <span class="text-gray-400 dark:text-gray-600">/</span>
+                        <span class="text-gray-600 dark:text-gray-400">Architecture Builder</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <!-- Actions -->
+                        <button
+                            id="validate-btn"
+                            class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center space-x-2"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span>Validieren</span>
+                        </button>
+                        <button
+                            id="export-json-btn"
+                            class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center space-x-2"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                            <span>Export JSON</span>
+                        </button>
+                        <button
+                            id="save-btn"
+                            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                            </svg>
+                            <span>Speichern</span>
+                        </button>
+                        <button
+                            onclick="window.location.hash = '#/architectures'"
+                            class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                        >
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex overflow-hidden">
+            <!-- Component Palette (Left Sidebar) -->
+            <aside id="component-palette" class="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto flex-shrink-0">
+                <!-- Wird dynamisch gefüllt -->
+            </aside>
+
+            <!-- Canvas Area -->
+            <main id="canvas-container" class="flex-1 relative overflow-hidden bg-gray-100 dark:bg-gray-900">
+                <!-- Wird dynamisch gefüllt -->
+            </main>
+
+            <!-- Properties Panel (Right Sidebar) -->
+            <aside id="properties-panel" class="w-96 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 overflow-y-auto flex-shrink-0">
+                <!-- Wird dynamisch gefüllt -->
+            </aside>
+        </div>
+
+        <!-- Status Bar -->
+        <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-2 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 flex-shrink-0">
+            <div class="flex items-center space-x-4">
+                <span id="status-message">Ready</span>
+                <span id="component-count">0 Components</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span id="validation-status"></span>
+                <button id="toggle-json-view" class="text-blue-600 hover:text-blue-700">
+                    JSON anzeigen
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- JSON Modal (Hidden by default) -->
+    <div id="json-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Architecture JSON</h3>
+                <button id="close-json-modal" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="flex-1 p-4 overflow-y-auto">
+                <pre id="json-preview" class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg overflow-x-auto text-sm font-mono text-gray-900 dark:text-gray-100"></pre>
+            </div>
+            <div class="flex items-center justify-end space-x-3 p-4 border-t border-gray-200 dark:border-gray-700">
+                <button id="copy-json-btn" class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    In Zwischenablage kopieren
+                </button>
+                <button id="download-json-btn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                    Als Datei herunterladen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="/js/architecture-builder-entry.js"></script>
+</body>
+</html>
