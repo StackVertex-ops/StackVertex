@@ -9,6 +9,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Header
 from pydantic import BaseModel, Field
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.config import settings
 from app.db.dynamodb import get_dynamodb_table
@@ -22,6 +24,9 @@ from app.api.organisations import check_org_permission, get_organisation_reposit
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+# Rate Limiter
+limiter = Limiter(key_func=get_remote_address)
 
 
 # ============================================================================
@@ -100,7 +105,9 @@ async def get_pricing():
 
 
 @router.post("/{org_id}/checkout", response_model=CheckoutResponse)
+@limiter.limit("1000/minute" if settings.TESTING else "20/minute")
 async def create_checkout_session(
+    request: Request,
     org_id: UUID,
     checkout_request: CheckoutRequest,
     current_user: Annotated[dict, Depends(get_current_user)],
@@ -173,7 +180,9 @@ async def create_checkout_session(
 
 
 @router.post("/{org_id}/billing-portal", response_model=BillingPortalResponse)
+@limiter.limit("1000/minute" if settings.TESTING else "20/minute")
 async def create_billing_portal_session(
+    request: Request,
     org_id: UUID,
     return_url: str,
     current_user: Annotated[dict, Depends(get_current_user)],

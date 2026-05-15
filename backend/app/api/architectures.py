@@ -7,8 +7,11 @@ import logging
 from typing import Optional, Dict, Any, List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Body
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Body, Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
+from app.config import settings
 from app.repositories.architecture import ArchitectureRepository
 from app.schemas.architecture import (
     ArchitectureCreate,
@@ -27,6 +30,9 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+# Rate Limiter
+limiter = Limiter(key_func=get_remote_address)
+
 
 # Dependency injection for ArchitectureRepository
 def get_architecture_repo() -> ArchitectureRepository:
@@ -43,10 +49,13 @@ def get_architecture_repo() -> ArchitectureRepository:
     responses={
         201: {"description": "Architektur erfolgreich erstellt"},
         422: {"description": "Validierungsfehler in den Eingabedaten"},
+        429: {"description": "Rate limit exceeded"},
         500: {"description": "Interner Serverfehler"},
     },
 )
+@limiter.limit("1000/minute" if settings.TESTING else "30/minute")
 async def create_architecture_endpoint(
+    request: Request,
     architecture: ArchitectureCreate,
     repo: ArchitectureRepository = Depends(get_architecture_repo),
 ) -> ArchitectureResponse:
@@ -182,10 +191,13 @@ async def get_architecture_endpoint(
         200: {"description": "Architektur erfolgreich aktualisiert"},
         404: {"description": "Architektur nicht gefunden"},
         422: {"description": "Validierungsfehler oder ungültige UUID"},
+        429: {"description": "Rate limit exceeded"},
         500: {"description": "Interner Serverfehler"},
     },
 )
+@limiter.limit("1000/minute" if settings.TESTING else "30/minute")
 async def update_architecture_endpoint(
+    request: Request,
     architecture_id: UUID,
     architecture_update: ArchitectureUpdate,
     repo: ArchitectureRepository = Depends(get_architecture_repo),
@@ -234,10 +246,13 @@ async def update_architecture_endpoint(
         204: {"description": "Architektur erfolgreich gelöscht"},
         404: {"description": "Architektur nicht gefunden"},
         422: {"description": "Ungültige UUID"},
+        429: {"description": "Rate limit exceeded"},
         500: {"description": "Interner Serverfehler"},
     },
 )
+@limiter.limit("1000/minute" if settings.TESTING else "30/minute")
 async def delete_architecture_endpoint(
+    request: Request,
     architecture_id: UUID,
     repo: ArchitectureRepository = Depends(get_architecture_repo),
 ) -> None:

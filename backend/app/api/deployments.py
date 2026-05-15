@@ -7,8 +7,11 @@ import logging
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Body
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Body, Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
+from app.config import settings
 from app.repositories.deployment import DeploymentRepository
 from app.models.deployment import DeploymentStatus
 from app.schemas.deployment import (
@@ -24,6 +27,9 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 deployment_manager = DeploymentManager()
+
+# Rate Limiter
+limiter = Limiter(key_func=get_remote_address)
 
 
 # Dependency injection for DeploymentRepository
@@ -41,10 +47,13 @@ def get_deployment_repo() -> DeploymentRepository:
     responses={
         201: {"description": "Deployment started"},
         404: {"description": "Architecture not found"},
+        429: {"description": "Rate limit exceeded"},
         500: {"description": "Deployment failed"},
     },
 )
+@limiter.limit("1000/minute" if settings.TESTING else "10/minute")
 async def deploy_architecture(
+    request: Request,
     architecture_id: UUID,
     deployment_data: DeploymentCreate,
     repo: DeploymentRepository = Depends(get_deployment_repo),
