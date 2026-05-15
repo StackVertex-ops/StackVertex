@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing
+.pytest_cache/
+.coverage
+coverage.xml
+*.cover
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+
+# Development
+test_simple.sh
+scripts/test_*.sh
+scripts/start_dynamodb_local.sh
+
+# Alembic (if using PostgreSQL migrations later)
+alembic/versions/*.pyc
+
+# Temporary files
+*.log
+*.tmp
+.DS_Store
