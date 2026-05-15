@@ -479,6 +479,14 @@ async def update_member_role(
             detail="Member not found"
         )
 
+    # Fetch full member object (update_member_role only returns updated fields)
+    member = org_repo.get_member(org_id, user_id)
+    if not member:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Member not found"
+        )
+
     logger.info(
         f"Member role updated in org {org_id}: {user_id} → {role_update.role.value}",
         extra={"org_id": str(org_id), "user_id": str(user_id)}
@@ -486,10 +494,10 @@ async def update_member_role(
 
     return OrganisationMemberResponse(
         user_id=user_id,
-        email=updated_member["email"],
-        name=updated_member["name"],
+        email=member["email"],
+        name=member["name"],
         role=role_update.role,
-        joined_at=updated_member.get("created_at")
+        joined_at=member.get("created_at")
     )
 
 
