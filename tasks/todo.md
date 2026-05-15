@@ -1,7 +1,7 @@
 # OverCloud - Aktuelle Aufgaben
 
-> **Letztes Update:** 2026-04-20  
-> **Status:** DynamoDB Migration ✅ Abgeschlossen | Backend Production-Ready ⚠️ Teilweise
+> **Letztes Update:** 2026-05-15  
+> **Status:** Testing ✅ 95% Complete | Backend Production-Ready ⚠️ Fast bereit
 
 ---
 
@@ -10,12 +10,18 @@
 ### ✅ **Was läuft:**
 - **Backend:** FastAPI + DynamoDB (Repository Pattern)
 - **Database:** DynamoDB Local (Development) + DynamoDB (Production bereit)
-- **API:** Alle Endpoints funktionieren (Architectures, Deployments, Audit Logs, Costs)
-- **Testing:** Manuelle Tests erfolgreich (siehe `test_simple.sh` und `scripts/test_api_local.sh`)
+- **API:** Alle Endpoints funktionieren (Architectures, Deployments, Audit Logs, Costs, Auth, Billing)
+- **Testing:** 
+  - ✅ 126 Unit Tests (100%)
+  - ✅ 49 Integration Tests (Auth, Billing, Organisations, Users)
+  - ✅ 60+ weitere Tests (validation, websocket, state management, etc.)
+  - ⏳ 43 Tests in Migration (Terraform, Cost, JSON Engine)
 - **Dokumentation:** API Examples vollständig (`docs/API_EXAMPLES.md`)
+- **Frontend:** Login, Register, Pricing, Billing Pages implementiert
 
 ### ⚠️ **Was fehlt noch:**
-- Automatisierte Tests (Unit + Integration)
+- Deployment Integration Tests (Task #12 - IN ARBEIT)
+- Terraform/Cost Tests Migration (Agent arbeitet)
 - Audit Statistics Lambda (DynamoDB Streams)
 - Rate Limiting für Production
 - Deployment Health Checks
@@ -28,25 +34,19 @@
 ### **Prio 1: Testing & Qualität** 🧪
 Diese Tasks sind KRITISCH für Production Deployment:
 
-#### Task #29: BaseRepository Unit Tests
-**Warum:** Core-Logik muss getestet sein bevor Production
-**Was:**
-- `tests/repositories/test_base_repository.py` erstellen
-- Tests für: `_put_item`, `_get_item`, `_query`, `_update_item`, `_delete_item`
-- S3 Offload Pattern testen (Mock S3)
-- Pagination testen
-**Geschätzte Zeit:** 2-3 Stunden
+#### Task #29: BaseRepository Unit Tests ✅ ERLEDIGT
+**Status:** 25/25 Tests bestehen
+**Ergebnis:** Vollständige Abdeckung von CRUD, S3 Offload, Pagination, Batch Operations
 
-#### Task #39: DynamoDB Repository Tests
-**Warum:** Daten-Integrität validieren
-**Was:**
-- `tests/repositories/test_architecture_repo.py`
-- `tests/repositories/test_deployment_repo.py`
-- `tests/repositories/test_audit_log_repo.py`
-- Alle CRUD Operationen testen
-- GSI Queries testen
-- Edge Cases (leere Listen, nicht existierende IDs)
-**Geschätzte Zeit:** 4-6 Stunden
+#### Task #39: DynamoDB Repository Tests ✅ ERLEDIGT
+**Status:** 126/126 Unit Tests bestehen
+**Abgedeckt:**
+- ArchitectureRepository: 17 Tests
+- DeploymentRepository: 27 Tests
+- UserRepository: 27 Tests
+- OrganisationRepository: 22 Tests (incl. AWS Credentials Encryption)
+- AuditLogRepository: 8 Tests
+- BaseRepository: 25 Tests
 
 #### Task #12: Comprehensive Deployment Tests
 **Warum:** Deployment ist komplex, muss robust sein
