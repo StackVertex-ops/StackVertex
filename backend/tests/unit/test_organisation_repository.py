@@ -384,9 +384,14 @@ class TestOrganisationUpdate:
             aws_account_id="123456789012"
         )
 
-        assert updated["aws_role_arn"] == aws_role_arn
+        # Credentials werden in Secrets Manager verschlüsselt gespeichert
+        assert "aws_role_arn_secret" in updated  # Secret reference
         assert updated["aws_account_id"] == "123456789012"
         assert "aws_verified_at" in updated
+
+        # Verify decryption works
+        decrypted_arn = organisation_repository.get_aws_role_arn(UUID(org["id"]))
+        assert decrypted_arn == aws_role_arn
 
 
 class TestOrganisationList:
