@@ -17,8 +17,6 @@ const api = new APIClient('http://localhost:8000');
  * Initialize application
  */
 async function init() {
-    console.log('OverCloud Frontend initialized');
-
     // Check API connection
     await checkAPIStatus();
 
@@ -167,7 +165,6 @@ function renderHomePage(container) {
  */
 function setupEventListeners() {
     // Add your event listeners here
-    console.log('Event listeners setup complete');
 }
 
 // Initialize app when DOM is ready

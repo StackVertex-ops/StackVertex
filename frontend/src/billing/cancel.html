@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zahlung abgebrochen - OverCloud</title>
+    <link rel="stylesheet" href="/src/css/main.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-900">OverCloud</h1>
+                <nav class="flex gap-6">
+                    <a href="/src/index.html" class="text-gray-600 hover:text-gray-900">Dashboard</a>
+                    <a href="/src/pricing.html" class="text-blue-600 font-medium">Pricing</a>
+                    <a href="/src/billing.html" class="text-gray-600 hover:text-gray-900">Billing</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Cancel Message -->
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div class="bg-white rounded-lg shadow-lg p-12 text-center">
+            <!-- Info Icon -->
+            <div class="w-20 h-20 bg-yellow-100 rounded-full mx-auto mb-6 flex items-center justify-center">
+                <svg class="w-12 h-12 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+            </div>
+
+            <!-- Title -->
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">
+                Zahlung abgebrochen
+            </h2>
+
+            <!-- Message -->
+            <p class="text-xl text-gray-600 mb-8">
+                Du hast den Checkout-Prozess abgebrochen.<br>
+                Keine Sorge, es wurde nichts berechnet.
+            </p>
+
+            <!-- Info Box -->
+            <div class="bg-blue-50 rounded-lg p-6 mb-8 text-left">
+                <h3 class="font-semibold text-gray-900 mb-3">Möchtest du es doch versuchen?</h3>
+                <p class="text-gray-700 mb-4">
+                    Mit einem bezahlten Plan bekommst du Zugriff auf:
+                </p>
+                <ul class="space-y-2 text-gray-700">
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span><strong>Unbegrenzte Architekturen</strong> und Deployments</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span><strong>Terraform Apply</strong> für echte Cloud-Deployments</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span><strong>Versionierung & History</strong></span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span><strong>Team Collaboration</strong> mit bis zu 10 Mitgliedern</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-4 justify-center">
+                <a href="/src/pricing.html" class="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
+                    Zurück zu Pricing
+                </a>
+                <a href="/src/index.html" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition">
+                    Zum Dashboard
+                </a>
+            </div>
+
+            <!-- FREE Plan Info -->
+            <div class="mt-8 pt-8 border-t">
+                <p class="text-gray-600 text-sm">
+                    Du kannst OverCloud auch weiterhin <strong>kostenlos</strong> nutzen.<br>
+                    Der FREE Plan hat nur einige Einschränkungen.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t mt-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="text-center text-gray-600">
+                <p>&copy; 2026 OverCloud. Keine versteckten Kosten. Keine Dark Patterns.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

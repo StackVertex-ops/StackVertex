@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zahlung erfolgreich - OverCloud</title>
+    <link rel="stylesheet" href="/src/css/main.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-900">OverCloud</h1>
+                <nav class="flex gap-6">
+                    <a href="/src/index.html" class="text-gray-600 hover:text-gray-900">Dashboard</a>
+                    <a href="/src/pricing.html" class="text-gray-600 hover:text-gray-900">Pricing</a>
+                    <a href="/src/billing.html" class="text-gray-600 hover:text-gray-900">Billing</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Success Message -->
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div class="bg-white rounded-lg shadow-lg p-12 text-center">
+            <!-- Success Icon -->
+            <div class="w-20 h-20 bg-green-100 rounded-full mx-auto mb-6 flex items-center justify-center">
+                <svg class="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+
+            <!-- Title -->
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">
+                🎉 Zahlung erfolgreich!
+            </h2>
+
+            <!-- Message -->
+            <p class="text-xl text-gray-600 mb-8">
+                Dein Plan wurde erfolgreich aktiviert.<br>
+                Du erhältst in Kürze eine Bestätigungs-Email.
+            </p>
+
+            <!-- Status Info -->
+            <div class="bg-blue-50 rounded-lg p-6 mb-8 text-left">
+                <h3 class="font-semibold text-gray-900 mb-3">Was passiert jetzt?</h3>
+                <ul class="space-y-2 text-gray-700">
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Dein Plan wird sofort aktiviert</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Du bekommst Zugriff auf alle Premium-Features</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Eine Bestätigungs-Email mit allen Details wird verschickt</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Du wirst 30 Tage und 7 Tage vor Ablauf benachrichtigt</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-4 justify-center">
+                <a href="/src/index.html" class="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
+                    Zum Dashboard
+                </a>
+                <a href="/src/billing.html" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition">
+                    Billing-Einstellungen
+                </a>
+            </div>
+
+            <!-- Support Info -->
+            <div class="mt-8 pt-8 border-t">
+                <p class="text-gray-600 text-sm">
+                    Fragen? Kontaktiere uns unter
+                    <a href="mailto:support@overcloud.com" class="text-blue-600 hover:underline">
+                        support@overcloud.com
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t mt-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="text-center text-gray-600">
+                <p>&copy; 2026 OverCloud. Transparente Preise, faire Konditionen.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
