@@ -81,6 +81,11 @@
             </aside>
         </div>
 
+        <!-- AI Advisor Bar (Collapsible) -->
+        <div id="ai-advisor-bar" class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
+            <!-- Wird dynamisch gefüllt -->
+        </div>
+
         <!-- Status Bar -->
         <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-2 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 flex-shrink-0">
             <div class="flex items-center space-x-4">
@@ -89,6 +94,10 @@
             </div>
             <div class="flex items-center space-x-4">
                 <span id="validation-status"></span>
+                <button id="toggle-advisor" class="text-purple-600 hover:text-purple-700 flex items-center space-x-1">
+                    <span>🤖</span>
+                    <span>AI Advisor</span>
+                </button>
                 <button id="toggle-json-view" class="text-blue-600 hover:text-blue-700">
                     JSON anzeigen
                 </button>

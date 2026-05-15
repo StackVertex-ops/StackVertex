@@ -7,6 +7,7 @@
 import { renderComponentPalette } from '../components/component-palette.js';
 import { ArchitectureCanvas } from '../components/architecture-canvas.js';
 import { renderPropertiesPanel } from '../components/properties-panel.js';
+import { renderAIAdvisor } from '../components/ai-advisor.js';
 import { validateArchitecture } from '../lib/architecture-validator.js';
 import { createArchitecture, updateArchitecture, getArchitecture } from '../api/architectures.js';
 import { EXAMPLE_SIMPLE_WEB_APP, EXAMPLE_SERVERLESS_API } from '../lib/example-architectures.js';
@@ -50,6 +51,7 @@ export async function renderArchitectureBuilderCanvas(appContainer, architecture
         const paletteContainer = document.getElementById('component-palette');
         const canvasContainer = document.getElementById('canvas-container');
         const propertiesContainer = document.getElementById('properties-panel');
+        const advisorContainer = document.getElementById('ai-advisor-bar');
 
         // Render Component Palette
         renderComponentPalette(paletteContainer, 'aws', handleComponentSelection);
@@ -72,11 +74,16 @@ export async function renderArchitectureBuilderCanvas(appContainer, architecture
         // Render Properties Panel (initially empty)
         renderPropertiesPanel(propertiesContainer, null);
 
+        // Render AI Advisor (initially hidden)
+        renderAIAdvisor(advisorContainer, currentArchitecture);
+        advisorContainer.querySelector('#advisor-content')?.classList.add('hidden');
+
         // Setup Global Event Handlers
         setupGlobalHandlers(canvas, currentArchitecture, architectureId);
 
-        // Update status
+        // Update status and advisor
         updateStatus();
+        updateAIAdvisor();
 
     } catch (error) {
         console.error('Fehler beim Laden der Architecture Builder Canvas:', error);
@@ -213,6 +220,19 @@ export async function renderArchitectureBuilderCanvas(appContainer, architecture
         if (toggleJsonBtn) {
             toggleJsonBtn.addEventListener('click', () => {
                 showJSONModal(canvas, architecture);
+            });
+        }
+
+        // Toggle AI Advisor Button
+        const toggleAdvisorBtn = document.getElementById('toggle-advisor');
+        if (toggleAdvisorBtn) {
+            toggleAdvisorBtn.addEventListener('click', () => {
+                const advisorBar = document.getElementById('ai-advisor-bar');
+                const content = advisorBar?.querySelector('#advisor-content');
+                if (content) {
+                    content.classList.toggle('hidden');
+                    updateAIAdvisor(); // Refresh recommendations
+                }
             });
         }
     }
@@ -404,6 +424,23 @@ export async function renderArchitectureBuilderCanvas(appContainer, architecture
         const countEl = document.getElementById('component-count');
         if (countEl && canvas) {
             countEl.textContent = `${canvas.components.size} Components`;
+        }
+    }
+
+    /**
+     * Update AI Advisor
+     */
+    function updateAIAdvisor() {
+        const advisorContainer = document.getElementById('ai-advisor-bar');
+        if (advisorContainer && currentArchitecture) {
+            renderAIAdvisor(advisorContainer, currentArchitecture);
+            // Keep collapsed state
+            const content = advisorContainer.querySelector('#advisor-content');
+            if (content && !content.classList.contains('hidden')) {
+                // Was expanded, keep it expanded
+            } else {
+                content?.classList.add('hidden');
+            }
         }
     }
 }
