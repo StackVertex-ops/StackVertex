@@ -209,10 +209,11 @@ async def update_password(
             detail="Current password is incorrect"
         )
 
-    # Hash new password (using passlib directly like in UserRepository.create)
+    # Hash new password (bcrypt has 72-byte limit, same as in UserRepository.create)
     from passlib.context import CryptContext
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    new_password_hash = pwd_context.hash(password_update.new_password)
+    password_truncated = password_update.new_password[:72] if len(password_update.new_password) > 72 else password_update.new_password
+    new_password_hash = pwd_context.hash(password_truncated)
 
     # Update password
     updated_user = user_repo.update(user_id, {"password_hash": new_password_hash})

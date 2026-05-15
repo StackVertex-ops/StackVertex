@@ -266,7 +266,6 @@ class TestOrganisationMembers:
 
         assert response.status_code == 403
 
-    @pytest.mark.skip(reason="Endpoint GET /{org_id}/members not implemented yet")
     def test_list_members(self, client, owner_user):
         """Test listing organisation members."""
         token, user_id, org_id = owner_user
@@ -279,11 +278,12 @@ class TestOrganisationMembers:
         assert response.status_code == 200
         data = response.json()
 
-        assert "items" in data
-        assert len(data["items"]) >= 1  # At least owner
+        # Response is list, not dict with "items"
+        assert isinstance(data, list)
+        assert len(data) >= 1  # At least owner
 
         # Owner should be in members
-        owner_members = [m for m in data["items"] if m["user_id"] == user_id]
+        owner_members = [m for m in data if m["user_id"] == user_id]
         assert len(owner_members) == 1
         assert owner_members[0]["role"] == "owner"
 
@@ -379,7 +379,6 @@ class TestOrganisationMembers:
 class TestOrganisationQuota:
     """Tests für quota management."""
 
-    @pytest.mark.skip(reason="Endpoint GET /{org_id}/quota not implemented yet")
     def test_get_quota(self, client, owner_user):
         """Test getting organisation quota."""
         token, _, org_id = owner_user
@@ -396,6 +395,9 @@ class TestOrganisationQuota:
         assert "max_active_deployments" in data
         assert "members" in data
         assert "max_members" in data
+        assert "architectures" in data
+        assert "max_architectures" in data
+        assert "monitoring_level" in data
 
     @pytest.mark.skip(reason="Endpoint GET /{org_id}/quota/check/{quota_type} not implemented yet")
     def test_quota_check_within_limit(self, client, owner_user):
