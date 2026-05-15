@@ -109,7 +109,7 @@ class OrganisationMemberResponse(BaseModel):
     email: str
     name: str
     role: UserRole
-    joined_at: datetime
+    joined_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

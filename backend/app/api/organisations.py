@@ -30,7 +30,11 @@ from app.schemas.organisation import (
     OrganisationPlanUpgrade,
     OrganisationQuotaResponse,
 )
-from app.models.organisation import OrganisationPlan, OrganisationType
+from app.models.organisation import (
+    OrganisationPlan,
+    OrganisationType,
+    get_quota as get_plan_quota,
+)
 from app.models.user import UserRole
 from app.api.auth import get_current_user
 
@@ -638,20 +642,20 @@ async def get_quota(
     org = await check_org_permission(org_id, current_user, UserRole.MEMBER, org_repo)
 
     # Get current usage
-    quota = org_repo.get_quota(org_id)
+    quota_usage = org_repo.get_quota(org_id)
 
     # Get plan limits
     plan = OrganisationPlan(org["plan"])
-    max_active_deployments = plan.max_active_deployments()
-    max_members = plan.max_members()
-    max_architectures = plan.max_architectures()
+    max_active_deployments = get_plan_quota(plan, "max_active_deployments")
+    max_members = get_plan_quota(plan, "max_members")
+    max_architectures = get_plan_quota(plan, "max_architectures")
 
     return OrganisationQuotaResponse(
-        active_deployments=quota.get("active_deployments", 0),
+        active_deployments=quota_usage.get("active_deployments", 0),
         max_active_deployments=max_active_deployments,
-        members=quota.get("members", 1),
+        members=quota_usage.get("members", 1),
         max_members=max_members,
-        architectures=quota.get("architectures", 0),
+        architectures=quota_usage.get("architectures", 0),
         max_architectures=max_architectures,
         monitoring_level=org.get("monitoring_level", "basic")
     )
