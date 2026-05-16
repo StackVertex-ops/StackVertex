@@ -1,0 +1,177 @@
+/**
+ * Configuration Tabs Styling
+ *
+ * Tab-System mit Network, Security, Data, Computing
+ */
+
+.configuration-tabs {
+    @apply bg-white rounded-lg shadow-sm;
+}
+
+/* Tab Headers */
+.tab-headers {
+    @apply flex items-center gap-1 px-2 pt-2;
+}
+
+.tab-header {
+    @apply relative px-6 py-3 text-sm font-medium text-gray-600;
+    @apply border-b-2 border-transparent rounded-t-lg;
+    @apply hover:text-gray-900 hover:bg-gray-50;
+    @apply transition-all duration-200;
+    @apply cursor-pointer;
+}
+
+.tab-header.active {
+    @apply text-purple-700 bg-white;
+    @apply border-b-2 border-purple-600;
+    @apply font-semibold;
+}
+
+.tab-header:not(.active) {
+    @apply border-b-2 border-gray-200;
+}
+
+/* Tab Content */
+.tab-content {
+    @apply relative;
+}
+
+.tab-pane {
+    @apply min-h-[400px];
+}
+
+.tab-pane.hidden {
+    @apply hidden;
+}
+
+.tab-pane.active {
+    @apply block;
+}
+
+/* Component Forms */
+.component-form {
+    @apply transition-all duration-200;
+}
+
+.component-form.highlight {
+    @apply ring-4 ring-purple-500 ring-opacity-50;
+    @apply shadow-lg;
+    animation: pulse-highlight 1s ease-in-out;
+}
+
+@keyframes pulse-highlight {
+    0%, 100% {
+        @apply ring-opacity-50;
+    }
+    50% {
+        @apply ring-opacity-100;
+    }
+}
+
+/* Form Inputs (Smart Form Integration) */
+.component-form input[type="text"],
+.component-form input[type="email"],
+.component-form input[type="url"],
+.component-form select {
+    @apply transition-all duration-200;
+}
+
+.component-form input[type="text"]:focus,
+.component-form select:focus {
+    @apply ring-2 ring-purple-500 border-transparent;
+}
+
+.component-form input[type="text"]:disabled {
+    @apply bg-gray-100 text-gray-500 cursor-not-allowed;
+}
+
+/* IP Calculator Inline Display */
+.ip-info-box {
+    @apply p-3 rounded-lg border;
+    @apply bg-gradient-to-r from-blue-50 to-purple-50;
+    @apply border-blue-200;
+}
+
+.ip-info-box .ip-stat {
+    @apply flex items-center gap-2;
+}
+
+.ip-info-box .ip-stat-label {
+    @apply text-xs font-medium text-gray-600;
+}
+
+.ip-info-box .ip-stat-value {
+    @apply font-mono font-semibold;
+}
+
+.ip-info-box .ip-stat-value.total {
+    @apply text-blue-700;
+}
+
+.ip-info-box .ip-stat-value.usable {
+    @apply text-green-700;
+}
+
+.ip-info-box .ip-range {
+    @apply text-xs text-gray-600;
+}
+
+.ip-info-box .ip-reserved {
+    @apply text-xs text-red-600 font-mono;
+}
+
+/* Empty States */
+.tab-pane .empty-state {
+    @apply flex items-center justify-center h-full p-12 text-center;
+}
+
+.tab-pane .empty-state-icon {
+    @apply text-6xl mb-4;
+}
+
+.tab-pane .empty-state-title {
+    @apply text-lg font-semibold text-gray-900 mb-2;
+}
+
+.tab-pane .empty-state-description {
+    @apply text-sm text-gray-500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .tab-headers {
+        @apply flex-wrap;
+    }
+
+    .tab-header {
+        @apply flex-1 min-w-[120px] px-4 py-2 text-xs;
+    }
+
+    .component-form {
+        @apply p-4;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .configuration-tabs {
+        @apply bg-gray-900;
+    }
+
+    .tab-header {
+        @apply text-gray-400 hover:text-gray-200;
+    }
+
+    .tab-header.active {
+        @apply text-purple-400 bg-gray-800 border-purple-500;
+    }
+
+    .component-form {
+        @apply bg-gray-800 border-gray-700;
+    }
+
+    .ip-info-box {
+        @apply bg-gradient-to-r from-gray-800 to-gray-700;
+        @apply border-gray-600;
+    }
+}

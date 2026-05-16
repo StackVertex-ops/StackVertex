@@ -1,0 +1,60 @@
+# ============================================================================
+# Security Groups
+# ============================================================================
+
+{% for comp in components %}
+# {{ comp.name }}
+resource "aws_security_group" "{{ comp.id }}" {
+  name        = "{{ comp.name }}"
+  description = "{{ comp.config.description | default('Security group for ' ~ comp.name) }}"
+  vpc_id      = aws_vpc.{{ comp.config.vpc }}.id
+
+  {% if comp.config.ingressRules %}
+  # Ingress Rules
+  {% for rule in comp.config.ingressRules %}
+  ingress {
+    description = "{{ rule.description | default('Allow ' ~ rule.protocol ~ ' on port ' ~ rule.fromPort) }}"
+    from_port   = {{ rule.fromPort }}
+    to_port     = {{ rule.toPort }}
+    protocol    = "{{ rule.protocol }}"
+    cidr_blocks = {{ rule.cidrBlocks | default(['0.0.0.0/0']) | tojson }}
+  }
+  {% endfor %}
+  {% endif %}
+
+  {% if comp.config.egressRules %}
+  # Egress Rules
+  {% for rule in comp.config.egressRules %}
+  egress {
+    description = "{{ rule.description | default('Allow ' ~ rule.protocol ~ ' on port ' ~ rule.fromPort) }}"
+    from_port   = {{ rule.fromPort }}
+    to_port     = {{ rule.toPort }}
+    protocol    = "{{ rule.protocol }}"
+    cidr_blocks = {{ rule.cidrBlocks | default(['0.0.0.0/0']) | tojson }}
+  }
+  {% endfor %}
+  {% else %}
+  # Default egress: allow all
+  egress {
+    description = "Allow all outbound traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  {% endif %}
+
+  {% if comp.depends_on %}
+  depends_on = [
+    {% for dep in comp.depends_on %}
+    {{ dep }},
+    {% endfor %}
+  ]
+  {% endif %}
+
+  tags = {
+    Name = "{{ comp.name }}"
+  }
+}
+
+{% endfor %}

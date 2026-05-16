@@ -1,97 +1,928 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="OverCloud - Cloud-Infrastruktur aus Anforderungen modellieren. JSON-basiert, transparent, versionierbar und multi-cloud-fähig.">
     <title>OverCloud - Cloud Infrastructure Made Simple</title>
-    <meta name="description" content="Model, version, and deploy cloud infrastructure from requirements">
-    <link rel="icon" type="image/svg+xml" href="/assets/logo.svg">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --secondary: #764ba2;
+            --accent: #f093fb;
+            --dark: #1a1a2e;
+            --gray: #4a5568;
+            --light-gray: #f7fafc;
+            --success: #48bb78;
+            --warning: #ed8936;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            padding: 1rem 2rem;
+        }
+
+        nav .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--gray);
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: var(--primary);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 150px 2rem 100px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 600px;
+            height: 600px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            animation: float 15s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(5deg);
+            }
+        }
+
+        .hero .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2.5rem;
+            opacity: 0.95;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 1.1rem;
+            display: inline-block;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            color: var(--primary);
+        }
+
+        /* Stats Section */
+        .stats {
+            background: white;
+            padding: 3rem 2rem;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
+            position: relative;
+            z-index: 10;
+        }
+
+        .stats .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .stat-item h3 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-item p {
+            color: var(--gray);
+            font-size: 1rem;
+        }
+
+        /* How It Works Section */
+        .how-it-works {
+            padding: 100px 2rem;
+            background: var(--light-gray);
+        }
+
+        .how-it-works .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .section-title p {
+            font-size: 1.2rem;
+            color: var(--gray);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 3rem;
+        }
+
+        .step {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+
+        .step:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.15);
+        }
+
+        .step-number {
+            position: absolute;
+            top: -20px;
+            left: 2.5rem;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .step-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .step h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .step p {
+            color: var(--gray);
+            line-height: 1.8;
+        }
+
+        /* Features Grid */
+        .features {
+            padding: 100px 2rem;
+            background: white;
+        }
+
+        .features .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .feature-card {
+            padding: 2rem;
+            border-radius: 15px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.12);
+            transform: translateY(-3px);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.8rem;
+            color: var(--dark);
+        }
+
+        .feature-card p {
+            color: var(--gray);
+            line-height: 1.7;
+        }
+
+        /* Security Section */
+        .security {
+            padding: 100px 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .security::before {
+            content: '🔒';
+            position: absolute;
+            font-size: 20rem;
+            opacity: 0.05;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .security .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .security-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .security-item {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .security-item h4 {
+            font-size: 1.2rem;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .security-item p {
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        /* Problem Solution Section */
+        .problem-solution {
+            padding: 100px 2rem;
+            background: white;
+        }
+
+        .problem-solution .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .ps-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            margin-top: 3rem;
+        }
+
+        .ps-box {
+            padding: 3rem;
+            border-radius: 20px;
+        }
+
+        .problem-box {
+            background: linear-gradient(135deg, #fc4a1a 0%, #f7b733 100%);
+            color: white;
+        }
+
+        .solution-box {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .ps-box h3 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .ps-box ul {
+            list-style: none;
+            margin-top: 1.5rem;
+        }
+
+        .ps-box li {
+            padding: 0.8rem 0;
+            padding-left: 2rem;
+            position: relative;
+        }
+
+        .ps-box li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            font-weight: 800;
+            font-size: 1.3rem;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 100px 2rem;
+            background: var(--light-gray);
+            text-align: center;
+        }
+
+        .cta-section .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .cta-section h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+        }
+
+        .cta-section p {
+            font-size: 1.2rem;
+            color: var(--gray);
+            margin-bottom: 2.5rem;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 3rem 2rem 2rem;
+        }
+
+        footer .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        footer .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        footer h4 {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        footer ul {
+            list-style: none;
+        }
+
+        footer ul li {
+            margin-bottom: 0.8rem;
+        }
+
+        footer a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        footer a:hover {
+            color: white;
+        }
+
+        footer .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 2rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav ul {
+                gap: 1rem;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .ps-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .section-title h2 {
+                font-size: 2rem;
+            }
+
+            .hero .cta-buttons {
+                flex-direction: column;
+            }
+
+            nav .container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+
+        /* Scroll to top button */
+        .scroll-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+            z-index: 999;
+        }
+
+        .scroll-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .scroll-top:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+    </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900">
-    <!-- Main App Container -->
-    <div id="app">
-        <!-- Header -->
-        <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-            <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between h-16">
-                    <div class="flex items-center">
-                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-                            OverCloud
-                        </h1>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <a href="#/" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-                            Dashboard
-                        </a>
-                        <a href="#/architectures" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-                            Architectures
-                        </a>
-                        <a href="#/deployments" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-                            Deployments
-                        </a>
-                    </div>
-                </div>
-            </nav>
-        </header>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <a href="/" class="logo">OverCloud</a>
+            <ul>
+                <li><a href="/dashboard.html">Dashboard</a></li>
+                <li><a href="/guides/">Anleitungen</a></li>
+                <li><a href="/security.html">Sicherheit</a></li>
+                <li><a href="/pricing.html">Preise</a></li>
+            </ul>
+        </div>
+    </nav>
 
-        <!-- Main Content -->
-        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="text-center">
-                <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                    Welcome to OverCloud
-                </h2>
-                <p class="text-xl text-gray-600 dark:text-gray-400 mb-8">
-                    Cloud infrastructure made understandable, versionable, and deployable.
-                </p>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Cloud-Infrastruktur<br>ohne Kopfschmerzen</h1>
+            <p>
+                Modelliere deine Cloud-Infrastruktur aus Anforderungen, nicht aus Ressourcen.
+                JSON-basiert, transparent, versionierbar und multi-cloud-fähig.
+            </p>
+            <div class="cta-buttons">
+                <a href="/register.html" class="btn btn-primary">Jetzt starten</a>
+                <a href="/guides/" class="btn btn-secondary">Anleitungen ansehen</a>
+            </div>
+        </div>
+    </section>
 
-                <!-- Status Card -->
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 max-w-md mx-auto">
-                    <div class="flex items-center justify-center space-x-2 mb-4">
-                        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                        <span class="text-gray-700 dark:text-gray-300">System Status</span>
-                    </div>
-                    <p class="text-sm text-gray-500 dark:text-gray-400" id="api-status">
-                        Connecting to API...
+    <!-- Stats -->
+    <section class="stats">
+        <div class="container">
+            <div class="stat-item">
+                <h3>100%</h3>
+                <p>Transparent & Versionierbar</p>
+            </div>
+            <div class="stat-item">
+                <h3>AES-256</h3>
+                <p>Verschlüsselung</p>
+            </div>
+            <div class="stat-item">
+                <h3>DSGVO</h3>
+                <p>Konform</p>
+            </div>
+            <div class="stat-item">
+                <h3>3 Clouds</h3>
+                <p>AWS, Azure, GCP</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works">
+        <div class="container">
+            <div class="section-title">
+                <h2>Wie funktioniert OverCloud?</h2>
+                <p>In drei einfachen Schritten von der Idee zur produktionsreifen Infrastruktur</p>
+            </div>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-icon">📝</div>
+                    <h3>Anforderungen beschreiben</h3>
+                    <p>
+                        Sage uns <strong>was</strong> du brauchst, nicht <strong>wie</strong> es gebaut werden soll.
+                        "Ich brauche eine skalierbare API mit Datenbank" reicht aus.
                     </p>
                 </div>
-
-                <!-- Feature Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                        <div class="text-3xl mb-4">📋</div>
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                            Requirements-Driven
-                        </h3>
-                        <p class="text-gray-600 dark:text-gray-400">
-                            Describe what you need, not how to build it
-                        </p>
-                    </div>
-
-                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                        <div class="text-3xl mb-4">📄</div>
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                            JSON-First
-                        </h3>
-                        <p class="text-gray-600 dark:text-gray-400">
-                            Versionable, inspectable source of truth
-                        </p>
-                    </div>
-
-                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                        <div class="text-3xl mb-4">🔍</div>
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                            Transparent
-                        </h3>
-                        <p class="text-gray-600 dark:text-gray-400">
-                            See cost, security, and impact before deploying
-                        </p>
-                    </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-icon">🏗️</div>
+                    <h3>Architektur modellieren</h3>
+                    <p>
+                        OverCloud erstellt automatisch eine JSON-basierte Architektur mit Impact-Analyse:
+                        Kosten, Sicherheit, Skalierbarkeit - alles transparent.
+                    </p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-icon">🚀</div>
+                    <h3>Deployen & Managen</h3>
+                    <p>
+                        Terraform-Code wird automatisch generiert und deployed. Alle Änderungen sind versioniert,
+                        jederzeit rollback-fähig.
+                    </p>
                 </div>
             </div>
-        </main>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+        <div class="container">
+            <div class="section-title">
+                <h2>Warum OverCloud?</h2>
+                <p>Die Vorteile auf einen Blick</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📄</div>
+                    <h3>JSON-First</h3>
+                    <p>
+                        JSON ist die einzige Wahrheit. Alle Entscheidungen, Komponenten und Anforderungen
+                        werden als versionierbare JSON-Dateien gespeichert.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Vollständig transparent</h3>
+                    <p>
+                        Du siehst JSON, Architekturdiagramme, Terraform-Code, Entscheidungen und Kosten.
+                        Keine Black Boxes - alles ist inspizierbar.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <h3>Security by Default</h3>
+                    <p>
+                        Keine hardcodierten Credentials, Secrets verschlüsselt, Audit-Logs für alle Aktionen,
+                        Least-Privilege-Prinzip für alle IAM-Rollen.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">☁️</div>
+                    <h3>Multi-Cloud Native</h3>
+                    <p>
+                        Von Grund auf cloud-agnostisch designt. Wechsle zwischen AWS, Azure und GCP
+                        ohne deine Architektur neu zu schreiben.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3>Kostenoptimiert</h3>
+                    <p>
+                        Echtzeit-Kostenschätzung vor jedem Deployment. OverCloud schlägt günstigere
+                        Alternativen vor, wenn bessere Optionen existieren.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Schnell & Skalierbar</h3>
+                    <p>
+                        Von 0 auf Production in Minuten. Automatische Skalierung, Load Balancing
+                        und Multi-Region-Support inklusive.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Security Section -->
+    <section class="security">
+        <div class="container">
+            <div class="section-title">
+                <h2>Sicherheit hat oberste Priorität</h2>
+                <p>Deine Daten und Infrastruktur sind bei uns in sicheren Händen</p>
+            </div>
+            <div class="security-grid">
+                <div class="security-item">
+                    <h4>🔒 AES-256 Verschlüsselung</h4>
+                    <p>Alle Daten werden sowohl im Transit (TLS 1.3) als auch at-rest (AES-256) verschlüsselt.</p>
+                </div>
+                <div class="security-item">
+                    <h4>🇪🇺 EU-Datenspeicherung</h4>
+                    <p>Alle Daten werden ausschließlich in EU-Rechenzentren gespeichert (Frankfurt, Irland).</p>
+                </div>
+                <div class="security-item">
+                    <h4>✅ DSGVO-konform</h4>
+                    <p>Vollständige DSGVO-Compliance mit API-Endpoints für alle Betroffenenrechte (Art. 15-22).</p>
+                </div>
+                <div class="security-item">
+                    <h4>📋 ISO 27001 Ready</h4>
+                    <p>ISMS-Policy implementiert, Risk Assessment durchgeführt, Zertifizierung in Vorbereitung.</p>
+                </div>
+                <div class="security-item">
+                    <h4>🛡️ AWS WAF & DDoS</h4>
+                    <p>CloudFront WAF mit Rate Limiting, Bot Protection und AWS Shield Standard aktiviert.</p>
+                </div>
+                <div class="security-item">
+                    <h4>📊 Audit Logs</h4>
+                    <p>Alle Aktionen werden geloggt (AWS CloudTrail). Volle Transparenz über alle Zugriffe.</p>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 3rem;">
+                <a href="/security.html" class="btn btn-primary">Vollständige Sicherheitsdokumentation</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problem/Solution -->
+    <section class="problem-solution">
+        <div class="container">
+            <div class="section-title">
+                <h2>Das Problem mit klassischem IaC</h2>
+                <p>Wir lösen die Schmerzen, die du mit Terraform & CloudFormation hast</p>
+            </div>
+            <div class="ps-grid">
+                <div class="ps-box problem-box">
+                    <h3>❌ Klassische Probleme</h3>
+                    <ul>
+                        <li>Terraform-Code ist komplex und fehleranfällig</li>
+                        <li>Keine Kostenschätzung vor dem Deployment</li>
+                        <li>Security-Probleme werden erst nach dem Deploy entdeckt</li>
+                        <li>Kein Versionierungssystem für Architektur-Entscheidungen</li>
+                        <li>Cloud-Vendor-Lock-In durch proprietäre Tools</li>
+                        <li>Steile Lernkurve für neue Team-Mitglieder</li>
+                    </ul>
+                </div>
+                <div class="ps-box solution-box">
+                    <h3>✅ OverCloud-Lösungen</h3>
+                    <ul>
+                        <li>Terraform wird automatisch generiert - du schreibst JSON</li>
+                        <li>Echtzeit-Kostenschätzung und Optimierungsvorschläge</li>
+                        <li>Security-Analyse vor jedem Deployment</li>
+                        <li>Git-basiertes Versionierungssystem für alles</li>
+                        <li>Multi-Cloud-Support ohne Vendor-Lock-In</li>
+                        <li>Intuitive UI - keine Terraform-Kenntnisse nötig</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Bereit für den nächsten Schritt?</h2>
+            <p>
+                Starte jetzt kostenlos und erlebe, wie einfach Cloud-Infrastruktur sein kann.
+                Keine Kreditkarte erforderlich.
+            </p>
+            <div class="cta-buttons">
+                <a href="/register.html" class="btn btn-primary">Kostenlos starten</a>
+                <a href="/pricing.html" class="btn btn-secondary">Preise ansehen</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <h4>Produkt</h4>
+                    <ul>
+                        <li><a href="/pricing.html">Preise</a></li>
+                        <li><a href="/guides/">Anleitungen</a></li>
+                        <li><a href="/security.html">Sicherheit</a></li>
+                        <li><a href="/dashboard.html">Dashboard</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Rechtliches</h4>
+                    <ul>
+                        <li><a href="/legal/privacy.html">Datenschutz</a></li>
+                        <li><a href="/legal/terms.html">AGB</a></li>
+                        <li><a href="/legal/imprint.html">Impressum</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Ressourcen</h4>
+                    <ul>
+                        <li><a href="/guides/aws-setup.html">AWS Setup Guide</a></li>
+                        <li><a href="https://github.com/AndySchw/OverCloud">GitHub</a></li>
+                        <li><a href="mailto:support@overcloud.io">Support</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Unternehmen</h4>
+                    <ul>
+                        <li><a href="/about.html">Über uns</a></li>
+                        <li><a href="mailto:schwarz23andy@gmail.com">Kontakt</a></li>
+                        <li><a href="/careers.html">Karriere</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 OverCloud. Alle Rechte vorbehalten. | Made with ❤️ in Germany</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scroll to Top Button -->
+    <div class="scroll-top" id="scrollTop">
+        ↑
     </div>
 
-    <!-- Scripts -->
-    <script type="module" src="/js/main.js"></script>
+    <script>
+        // Scroll to top functionality
+        const scrollTopBtn = document.getElementById('scrollTop');
+
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollTopBtn.classList.add('visible');
+            } else {
+                scrollTopBtn.classList.remove('visible');
+            }
+        });
+
+        scrollTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>

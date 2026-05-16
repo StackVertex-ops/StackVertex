@@ -1,0 +1,111 @@
+# ============================================================================
+# Lambda Functions
+# ============================================================================
+
+{% for comp in components %}
+# IAM Role for {{ comp.name }}
+resource "aws_iam_role" "{{ comp.id }}_role" {
+  name = "{{ comp.id }}-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Name = "{{ comp.name }}-role"
+  }
+}
+
+# Attach basic Lambda execution policy
+resource "aws_iam_role_policy_attachment" "{{ comp.id }}_basic_execution" {
+  role       = aws_iam_role.{{ comp.id }}_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+{% if comp.config.vpcConfig %}
+# VPC execution policy for {{ comp.name }}
+resource "aws_iam_role_policy_attachment" "{{ comp.id }}_vpc_execution" {
+  role       = aws_iam_role.{{ comp.id }}_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+}
+{% endif %}
+
+# {{ comp.name }}
+resource "aws_lambda_function" "{{ comp.id }}" {
+  function_name = "{{ comp.id }}"
+  role          = aws_iam_role.{{ comp.id }}_role.arn
+
+  {% if comp.config.codeSource == 'inline' %}
+  filename      = "lambda_code_{{ comp.id }}.zip"
+  {% else %}
+  s3_bucket     = "{{ comp.config.s3Bucket }}"
+  s3_key        = "{{ comp.config.s3Key }}"
+  {% endif %}
+
+  handler       = "{{ comp.config.handler | default('index.handler') }}"
+  runtime       = "{{ comp.config.runtime | default('python3.11') }}"
+  timeout       = {{ comp.config.timeout | default(30) }}
+  memory_size   = {{ comp.config.memorySize | default(128) }}
+
+  {% if comp.config.environment %}
+  environment {
+    variables = {
+      {% for key, value in comp.config.environment.items() %}
+      {{ key }} = "{{ value }}"
+      {% endfor %}
+    }
+  }
+  {% endif %}
+
+  {% if comp.config.vpcConfig %}
+  vpc_config {
+    subnet_ids         = [
+      {% for subnet in comp.config.vpcConfig.subnets %}
+      aws_subnet.{{ subnet }}.id,
+      {% endfor %}
+    ]
+    security_group_ids = [
+      {% for sg in comp.config.vpcConfig.securityGroups %}
+      aws_security_group.{{ sg }}.id,
+      {% endfor %}
+    ]
+  }
+  {% endif %}
+
+  {% if comp.depends_on %}
+  depends_on = [
+    aws_iam_role_policy_attachment.{{ comp.id }}_basic_execution,
+    {% if comp.config.vpcConfig %}
+    aws_iam_role_policy_attachment.{{ comp.id }}_vpc_execution,
+    {% endif %}
+    {% for dep in comp.depends_on %}
+    {{ dep }},
+    {% endfor %}
+  ]
+  {% endif %}
+
+  tags = {
+    Name = "{{ comp.name }}"
+  }
+}
+
+{% if comp.config.allowInvoke %}
+# Allow invocation from other services
+resource "aws_lambda_permission" "{{ comp.id }}_invoke" {
+  statement_id  = "AllowExecutionFromOtherServices"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.{{ comp.id }}.function_name
+  principal     = "{{ comp.config.invokePrincipal | default('*') }}"
+}
+{% endif %}
+
+{% endfor %}

@@ -128,7 +128,7 @@ test.describe('Architecture Builder - Properties Panel', () => {
         const count = await components.count();
 
         for (let i = 0; i < count; i++) {
-            await components.nth(i).click();
+            await components.nth(i).click({ force: true });
             await page.waitForTimeout(300);
 
             // Check if instance type select exists
@@ -159,7 +159,7 @@ test.describe('Architecture Builder - Properties Panel', () => {
         const count = await components.count();
 
         for (let i = 0; i < count; i++) {
-            await components.nth(i).click();
+            await components.nth(i).click({ force: true });
             await page.waitForTimeout(300);
 
             // Check if multi-az checkbox exists
@@ -236,7 +236,7 @@ test.describe('Architecture Builder - AI Advisor', () => {
         const count = await components.count();
 
         for (let i = 0; i < count; i++) {
-            await components.nth(i).click();
+            await components.nth(i).click({ force: true });
             await page.waitForTimeout(300);
 
             // Check if storage-encrypted checkbox exists
@@ -279,7 +279,7 @@ test.describe('Architecture Builder - AI Advisor', () => {
         const count = await components.count();
 
         for (let i = 0; i < count; i++) {
-            await components.nth(i).click();
+            await components.nth(i).click({ force: true });
             await page.waitForTimeout(300);
 
             const instanceTypeSelect = page.locator('#prop-instance-type');

@@ -5,6 +5,7 @@
  */
 
 import '../css/main.css';
+import '../css/architecture-builder.css';
 import { renderArchitectureBuilderCanvas } from './pages/architecture-builder-canvas.js';
 
 /**

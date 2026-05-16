@@ -1,0 +1,40 @@
+# ============================================================================
+# Internet Gateway Resources
+# ============================================================================
+
+{% for comp in components %}
+# {{ comp.name }}
+resource "aws_internet_gateway" "{{ comp.id }}" {
+  vpc_id = aws_vpc.{{ comp.config.vpc }}.id
+
+  tags = {
+    Name = "{{ comp.name }}"
+  }
+}
+
+{% if comp.config.createRouteTable | default(true) %}
+# Main Route Table für {{ comp.name }}
+resource "aws_route_table" "{{ comp.id }}_public_rt" {
+  vpc_id = aws_vpc.{{ comp.config.vpc }}.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.{{ comp.id }}.id
+  }
+
+  tags = {
+    Name = "{{ comp.name }}-public-rt"
+    Type = "public"
+  }
+}
+
+# Default Route Table Association (optional)
+{% if comp.config.associateWithMain | default(false) %}
+resource "aws_main_route_table_association" "{{ comp.id }}_main" {
+  vpc_id         = aws_vpc.{{ comp.config.vpc }}.id
+  route_table_id = aws_route_table.{{ comp.id }}_public_rt.id
+}
+{% endif %}
+{% endif %}
+
+{% endfor %}

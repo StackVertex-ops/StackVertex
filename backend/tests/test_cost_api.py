@@ -11,7 +11,7 @@ from app.schemas.cost import CostEstimateResponse
 class TestCostAPI:
     """Tests für Cost API Endpoints."""
 
-    def test_estimate_cost_from_json(self, test_client, sample_architecture_minimal):
+    def test_estimate_cost_from_json(self, client, sample_architecture_minimal):
         """Test: Cost Estimation von JSON."""
         arch = sample_architecture_minimal.copy()
         arch["architecture"]["components"] = [
@@ -23,7 +23,7 @@ class TestCostAPI:
             }
         ]
 
-        response = test_client.post("/api/v1/costs/estimate", json=arch)
+        response = client.post("/api/v1/costs/estimate", json=arch)
 
         assert response.status_code == 200
 
@@ -36,9 +36,9 @@ class TestCostAPI:
         assert data["total_monthly"] > 0
         assert len(data["components"]) == 1
 
-    def test_estimate_cost_empty_architecture(self, test_client, sample_architecture_minimal):
+    def test_estimate_cost_empty_architecture(self, client, sample_architecture_minimal):
         """Test: Cost Estimation für leere Architecture."""
-        response = test_client.post("/api/v1/costs/estimate", json=sample_architecture_minimal)
+        response = client.post("/api/v1/costs/estimate", json=sample_architecture_minimal)
 
         assert response.status_code == 200
 
@@ -46,7 +46,7 @@ class TestCostAPI:
         assert data["total_monthly"] == 0
         assert len(data["components"]) == 0
 
-    def test_estimate_cost_multiple_components(self, test_client, sample_architecture_minimal):
+    def test_estimate_cost_multiple_components(self, client, sample_architecture_minimal):
         """Test: Cost Estimation mit mehreren Components."""
         arch = sample_architecture_minimal.copy()
         arch["architecture"]["components"] = [
@@ -73,7 +73,7 @@ class TestCostAPI:
             }
         ]
 
-        response = test_client.post("/api/v1/costs/estimate", json=arch)
+        response = client.post("/api/v1/costs/estimate", json=arch)
 
         assert response.status_code == 200
 
@@ -86,11 +86,11 @@ class TestCostAPI:
 
     @pytest.mark.skip(reason="DB Session isolation issue - tested via integration tests")
     def test_estimate_cost_for_saved_architecture(
-        self, test_client, db_engine, db_session, sample_architecture_minimal, clear_db
+        self, client, db_engine, db_session, sample_architecture_minimal, clear_db
     ):
         """Test: Cost Estimation für gespeicherte Architecture."""
         # Create architecture
-        create_response = test_client.post(
+        create_response = client.post(
             "/api/v1/architectures",
             json={
                 "name": "Test Architecture",
@@ -103,7 +103,7 @@ class TestCostAPI:
         arch_id = create_response.json()["id"]
 
         # Estimate cost
-        response = test_client.get(f"/api/v1/costs/architectures/{arch_id}/estimate")
+        response = client.get(f"/api/v1/costs/architectures/{arch_id}/estimate")
 
         assert response.status_code == 200
 
@@ -111,16 +111,16 @@ class TestCostAPI:
         assert "total_monthly" in data
 
     @pytest.mark.skip(reason="DB Session isolation issue - tested via integration tests")
-    def test_estimate_cost_architecture_not_found(self, test_client, db_engine):
+    def test_estimate_cost_architecture_not_found(self, client, db_engine):
         """Test: Cost Estimation für nicht-existente Architecture."""
         from uuid import uuid4
 
         fake_id = str(uuid4())
-        response = test_client.get(f"/api/v1/costs/architectures/{fake_id}/estimate")
+        response = client.get(f"/api/v1/costs/architectures/{fake_id}/estimate")
 
         assert response.status_code == 404
 
-    def test_estimate_cost_breakdown(self, test_client, sample_architecture_minimal):
+    def test_estimate_cost_breakdown(self, client, sample_architecture_minimal):
         """Test: Cost Breakdown Details."""
         arch = sample_architecture_minimal.copy()
         arch["architecture"]["components"] = [
@@ -136,7 +136,7 @@ class TestCostAPI:
             }
         ]
 
-        response = test_client.post("/api/v1/costs/estimate", json=arch)
+        response = client.post("/api/v1/costs/estimate", json=arch)
 
         assert response.status_code == 200
 
@@ -148,14 +148,14 @@ class TestCostAPI:
         assert "instance" in component["breakdown"]
         assert "storage" in component["breakdown"]
 
-    def test_estimate_cost_response_format(self, test_client, sample_architecture_minimal):
+    def test_estimate_cost_response_format(self, client, sample_architecture_minimal):
         """Test: Response Format entspricht Schema."""
         arch = sample_architecture_minimal.copy()
         arch["architecture"]["components"] = [
             {"id": "test", "type": "ec2", "name": "Test", "configuration": {}}
         ]
 
-        response = test_client.post("/api/v1/costs/estimate", json=arch)
+        response = client.post("/api/v1/costs/estimate", json=arch)
 
         assert response.status_code == 200
 
@@ -169,7 +169,7 @@ class TestCostAPI:
         assert isinstance(data["components"], list)
         assert isinstance(data["breakdown_by_type"], dict)
 
-    def test_estimate_cost_lambda_with_free_tier(self, test_client, sample_architecture_minimal):
+    def test_estimate_cost_lambda_with_free_tier(self, client, sample_architecture_minimal):
         """Test: Lambda Cost mit Free Tier."""
         arch = sample_architecture_minimal.copy()
         arch["architecture"]["components"] = [
@@ -185,7 +185,7 @@ class TestCostAPI:
             }
         ]
 
-        response = test_client.post("/api/v1/costs/estimate", json=arch)
+        response = client.post("/api/v1/costs/estimate", json=arch)
 
         assert response.status_code == 200
 

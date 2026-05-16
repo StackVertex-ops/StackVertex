@@ -1,0 +1,369 @@
+name: Security Scanning
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+      - develop
+  pull_request:
+    branches:
+      - main
+      - staging
+      - develop
+  schedule:
+    # Run security scans weekly (every Monday at 3 AM UTC)
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: 3.11
+
+jobs:
+  # Job 1: Trivy - Container & IaC Security Scanning
+  trivy-scan:
+    name: Trivy Security Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write # For GitHub Security tab integration
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner - Filesystem
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-fs-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          exit-code: '0' # Don't fail build, just report
+          ignore-unfixed: true
+
+      - name: Upload Trivy Filesystem results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-fs-results.sarif'
+          category: 'trivy-filesystem'
+
+      - name: Run Trivy vulnerability scanner - IaC (Terraform)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: 'infrastructure/terraform'
+          format: 'sarif'
+          output: 'trivy-iac-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          exit-code: '0'
+          ignore-unfixed: true
+
+      - name: Upload Trivy IaC results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-iac-results.sarif'
+          category: 'trivy-iac'
+
+      - name: Run Trivy vulnerability scanner - Docker Image
+        if: github.event_name != 'pull_request'
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'backend'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1' # Fail on critical/high vulnerabilities
+
+      - name: Generate Trivy Security Report
+        if: always()
+        run: |
+          echo "# Trivy Security Scan Results" > trivy-report.md
+          echo "" >> trivy-report.md
+          echo "**Scan Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> trivy-report.md
+          echo "**Branch:** ${{ github.ref_name }}" >> trivy-report.md
+          echo "" >> trivy-report.md
+
+          # Filesystem scan summary
+          if [ -f trivy-fs-results.sarif ]; then
+            CRITICAL_COUNT=$(cat trivy-fs-results.sarif | jq '[.runs[].results[] | select(.level=="error")] | length')
+            HIGH_COUNT=$(cat trivy-fs-results.sarif | jq '[.runs[].results[] | select(.level=="warning")] | length')
+            echo "## Filesystem Scan" >> trivy-report.md
+            echo "- 🔴 Critical: $CRITICAL_COUNT" >> trivy-report.md
+            echo "- 🟠 High: $HIGH_COUNT" >> trivy-report.md
+            echo "" >> trivy-report.md
+          fi
+
+          # IaC scan summary
+          if [ -f trivy-iac-results.sarif ]; then
+            CRITICAL_COUNT=$(cat trivy-iac-results.sarif | jq '[.runs[].results[] | select(.level=="error")] | length')
+            HIGH_COUNT=$(cat trivy-iac-results.sarif | jq '[.runs[].results[] | select(.level=="warning")] | length')
+            echo "## Infrastructure-as-Code Scan" >> trivy-report.md
+            echo "- 🔴 Critical: $CRITICAL_COUNT" >> trivy-report.md
+            echo "- 🟠 High: $HIGH_COUNT" >> trivy-report.md
+            echo "" >> trivy-report.md
+          fi
+
+          echo "📊 Full results available in GitHub Security tab" >> trivy-report.md
+
+      - name: Upload Trivy Report as Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-security-report
+          path: trivy-report.md
+          retention-days: 90
+
+  # Job 2: Python Dependency Security Check
+  python-security:
+    name: Python Dependency Security
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.2
+
+      - name: Export requirements.txt
+        run: poetry export -f requirements.txt --output requirements.txt --without-hashes
+
+      - name: Run Safety check (Python vulnerability scanner)
+        run: |
+          pip install safety
+          safety check --file requirements.txt --json > safety-report.json || true
+
+          # Generate human-readable report
+          echo "# Python Dependency Security Report" > safety-report.md
+          echo "" >> safety-report.md
+          echo "**Scan Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> safety-report.md
+          echo "" >> safety-report.md
+
+          # Count vulnerabilities
+          VULN_COUNT=$(cat safety-report.json | jq '[.vulnerabilities[]] | length')
+          echo "**Vulnerabilities Found:** $VULN_COUNT" >> safety-report.md
+          echo "" >> safety-report.md
+
+          if [ "$VULN_COUNT" -gt 0 ]; then
+            echo "⚠️ **Action Required:** Update vulnerable dependencies" >> safety-report.md
+            echo "" >> safety-report.md
+            echo "## Vulnerable Packages" >> safety-report.md
+            cat safety-report.json | jq -r '.vulnerabilities[] | "- \(.package) \(.installed_version) → CVE: \(.vulnerability_id)"' >> safety-report.md
+          else
+            echo "✅ No known vulnerabilities found" >> safety-report.md
+          fi
+
+      - name: Upload Safety Report as Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-security-report
+          path: backend/safety-report.md
+          retention-days: 90
+
+      - name: Fail on critical vulnerabilities
+        run: |
+          VULN_COUNT=$(cat safety-report.json | jq '[.vulnerabilities[]] | length')
+          if [ "$VULN_COUNT" -gt 0 ]; then
+            echo "❌ Found $VULN_COUNT vulnerabilities - build should fail"
+            # Uncomment to enforce (currently only warning):
+            # exit 1
+          fi
+
+  # Job 3: Secrets Scanning
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for secret scanning
+
+      - name: Run Gitleaks (Secret Scanner)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }} # Optional: for enterprise features
+
+      - name: Generate Secret Scan Report
+        if: always()
+        run: |
+          echo "# Secret Scanning Report" > gitleaks-report.md
+          echo "" >> gitleaks-report.md
+          echo "**Scan Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> gitleaks-report.md
+          echo "**Branch:** ${{ github.ref_name }}" >> gitleaks-report.md
+          echo "" >> gitleaks-report.md
+
+          if [ -f gitleaks-report.json ]; then
+            SECRET_COUNT=$(cat gitleaks-report.json | jq 'length')
+            echo "**Secrets Found:** $SECRET_COUNT" >> gitleaks-report.md
+            echo "" >> gitleaks-report.md
+
+            if [ "$SECRET_COUNT" -gt 0 ]; then
+              echo "🚨 **CRITICAL: Secrets detected in repository!**" >> gitleaks-report.md
+              echo "" >> gitleaks-report.md
+              echo "## Action Required" >> gitleaks-report.md
+              echo "1. Rotate all leaked secrets immediately" >> gitleaks-report.md
+              echo "2. Remove secrets from git history" >> gitleaks-report.md
+              echo "3. Update .gitignore to prevent future leaks" >> gitleaks-report.md
+            else
+              echo "✅ No secrets detected" >> gitleaks-report.md
+            fi
+          else
+            echo "✅ No secrets detected" >> gitleaks-report.md
+          fi
+
+      - name: Upload Secret Scan Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: secret-scan-report
+          path: gitleaks-report.md
+          retention-days: 90
+
+  # Job 4: OWASP ZAP Dynamic Application Security Testing (DAST)
+  # Note: Only runs on deployed environments (not on PRs)
+  zap-scan:
+    name: OWASP ZAP Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Determine environment
+        id: env
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "environment=prod" >> $GITHUB_OUTPUT
+            echo "target_url=https://api.overcloud.io" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/staging" ]; then
+            echo "environment=staging" >> $GITHUB_OUTPUT
+            echo "target_url=https://staging-api.overcloud.io" >> $GITHUB_OUTPUT
+          else
+            echo "environment=dev" >> $GITHUB_OUTPUT
+            echo "target_url=https://dev-api.overcloud.io" >> $GITHUB_OUTPUT
+          fi
+
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.10.0
+        with:
+          target: ${{ steps.env.outputs.target_url }}/health
+          rules_file_name: '.github/workflows/zap-rules.tsv'
+          cmd_options: '-a -j -l PASS' # API scan, JSON output, passive scan only
+          fail_action: false # Don't fail build (first run)
+
+      - name: Generate ZAP Report
+        if: always()
+        run: |
+          echo "# OWASP ZAP Security Scan" > zap-report.md
+          echo "" >> zap-report.md
+          echo "**Environment:** ${{ steps.env.outputs.environment }}" >> zap-report.md
+          echo "**Target URL:** ${{ steps.env.outputs.target_url }}" >> zap-report.md
+          echo "**Scan Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> zap-report.md
+          echo "" >> zap-report.md
+          echo "📊 Full ZAP report available in artifacts" >> zap-report.md
+
+      - name: Upload ZAP Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-scan-report-${{ steps.env.outputs.environment }}
+          path: |
+            report_html.html
+            report_json.json
+            zap-report.md
+          retention-days: 90
+
+  # Job 5: Generate Security Summary
+  security-summary:
+    name: Security Summary
+    runs-on: ubuntu-latest
+    needs: [trivy-scan, python-security, secret-scan]
+    if: always()
+
+    steps:
+      - name: Download all reports
+        uses: actions/download-artifact@v4
+        with:
+          path: reports
+
+      - name: Generate Security Dashboard
+        run: |
+          echo "# 🔒 Security Scan Summary" > SECURITY_SUMMARY.md
+          echo "" >> SECURITY_SUMMARY.md
+          echo "**Scan Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> SECURITY_SUMMARY.md
+          echo "**Branch:** ${{ github.ref_name }}" >> SECURITY_SUMMARY.md
+          echo "**Commit:** ${{ github.sha }}" >> SECURITY_SUMMARY.md
+          echo "" >> SECURITY_SUMMARY.md
+          echo "---" >> SECURITY_SUMMARY.md
+          echo "" >> SECURITY_SUMMARY.md
+
+          # Trivy results
+          if [ -d "reports/trivy-security-report" ]; then
+            echo "## 🔍 Trivy Scan" >> SECURITY_SUMMARY.md
+            cat reports/trivy-security-report/trivy-report.md >> SECURITY_SUMMARY.md
+            echo "" >> SECURITY_SUMMARY.md
+          fi
+
+          # Python security results
+          if [ -d "reports/python-security-report" ]; then
+            echo "## 🐍 Python Dependencies" >> SECURITY_SUMMARY.md
+            cat reports/python-security-report/safety-report.md >> SECURITY_SUMMARY.md
+            echo "" >> SECURITY_SUMMARY.md
+          fi
+
+          # Secret scan results
+          if [ -d "reports/secret-scan-report" ]; then
+            echo "## 🔑 Secret Scanning" >> SECURITY_SUMMARY.md
+            cat reports/secret-scan-report/gitleaks-report.md >> SECURITY_SUMMARY.md
+            echo "" >> SECURITY_SUMMARY.md
+          fi
+
+          echo "---" >> SECURITY_SUMMARY.md
+          echo "" >> SECURITY_SUMMARY.md
+          echo "📋 **Next Steps:**" >> SECURITY_SUMMARY.md
+          echo "1. Review findings in GitHub Security tab" >> SECURITY_SUMMARY.md
+          echo "2. Update vulnerable dependencies" >> SECURITY_SUMMARY.md
+          echo "3. Fix critical/high security issues" >> SECURITY_SUMMARY.md
+          echo "4. Re-run security scans to verify fixes" >> SECURITY_SUMMARY.md
+
+      - name: Upload Security Summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-summary
+          path: SECURITY_SUMMARY.md
+          retention-days: 90
+
+      - name: Comment Security Summary on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('SECURITY_SUMMARY.md', 'utf8');
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });

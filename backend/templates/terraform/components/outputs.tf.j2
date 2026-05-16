@@ -1,0 +1,11 @@
+# ============================================================================
+# Outputs
+# ============================================================================
+
+{% for output in outputs %}
+output "{{ output.name }}" {
+  description = "{{ output.description }}"
+  value       = {{ output.value }}
+}
+
+{% endfor %}

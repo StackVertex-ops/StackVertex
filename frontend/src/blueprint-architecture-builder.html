@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Architecture Builder - OverCloud</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex justify-between items-center">
+                <a href="/index.html" class="text-2xl font-bold text-gray-900 hover:opacity-80 transition" style="text-decoration: none;">OverCloud</a>
+                <nav class="flex gap-6">
+                    <a href="/index.html" class="text-gray-600 hover:text-gray-900">Home</a>
+                    <a href="/dashboard.html" class="text-gray-600 hover:text-gray-900">Dashboard</a>
+                    <a href="/blueprints.html" class="text-gray-600 hover:text-gray-900">Blueprints</a>
+                    <a href="/pricing.html" class="text-gray-600 hover:text-gray-900">Preise</a>
+                    <a href="/guides/" class="text-gray-600 hover:text-gray-900">Anleitungen</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Step Indicator -->
+        <div class="mb-8">
+            <div class="flex items-center justify-center gap-4">
+                <div class="step-indicator active" data-step="select-blueprint">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Blueprint wählen</div>
+                </div>
+                <div class="step-divider"></div>
+                <div class="step-indicator" data-step="configure">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Konfigurieren</div>
+                </div>
+                <div class="step-divider"></div>
+                <div class="step-indicator" data-step="review">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Review & Deploy</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 1: Blueprint Selection -->
+        <div id="blueprintSelection" class="step-content">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Wähle einen Blueprint</h2>
+
+            <!-- Loading State -->
+            <div id="blueprintLoadingState" class="text-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+                <p class="text-gray-600 mt-4">Lade Blueprints...</p>
+            </div>
+
+            <!-- Blueprints Grid -->
+            <div id="blueprintGrid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Blueprint cards werden hier via JS eingefügt -->
+            </div>
+
+            <!-- Error State -->
+            <div id="blueprintErrorState" class="hidden bg-red-50 border border-red-200 rounded-lg p-6">
+                <div class="flex">
+                    <svg class="w-6 h-6 text-red-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div>
+                        <h3 class="font-semibold text-red-900 mb-1">Fehler beim Laden</h3>
+                        <p class="text-red-700 text-sm" id="blueprintErrorMessage"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Configuration Form -->
+        <div id="blueprintConfiguration" class="step-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Left: Form (2 Columns) -->
+                <div class="lg:col-span-2">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900">Konfiguriere deine Architektur</h2>
+                        <div class="text-sm text-gray-600" id="blueprintNameDisplay"></div>
+                    </div>
+
+                    <!-- Form Container -->
+                    <div id="blueprint-form-container" class="bg-white rounded-lg shadow-md p-6">
+                        <!-- Smart Forms werden hier eingefügt -->
+                    </div>
+                </div>
+
+                <!-- Right: Cost Estimation (1 Column, Sticky) -->
+                <div class="lg:col-span-1">
+                    <div class="cost-estimation-panel sticky top-4 bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Kostenübersicht</h3>
+
+                        <!-- Loading State -->
+                        <div id="costLoadingState" class="text-center py-6 hidden">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+                            <p class="text-gray-600 text-sm mt-2">Berechne Kosten...</p>
+                        </div>
+
+                        <!-- Cost Breakdown -->
+                        <div id="costBreakdown" class="space-y-3">
+                            <!-- Wird via JS gefüllt -->
+                        </div>
+
+                        <!-- Total -->
+                        <div class="mt-6 pt-6 border-t border-gray-200">
+                            <div class="text-sm text-gray-600 mb-1">Geschätzte Kosten/Monat</div>
+                            <div class="text-3xl font-bold text-purple-600" id="totalCost">$0.00</div>
+                            <div class="text-xs text-gray-500 mt-1">Preise können je nach tatsächlicher Nutzung variieren</div>
+                        </div>
+
+                        <!-- Cost Details Toggle -->
+                        <button id="toggleCostDetails" class="mt-4 w-full text-sm text-purple-600 hover:text-purple-700 font-medium">
+                            Details anzeigen
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="mt-8 flex justify-between">
+                <button id="backToBlueprintsBtn" class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    <span>Zurück</span>
+                </button>
+                <button id="continueToReviewBtn" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2">
+                    <span>Weiter zur Review</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 3: Review & Deploy -->
+        <div id="blueprintReview" class="step-content hidden">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Review & Deploy</h2>
+
+            <!-- Architecture Summary -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Zusammenfassung</h3>
+                <div id="architectureSummary" class="space-y-3">
+                    <!-- Wird via JS gefüllt -->
+                </div>
+            </div>
+
+            <!-- Terraform Preview -->
+            <div class="bg-gray-900 text-gray-100 rounded-lg p-6 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-semibold">Generated Terraform</h3>
+                    <button id="copyTerraformBtn" class="text-sm text-purple-400 hover:text-purple-300 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>Copy</span>
+                    </button>
+                </div>
+                <pre id="terraformPreview" class="text-sm overflow-x-auto bg-gray-800 rounded p-4"><code><!-- Terraform code hier --></code></pre>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex justify-between">
+                <button id="backToConfigBtn" class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    <span>Zurück zur Konfiguration</span>
+                </button>
+                <div class="flex gap-3">
+                    <button id="downloadTerraformBtn" class="px-6 py-3 border border-purple-600 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span>Terraform herunterladen</span>
+                    </button>
+                    <button id="deployBtn" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                        <span>Jetzt deployen</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t mt-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="text-center text-gray-600">
+                <p>&copy; 2026 OverCloud. Infrastructure made simple.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module" src="/js/pages/blueprint-builder.js"></script>
+</body>
+</html>

@@ -1,0 +1,2739 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Account Setup - Komplette Anleitung</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #232F3E;
+            background: linear-gradient(135deg, #FF9900 0%, #EC7211 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #232F3E 0%, #37475A 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 3px solid #FF9900;
+            overflow-x: auto;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 18px 24px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            font-weight: 600;
+            color: #37475A;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -3px;
+        }
+
+        .tab:hover {
+            background: rgba(255, 153, 0, 0.1);
+            color: #FF9900;
+        }
+
+        .tab.active {
+            background: white;
+            color: #FF9900;
+            border-bottom: 3px solid #FF9900;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 40px;
+            animation: fadeIn 0.5s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            color: #232F3E;
+            font-size: 2em;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #FF9900;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            color: #37475A;
+            font-size: 1.5em;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        h4 {
+            color: #FF9900;
+            font-size: 1.2em;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        .info-box, .warning-box, .success-box, .command-box {
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid;
+        }
+
+        .info-box {
+            background: #E8F4FD;
+            border-color: #2196F3;
+        }
+
+        .warning-box {
+            background: #FFF4E5;
+            border-color: #FF9900;
+        }
+
+        .success-box {
+            background: #E8F5E9;
+            border-color: #4CAF50;
+        }
+
+        .command-box {
+            background: #1E1E1E;
+            border-color: #FF9900;
+            color: #FFFFFF;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+
+        .command-box pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: #FF9900;
+            box-shadow: 0 5px 15px rgba(255, 153, 0, 0.2);
+            transform: translateY(-5px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th {
+            background: linear-gradient(135deg, #232F3E 0%, #37475A 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        tr:hover {
+            background: #FFF4E5;
+        }
+
+        ul, ol {
+            margin-left: 25px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        .step-number {
+            background: #FF9900;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        /* Code Styles */
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        code {
+            font-family: 'Courier New', Monaco, monospace;
+            font-size: 0.9em;
+        }
+
+        pre code {
+            color: #ffffff;
+            line-height: 1.5;
+        }
+
+        /* Quiz Styles */
+        .options {
+            margin: 15px 0;
+        }
+
+        .options label {
+            display: block;
+            padding: 12px;
+            margin: 10px 0;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .options label:hover {
+            border-color: #FF9900;
+            background: #FFF4E5;
+        }
+
+        .options input[type="radio"] {
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        .quiz-question {
+            background: #f8f9fa;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 10px;
+            border-left: 5px solid #FF9900;
+        }
+
+        .quiz-options {
+            margin: 15px 0;
+        }
+
+        .option {
+            display: block;
+            padding: 12px 12px 12px 40px;
+            margin: 10px 0;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .option:hover {
+            border-color: #FF9900;
+            background: #FFF4E5;
+        }
+
+        .option input[type="radio"] {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .quiz-explanation {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.95em;
+        }
+
+        .quiz-explanation.correct {
+            background: #E8F5E9;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .quiz-explanation.incorrect {
+            background: #FFEBEE;
+            border-left: 4px solid #f44336;
+        }
+
+        #result {
+            margin: 30px 0;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .tab {
+                padding: 12px 16px;
+                font-size: 13px;
+            }
+
+            .tab-content {
+                padding: 20px;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Zurück Button */
+        .back-to-overview {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.95em;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-to-overview:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .back-to-overview::before {
+            content: "←";
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <a href="Interaktive-Lern-Artefakte-Übersicht.html" class="back-to-overview">Zurück zur Übersicht</a>
+
+    <div class="container">
+        <header>
+            <h1>☁️ AWS Account Setup</h1>
+            <p>Komplette Anleitung: Von der Erstellung bis zum sicheren Production-Ready Account</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('tab1')">🚀 Account erstellen</button>
+            <button class="tab" onclick="switchTab('tab2')">🔒 Security Setup</button>
+            <button class="tab" onclick="switchTab('tab3')">💰 Billing & Costs</button>
+            <button class="tab" onclick="switchTab('tab4')">👤 IAM Setup</button>
+            <button class="tab" onclick="switchTab('tab5')">🌍 Regions & Services</button>
+            <button class="tab" onclick="switchTab('tab6')">⚠️ Wichtige Warnungen</button>
+            <button class="tab" onclick="switchTab('tab7')">🧹 Account Management</button>
+            <button class="tab" onclick="switchTab('tab8')">✅ AWS Setup Quiz</button>
+        </div>
+
+        <div id="tab1" class="tab-content active">
+            <h2>🚀 AWS Account erstellen - Step by Step</h2>
+
+            <div class="info-box">
+                <strong>Was du brauchst:</strong> Email-Adresse, Kreditkarte (auch wenn Free Tier), Telefonnummer für Verifizierung, ca. 10-15 Minuten Zeit
+            </div>
+
+            <h3>📋 Schritt-für-Schritt Anleitung</h3>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h4><span class="step-number">1</span>AWS Homepage öffnen</h4>
+                    <p>Gehe zu <strong>aws.amazon.com</strong> und klicke auf "Create an AWS Account" (orangener Button rechts oben)</p>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">2</span>Email & Account Name</h4>
+                    <ul>
+                        <li>Root user email address: Deine Haupt-Email</li>
+                        <li>AWS account name: z.B. "MyPersonalAWS" oder "CompanyDev"</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">3</span>Verification Code</h4>
+                    <p>Du erhältst einen Code per Email. Gib diesen ein, um fortzufahren.</p>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">4</span>Root User Passwort</h4>
+                    <p><strong>Wichtig:</strong> Starkes Passwort wählen (min. 12 Zeichen, Groß/Klein, Zahlen, Sonderzeichen). Speichere es sicher in einem Password Manager!</p>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ WICHTIG:</strong> Der Root User hat VOLLE Kontrolle über deinen AWS Account. Verwende ihn NUR für initiales Setup, dann nie wieder! Wir erstellen später einen IAM User für tägliche Arbeit.
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h4><span class="step-number">5</span>Kontaktinformationen</h4>
+                    <ul>
+                        <li><strong>Account Type:</strong> "Personal" (für Learning) oder "Professional" (für Firma)</li>
+                        <li>Full name, Telefonnummer, Adresse eingeben</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">6</span>Zahlungsinformationen</h4>
+                    <p>Kreditkarte hinzufügen. AWS prüft mit einer kleinen Autorisierung (ca. 1$), die zurückerstattet wird.</p>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">7</span>Identity Verification</h4>
+                    <p>Telefon-Verifizierung: Du wirst angerufen oder erhältst SMS mit PIN-Code. Gib diesen ein.</p>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">8</span>Support Plan wählen</h4>
+                    <p><strong>Basic Support (Free)</strong> ist für den Anfang ausreichend. Developer/Business Plans kosten extra.</p>
+                </div>
+            </div>
+
+            <div class="success-box">
+                <h4>✅ Glückwunsch! Account erstellt!</h4>
+                <p>Du solltest eine Bestätigungs-Email erhalten. Es kann 5-10 Minuten dauern, bis dein Account vollständig aktiv ist.</p>
+            </div>
+
+            <h3>🔑 Erste Anmeldung</h3>
+            <div class="command-box">
+                <pre>
+1. Gehe zu: https://console.aws.amazon.com
+2. Klicke "Sign in to the Console"
+3. Wähle "Root user"
+4. Email-Adresse eingeben
+5. Passwort eingeben
+6. Solve Captcha
+7. → Du bist im AWS Management Console!
+                </pre>
+            </div>
+
+            <h3>📊 Was du jetzt siehst: AWS Management Console</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <h4>Search Bar (oben)</h4>
+                    <p>Suche nach Services wie "EC2", "S3", "Lambda" etc.</p>
+                </div>
+                <div class="card">
+                    <h4>Region Selector (oben rechts)</h4>
+                    <p>Aktuell gewählte Region. <strong>Wichtig:</strong> Manche Services sind region-spezifisch!</p>
+                </div>
+                <div class="card">
+                    <h4>Recently visited</h4>
+                    <p>Services die du zuletzt besucht hast (noch leer bei neuem Account)</p>
+                </div>
+                <div class="card">
+                    <h4>Favorites</h4>
+                    <p>Du kannst Services als Favoriten markieren für schnellen Zugriff</p>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>🎯 Nächste Schritte:</strong> Jetzt SOFORT zu Tab 2 "Security Setup" gehen! MFA aktivieren und Account absichern ist Priorität #1, bevor du irgendwas anderes machst!
+            </div>
+        </div>
+
+        <div id="tab2" class="tab-content">
+            <h2>🔒 Security Setup - Account absichern</h2>
+
+            <div class="warning-box">
+                <strong>🚨 KRITISCH:</strong> Security Setup ist NICHT optional! Ein unsicherer AWS Account kann in wenigen Stunden
+                zu Tausenden € Schaden führen. Nimm dir 20 Minuten Zeit für dieses Setup - es ist die wichtigste Investition!
+            </div>
+
+            <h3>🔐 Priority #1: MFA für Root Account aktivieren</h3>
+
+            <div class="info-box">
+                <strong>Was ist MFA?</strong> Multi-Factor Authentication = Passwort + zusätzlicher Code von deinem Handy.
+                Selbst wenn jemand dein Passwort hat, kann er sich NICHT einloggen ohne dein Handy!
+            </div>
+
+            <h4>MFA aktivieren - Step by Step:</h4>
+            <div class="card-grid">
+                <div class="card">
+                    <h4><span class="step-number">1</span>IAM Dashboard öffnen</h4>
+                    <p>Suchleiste (oben): "IAM" eingeben → klicken</p>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">2</span>Security Alert sehen</h4>
+                    <p>Du siehst orange Warnung: "Add MFA for root user". Klicke auf "Add MFA"</p>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">3</span>MFA Device wählen</h4>
+                    <p><strong>Empfohlen:</strong> "Authenticator app" (z.B. Google Authenticator, Microsoft Authenticator, Authy)</p>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">4</span>QR Code scannen</h4>
+                    <p>Öffne Authenticator App → QR Code scannen → Du siehst 6-stelligen Code der alle 30 Sek wechselt</p>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">5</span>Codes eingeben</h4>
+                    <p>Gib 2 aufeinanderfolgende MFA Codes ein (warte auf neuen Code nach dem ersten)</p>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">6</span>Bestätigung</h4>
+                    <p>✅ "MFA enabled for root user" → FERTIG! Beim nächsten Login brauchst du MFA Code</p>
+                </div>
+            </div>
+
+            <div class="success-box">
+                <strong>🎯 Backup Codes speichern!</strong> Schreibe die MFA Backup Codes auf (falls du Handy verlierst) und speichere sie SICHER (nicht auf dem Handy selbst!).
+            </div>
+
+            <h3>🔑 Root Account Access Keys NIEMALS erstellen!</h3>
+            <div class="warning-box">
+                <strong>⛔ NIEMALS:</strong>
+                <ul>
+                    <li>❌ Access Keys für Root User erstellen</li>
+                    <li>❌ Root Credentials im Code verwenden</li>
+                    <li>❌ Root Passwort mit anderen teilen</li>
+                    <li>❌ Root User für tägliche Arbeit verwenden</li>
+                </ul>
+            </div>
+
+            <div class="success-box">
+                <strong>✅ STATTDESSEN:</strong> IAM User erstellen für tägliche Arbeit (siehe Tab 4). Root User NUR für:
+                <ul>
+                    <li>Account Settings ändern</li>
+                    <li>Billing ändern</li>
+                    <li>Account schließen</li>
+                    <li>Support Plan ändern</li>
+                </ul>
+            </div>
+
+            <h3>📧 Security Alert Contacts konfigurieren</h3>
+            <div class="command-box">
+                <pre>
+IAM Dashboard → Account Settings → Alternate Contacts
+
+1. Security Contact: Email für Security-Warnungen
+2. Billing Contact: Email für Billing-Probleme
+3. Operations Contact: Email für Technical Issues
+
+→ AWS kann dich bei Problemen erreichen!
+                </pre>
+            </div>
+
+            <h3>🛡️ CloudTrail aktivieren (Logging)</h3>
+            <div class="info-box">
+                <strong>Was ist CloudTrail?</strong> Loggt ALLE Aktivitäten in deinem AWS Account. Wenn jemand unberechtigt reinkommt, siehst du WAS gemacht wurde!
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h4><span class="step-number">1</span>CloudTrail Service öffnen</h4>
+                    <p>Search: "CloudTrail" → Dashboard</p>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">2</span>Trail erstellen</h4>
+                    <p>Klicke "Create trail"</p>
+                    <ul>
+                        <li>Trail name: "security-logs"</li>
+                        <li>✅ Enable for all regions</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">3</span>Storage location</h4>
+                    <p>CloudTrail erstellt automatisch S3 Bucket für Logs</p>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">4</span>Aktivieren</h4>
+                    <p>Create → CloudTrail läuft! <strong>90 Tage kostenlos im Free Tier</strong></p>
+                </div>
+            </div>
+
+            <h3>⚙️ AWS Account Settings überprüfen</h3>
+            <table>
+                <tr>
+                    <th>Setting</th>
+                    <th>Wo zu finden</th>
+                    <th>Empfehlung</th>
+                </tr>
+                <tr>
+                    <td><strong>Password Policy</strong></td>
+                    <td>IAM → Account settings → Password policy</td>
+                    <td>Mindestens 12 Zeichen, Komplexität erfordern</td>
+                </tr>
+                <tr>
+                    <td><strong>MFA für Root</strong></td>
+                    <td>IAM Dashboard → Security recommendations</td>
+                    <td>✅ MUSS aktiviert sein!</td>
+                </tr>
+                <tr>
+                    <td><strong>Access Analyzer</strong></td>
+                    <td>IAM → Access analyzer</td>
+                    <td>Aktivieren - analysiert wer Zugriff auf deine Ressourcen hat</td>
+                </tr>
+                <tr>
+                    <td><strong>Service Control Policies</strong></td>
+                    <td>AWS Organizations (für Multi-Account)</td>
+                    <td>Advanced - erstmal nicht nötig</td>
+                </tr>
+            </table>
+
+            <h3>🔍 Security Best Practices Checklist</h3>
+            <div class="success-box">
+                <ul>
+                    <li>✅ Root Account MFA aktiviert</li>
+                    <li>✅ Root Access Keys NICHT erstellt</li>
+                    <li>✅ CloudTrail Logging aktiviert</li>
+                    <li>✅ Alternate Contacts konfiguriert</li>
+                    <li>✅ Password Policy gesetzt</li>
+                    <li>✅ IAM Access Analyzer aktiviert</li>
+                </ul>
+            </div>
+
+            <h3>🚨 Was tun bei Security Incident?</h3>
+            <div class="warning-box">
+                <strong>Wenn du unbekannte Aktivität oder unerwartete Charges siehst:</strong>
+                <ol>
+                    <li><strong>SOFORT:</strong> Root Passwort ändern + MFA neu konfigurieren</li>
+                    <li>Alle IAM Access Keys rotieren/deaktivieren</li>
+                    <li>CloudTrail Logs checken → Was wurde gemacht?</li>
+                    <li>Verdächtige Resources löschen (EC2 Instances, etc.)</li>
+                    <li>AWS Support kontaktieren (unter "Support" im Console)</li>
+                    <li>Billing Alerts setzen (siehe Tab 3)</li>
+                </ol>
+            </div>
+
+            <div class="info-box">
+                <strong>🎯 Nächster Schritt:</strong> Gehe zu Tab 3 "Billing & Cost Management" um Billing Alerts zu konfigurieren,
+                damit du SOFORT informiert wirst wenn unerwartete Kosten entstehen!
+            </div>
+        </div>
+
+        <div id="tab3" class="tab-content">
+            <h2>💰 Billing & Cost Management</h2>
+
+            <div class="warning-box">
+                <strong>⚠️ WICHTIG:</strong> AWS kann teuer werden! Horror-Stories von 10.000€+ Rechnungen sind real.
+                Mit den richtigen Einstellungen kannst du aber sicher im Free Tier bleiben oder sehr günstig entwickeln.
+            </div>
+
+            <h3>🎁 AWS Free Tier - Was ist kostenlos?</h3>
+
+            <div class="info-box">
+                <strong>3 Typen von Free Tier:</strong>
+                <ul>
+                    <li><strong>12 Monate Free:</strong> Ab Account-Erstellung, z.B. EC2, S3, RDS</li>
+                    <li><strong>Always Free:</strong> Für immer kostenlos, z.B. Lambda, DynamoDB (Limits gelten)</li>
+                    <li><strong>Trials:</strong> Kurze Test-Periode, z.B. neue Services</li>
+                </ul>
+            </div>
+
+            <h4>📊 Wichtige Free Tier Limits (12 Monate):</h4>
+            <table>
+                <tr>
+                    <th>Service</th>
+                    <th>Free Tier Limit</th>
+                    <th>Darüber hinaus</th>
+                </tr>
+                <tr>
+                    <td><strong>EC2</strong></td>
+                    <td>750h/Monat t2.micro (Linux/Windows)</td>
+                    <td>~$0.0116/h → ca. $8.50/Monat</td>
+                </tr>
+                <tr>
+                    <td><strong>S3</strong></td>
+                    <td>5GB Storage, 20.000 GET, 2.000 PUT</td>
+                    <td>$0.023/GB/Monat</td>
+                </tr>
+                <tr>
+                    <td><strong>RDS</strong></td>
+                    <td>750h/Monat db.t2.micro, 20GB Storage</td>
+                    <td>~$15/Monat für db.t3.micro</td>
+                </tr>
+                <tr>
+                    <td><strong>Lambda</strong></td>
+                    <td>1M requests/Monat, 400.000 GB-Sekunden (Always Free!)</td>
+                    <td>$0.20 per 1M requests</td>
+                </tr>
+                <tr>
+                    <td><strong>DynamoDB</strong></td>
+                    <td>25GB Storage, 25 WCU, 25 RCU (Always Free!)</td>
+                    <td>On-Demand: $1.25/Million Writes</td>
+                </tr>
+                <tr>
+                    <td><strong>CloudFront</strong></td>
+                    <td>50GB Data Transfer, 2M HTTP Requests</td>
+                    <td>$0.085/GB</td>
+                </tr>
+            </table>
+
+            <div class="success-box">
+                <strong>📖 Komplette Liste:</strong> <a href="https://aws.amazon.com/free/" target="_blank">aws.amazon.com/free</a>
+            </div>
+
+            <h3>🔔 Billing Alerts einrichten - KRITISCH!</h3>
+
+            <div class="warning-box">
+                <strong>🚨 Mach das SOFORT!</strong> Billing Alerts warnen dich, bevor die Rechnung explodiert.
+                Viele Horror-Stories hätten vermieden werden können mit Alerts!
+            </div>
+
+            <h4>CloudWatch Billing Alarm erstellen:</h4>
+            <div class="card-grid">
+                <div class="card">
+                    <h4><span class="step-number">1</span>Billing Preferences</h4>
+                    <p>Klicke deinen Account-Namen (oben rechts) → "Billing and Cost Management"</p>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">2</span>Alerts aktivieren</h4>
+                    <p>Billing Preferences → ✅ "Receive Free Tier Usage Alerts" → ✅ "Receive Billing Alerts"</p>
+                    <p>Email eingeben → Save preferences</p>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">3</span>CloudWatch öffnen</h4>
+                    <p>Services suchen → "CloudWatch" → Region auf <strong>us-east-1 (N. Virginia)</strong> wechseln! (Billing nur dort!)</p>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">4</span>Alarm erstellen</h4>
+                    <p>Alarms → Create alarm → Select metric → Billing → Total Estimated Charge</p>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">5</span>Threshold setzen</h4>
+                    <p>Threshold: z.B. $5 oder $10</p>
+                    <p><strong>Empfehlung für Learning: $5</strong></p>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">6</span>SNS Topic erstellen</h4>
+                    <p>Create new topic → Email eingeben → Create topic</p>
+                    <p><strong>Wichtig:</strong> Email Subscription bestätigen (Check Inbox!)</p>
+                </div>
+            </div>
+
+            <div class="success-box">
+                <h4>✅ Fertig! Du erhältst jetzt Email wenn Kosten > $5 (oder dein Limit)</h4>
+                <p><strong>Pro-Tipp:</strong> Erstelle mehrere Alarms: $1, $5, $10, $50 für gestufte Warnungen!</p>
+            </div>
+
+            <h3>💳 AWS Budgets einrichten</h3>
+
+            <div class="info-box">
+                <strong>Was ist AWS Budgets?</strong> Detailliertere Cost Controls als Billing Alarms.
+                Du kannst Budgets per Service, per Tag, per Projekt setzen. <strong>2 Budgets sind kostenlos!</strong>
+            </div>
+
+            <div class="command-box">
+                <pre>
+BUDGETS ERSTELLEN:
+
+1. Billing Dashboard → Budgets → Create budget
+2. Budget Type wählen: "Cost budget"
+3. Budget Name: z.B. "Monthly-Budget"
+4. Amount: z.B. $10/Monat
+5. Alert Thresholds:
+   - 50% ($5) → Warning Email
+   - 80% ($8) → Critical Email
+   - 100% ($10) → STOP alles!
+6. Email Notifications konfigurieren
+7. Create budget → FERTIG!
+                </pre>
+            </div>
+
+            <h3>📊 Cost Explorer nutzen</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <h4>Wo zu finden</h4>
+                    <p>Billing Dashboard → Cost Explorer → Enable (einmalig) → Launch Cost Explorer</p>
+                </div>
+                <div class="card">
+                    <h4>Was du siehst</h4>
+                    <p>Grafik deiner Kosten über Zeit, aufgeschlüsselt nach Service, Region, Tag</p>
+                </div>
+                <div class="card">
+                    <h4>Nützliche Views</h4>
+                    <ul>
+                        <li>Daily costs (Tagesübersicht)</li>
+                        <li>Cost by Service (Welcher Service kostet?)</li>
+                        <li>Cost by Region (Welche Region?)</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>Forecasts</h4>
+                    <p>Cost Explorer zeigt Forecast für nächsten Monat basierend auf aktuellem Usage → Siehst du rechtzeitig wenn es teuer wird!</p>
+                </div>
+            </div>
+
+            <h3>🎯 Cost Optimization Best Practices</h3>
+
+            <table>
+                <tr>
+                    <th>Strategie</th>
+                    <th>Wie geht's?</th>
+                    <th>Ersparnis</th>
+                </tr>
+                <tr>
+                    <td><strong>Ressourcen löschen!</strong></td>
+                    <td>EC2 Instances STOPPEN reicht nicht - du zahlst für EBS Volumes! <strong>TERMINATE</strong> Instances die du nicht brauchst!</td>
+                    <td>100% für ungenutztes</td>
+                </tr>
+                <tr>
+                    <td><strong>Right-Sizing</strong></td>
+                    <td>Nutze kleinste Instance die funktioniert. t2.micro statt t2.large = 8x günstiger!</td>
+                    <td>Bis zu 80%</td>
+                </tr>
+                <tr>
+                    <td><strong>Reserved Instances</strong></td>
+                    <td>Wenn du weißt, dass du Service 1-3 Jahre brauchst → 40-60% Rabatt</td>
+                    <td>40-60%</td>
+                </tr>
+                <tr>
+                    <td><strong>Spot Instances</strong></td>
+                    <td>Für non-critical Workloads → bis zu 90% günstiger! Können aber jederzeit terminiert werden</td>
+                    <td>Bis zu 90%</td>
+                </tr>
+                <tr>
+                    <td><strong>S3 Lifecycle Policies</strong></td>
+                    <td>Alte Files automatisch zu Glacier (billiger Archiv-Storage) verschieben</td>
+                    <td>80% auf Archiv-Data</td>
+                </tr>
+                <tr>
+                    <td><strong>Auto-Scaling</strong></td>
+                    <td>Nachts/Wochenende automatisch runterskalieren wenn weniger Traffic</td>
+                    <td>30-50%</td>
+                </tr>
+            </table>
+
+            <h3>🚨 Häufige Kostenfallen vermeiden</h3>
+
+            <div class="warning-box">
+                <strong>⛔ KOSTENFALLEN - ACHTUNG!</strong>
+                <ol>
+                    <li><strong>EC2 Instance läuft 24/7:</strong> 1x t2.micro free tier ist OK, aber vergessene Instances = $$$</li>
+                    <li><strong>Elastic IP ohne Instance:</strong> $0.005/h wenn IP nicht attached → $3.60/Monat verschenkt!</li>
+                    <li><strong>NAT Gateway:</strong> $0.045/h + Data Transfer → $32/Monat + Traffic! (Nutze NAT Instance stattdessen für Dev)</li>
+                    <li><strong>RDS Multi-AZ in Dev:</strong> Doppelte Kosten! Multi-AZ nur für Production!</li>
+                    <li><strong>Data Transfer OUT:</strong> Erste 100GB/Monat free, danach $0.09/GB → große Files kosten!</li>
+                    <li><strong>CloudWatch Logs:</strong> Kostenlos bis 5GB, danach $0.50/GB → Logs regelmäßig löschen!</li>
+                    <li><strong>Load Balancers:</strong> ALB/NLB kosten ~$16/Monat PLUS Data Transfer auch wenn idle!</li>
+                    <li><strong>Snapshots vergessen:</strong> EBS Snapshots kosten $0.05/GB/Monat → alte Snapshots löschen!</li>
+                </ol>
+            </div>
+
+            <h3>💰 Was kostet was? Quick Reference</h3>
+
+            <div class="command-box">
+                <pre>
+TYPISCHE MONATLICHE KOSTEN (ohne Free Tier):
+
+EC2 t2.micro (24/7):           ~$8.50
+EC2 t2.small (24/7):           ~$17
+EC2 t3.medium (24/7):          ~$30
+RDS db.t3.micro (24/7):        ~$15
+S3 (100GB):                    ~$2.30
+EBS Volume (30GB):             ~$3
+Load Balancer (ALB):           ~$16 + Traffic
+NAT Gateway:                   ~$32 + Traffic
+Route53 Hosted Zone:           $0.50
+CloudWatch Logs (10GB):        ~$5
+
+BEISPIEL SIMPLE WEB APP:
+- 1x EC2 t2.micro
+- 1x RDS db.t3.micro
+- 20GB S3
+- 30GB EBS
+→ Ca. $28/Monat (ohne Traffic)
+
+MIT FREE TIER (erste 12 Monate):
+→ Ca. $2-5/Monat!
+                </pre>
+            </div>
+
+            <h3>🔧 Nützliche Tools</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <h4>AWS Pricing Calculator</h4>
+                    <p><a href="https://calculator.aws" target="_blank">calculator.aws</a></p>
+                    <p>Kalkuliere Kosten BEVOR du Ressourcen erstellst!</p>
+                </div>
+                <div class="card">
+                    <h4>AWS Cost Anomaly Detection</h4>
+                    <p>Machine Learning erkennt ungewöhnliche Kosten automatisch</p>
+                    <p>Billing → Cost Anomaly Detection</p>
+                </div>
+                <div class="card">
+                    <h4>AWS Trusted Advisor</h4>
+                    <p>Empfiehlt Cost Optimizations (teilweise nur in paid Support Plans)</p>
+                </div>
+                <div class="card">
+                    <h4>Tag Editor</h4>
+                    <p>Tagge Ressourcen (Environment: Dev/Prod) → Kosten-Tracking per Projekt!</p>
+                </div>
+            </div>
+
+            <div class="success-box">
+                <h4>✅ Billing Checklist:</h4>
+                <ul>
+                    <li>✅ Free Tier Limits kennen</li>
+                    <li>✅ Billing Alerts aktiviert ($5 Threshold)</li>
+                    <li>✅ AWS Budget erstellt ($10/Monat)</li>
+                    <li>✅ Email Notifications bestätigt</li>
+                    <li>✅ Cost Explorer enabled</li>
+                    <li>✅ Kosten wöchentlich checken</li>
+                    <li>✅ Ungenutzte Ressourcen LÖSCHEN!</li>
+                </ul>
+            </div>
+
+            <div class="info-box">
+                <strong>🎯 Nächster Schritt:</strong> Gehe zu Tab 4 "IAM Setup" um Admin-User zu erstellen.
+                Ab jetzt NICHT mehr mit Root User arbeiten!
+            </div>
+        </div>
+
+        <div id="tab4" class="tab-content">
+            <h2>👤 IAM Users & Policies</h2>
+
+            <div class="warning-box">
+                <strong>🎯 WICHTIG:</strong> Ab jetzt NICHT mehr mit Root User arbeiten! Wir erstellen einen Admin IAM User für tägliche Arbeit. Root User nur noch für Account-Settings!
+            </div>
+
+            <h3>🔑 Was ist IAM?</h3>
+            <div class="info-box">
+                <strong>IAM = Identity and Access Management</strong><br>
+                Verwaltet WER (Users, Roles) WAS (Permissions) in deinem AWS Account machen darf.
+                IAM ist KOSTENLOS und GLOBAL (nicht region-spezifisch).
+            </div>
+
+            <h3>👥 IAM Konzepte verstehen</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <h4>👤 Users</h4>
+                    <p>Permanente Identitäten für Menschen (z.B. du, deine Kollegen). Jeder User hat eigene Credentials.</p>
+                </div>
+                <div class="card">
+                    <h4>👥 Groups</h4>
+                    <p>Sammlung von Users. Policies können auf Groups angewendet werden → alle Members erben die Permissions.</p>
+                </div>
+                <div class="card">
+                    <h4>🎭 Roles</h4>
+                    <p>Temporäre Identitäten für Services (z.B. EC2, Lambda). Keine permanenten Credentials!</p>
+                </div>
+                <div class="card">
+                    <h4>📜 Policies</h4>
+                    <p>JSON Dokumente die definieren: "Allow/Deny diese Action auf dieser Resource". Z.B. "Allow S3 Read"</p>
+                </div>
+            </div>
+
+            <h3>🛠️ Admin IAM User erstellen - Step by Step</h3>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h4><span class="step-number">1</span>IAM Console öffnen</h4>
+                    <p>Services → IAM (noch als Root User eingeloggt)</p>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">2</span>Users erstellen</h4>
+                    <p>Linke Sidebar → Users → Create user</p>
+                    <p><strong>Username:</strong> z.B. "admin" oder "dein-name-admin"</p>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">3</span>Access Type wählen</h4>
+                    <p>✅ AWS Management Console access<br>
+                    Optional: ✅ Access key (für CLI/SDK)</p>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">4</span>Passwort setzen</h4>
+                    <p>Autogenerated oder Custom password<br>
+                    ✅ "User must create new password at next sign-in"</p>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">5</span>Permissions hinzufügen</h4>
+                    <p>"Attach policies directly" → Suche: <strong>AdministratorAccess</strong> → Select</p>
+                    <p><strong>⚠️</strong> Das gibt VOLLE Admin-Rechte!</p>
+                </div>
+                <div class="card">
+                    <h4><span class="step-number">6</span>Review & Create</h4>
+                    <p>Review → Create user → <strong>Download Credentials!</strong> (CSV mit Login-URL, Username, Password)</p>
+                </div>
+            </div>
+
+            <div class="success-box">
+                <h4>✅ Admin User erstellt!</h4>
+                <p><strong>Sign-in URL:</strong> https://DEINE-ACCOUNT-ID.signin.aws.amazon.com/console<br>
+                (Auch zu finden in IAM Dashboard oben rechts)</p>
+            </div>
+
+            <h3>🔐 MFA für IAM User aktivieren</h3>
+            <div class="warning-box">
+                <strong>Auch für IAM Admin User MFA aktivieren!</strong> Gleiches Verfahren wie bei Root User.
+            </div>
+
+            <div class="command-box">
+                <pre>
+MFA FÜR IAM USER:
+
+1. Logge dich AUS als Root User
+2. Logge dich EIN als IAM Admin User (neue Sign-in URL)
+3. Klicke deinen Namen (oben rechts) → Security Credentials
+4. Multi-factor authentication (MFA) → Assign MFA device
+5. QR Code mit Authenticator App scannen
+6. 2 MFA Codes eingeben → Done!
+                </pre>
+            </div>
+
+            <h3>📜 IAM Policies verstehen</h3>
+
+            <div class="info-box">
+                <strong>Policy = JSON Dokument mit Permissions</strong><br>
+                Jede Policy hat: Effect (Allow/Deny), Action (was?), Resource (wo?)
+            </div>
+
+            <h4>Beispiel: S3 Read-Only Policy</h4>
+            <div class="command-box">
+                <pre>
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::my-bucket/*",
+        "arn:aws:s3:::my-bucket"
+      ]
+    }
+  ]
+}
+
+BEDEUTUNG:
+- Effect: "Allow" → Erlauben (nicht Deny)
+- Action: s3:GetObject, s3:ListBucket → Files lesen & Bucket listen
+- Resource: Nur "my-bucket" → Nicht alle S3 Buckets!
+                </pre>
+            </div>
+
+            <h3>🏢 Groups & Permissions Best Practices</h3>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h4>Developers Group</h4>
+                    <p><strong>Policies:</strong></p>
+                    <ul>
+                        <li>AmazonEC2FullAccess</li>
+                        <li>AmazonS3FullAccess</li>
+                        <li>CloudWatchReadOnlyAccess</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>ReadOnly Group</h4>
+                    <p><strong>Policies:</strong></p>
+                    <ul>
+                        <li>ReadOnlyAccess (AWS Managed)</li>
+                        <li>Kann alles sehen, nichts ändern</li>
+                        <li>Gut für Praktikanten/Onboarding</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>Billing Group</h4>
+                    <p><strong>Policies:</strong></p>
+                    <ul>
+                        <li>Billing (AWS Managed)</li>
+                        <li>Kann Costs sehen & Budgets verwalten</li>
+                        <li>Kein Zugriff auf Services</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>Admins Group</h4>
+                    <p><strong>Policies:</strong></p>
+                    <ul>
+                        <li>AdministratorAccess</li>
+                        <li>Volle Kontrolle</li>
+                        <li>Nur für vertrauenswürdige User!</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>🎭 IAM Roles - Für Services, nicht Menschen</h3>
+
+            <div class="info-box">
+                <strong>Wann Roles nutzen?</strong><br>
+                - EC2 Instance braucht Zugriff auf S3 → EC2 Role mit S3 Permissions<br>
+                - Lambda Function braucht DynamoDB → Lambda Role mit DynamoDB Permissions<br>
+                <strong>NIEMALS:</strong> Access Keys in Code hardcoden! Nutze Roles!
+            </div>
+
+            <h4>Beispiel: EC2 Role für S3 Access</h4>
+            <div class="command-box">
+                <pre>
+ROLE ERSTELLEN:
+
+1. IAM → Roles → Create role
+2. Trusted entity: "AWS service" → EC2
+3. Permissions: AmazonS3ReadOnlyAccess
+4. Role name: "EC2-S3-ReadOnly-Role"
+5. Create role
+
+ROLE NUTZEN:
+- Beim EC2 Instance Launch: Attach diese Role
+- Code in EC2 kann AUTOMATISCH auf S3 zugreifen (ohne Keys!)
+- AWS SDK holt Credentials automatisch von Instance Metadata
+                </pre>
+            </div>
+
+            <h3>🔒 Security Best Practices</h3>
+
+            <table>
+                <tr>
+                    <th>Best Practice</th>
+                    <th>Warum?</th>
+                    <th>Wie?</th>
+                </tr>
+                <tr>
+                    <td><strong>Least Privilege</strong></td>
+                    <td>Nur Permissions geben die wirklich nötig sind</td>
+                    <td>Start mit ReadOnly → Schritt für Schritt mehr geben wenn nötig</td>
+                </tr>
+                <tr>
+                    <td><strong>MFA für alle</strong></td>
+                    <td>Passwörter können geleaked werden</td>
+                    <td>Root + alle Admin/Power Users = MFA required!</td>
+                </tr>
+                <tr>
+                    <td><strong>Groups nutzen</strong></td>
+                    <td>Einfacher zu verwalten als individual permissions</td>
+                    <td>Policies auf Groups → Users in Groups</td>
+                </tr>
+                <tr>
+                    <td><strong>Roles > Access Keys</strong></td>
+                    <td>Keys können gestohlen werden, Roles sind temporär</td>
+                    <td>EC2/Lambda/ECS → immer Roles nutzen!</td>
+                </tr>
+                <tr>
+                    <td><strong>Credentials rotieren</strong></td>
+                    <td>Alte Keys = Security Risk</td>
+                    <td>Access Keys alle 90 Tage erneuern</td>
+                </tr>
+                <tr>
+                    <td><strong>IAM Access Analyzer</strong></td>
+                    <td>Findet ungewollte externe Zugriffe</td>
+                    <td>IAM → Access Analyzer → Enable</td>
+                </tr>
+            </table>
+
+            <h3>🔑 Access Keys für CLI/SDK (Optional)</h3>
+
+            <div class="warning-box">
+                <strong>⚠️ Nur erstellen wenn du AWS CLI oder SDK nutzen willst!</strong><br>
+                Access Keys sind wie Passwörter - NIEMALS in Code committen!
+            </div>
+
+            <div class="command-box">
+                <pre>
+ACCESS KEYS ERSTELLEN:
+
+1. IAM → Users → Dein Admin User → Security credentials
+2. Access keys → Create access key
+3. Use case: "Command Line Interface (CLI)"
+4. Download CSV mit Access Key ID + Secret Access Key
+5. SICHER speichern! (Secret wird nur 1x angezeigt!)
+
+AWS CLI KONFIGURIEREN:
+$ aws configure
+AWS Access Key ID: AKIAIOSFODNN7EXAMPLE
+AWS Secret Access Key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+Default region: eu-central-1
+Default output format: json
+
+TESTEN:
+$ aws s3 ls
+→ Sollte deine S3 Buckets listen
+                </pre>
+            </div>
+
+            <h3>🎯 IAM Best Practices Checklist</h3>
+
+            <div class="success-box">
+                <ul>
+                    <li>✅ Root User wird NICHT mehr für tägliche Arbeit genutzt</li>
+                    <li>✅ Admin IAM User erstellt mit MFA</li>
+                    <li>✅ IAM Groups für verschiedene Rollen erstellt</li>
+                    <li>✅ Least Privilege Principle angewendet</li>
+                    <li>✅ Roles für EC2/Lambda statt Access Keys</li>
+                    <li>✅ Access Keys NICHT in Code committed</li>
+                    <li>✅ Passwort Policy aktiviert (min. 12 Zeichen, Komplexität)</li>
+                    <li>✅ Credentials regelmäßig rotieren (alle 90 Tage)</li>
+                </ul>
+            </div>
+
+            <div class="info-box">
+                <strong>🎯 Nächster Schritt:</strong> Tab 5 "Regions & Services" - Verstehe AWS Regions und welche Services es gibt!
+            </div>
+        </div>
+
+        <div id="tab5" class="tab-content">
+            <h2>🌍 Regions & Services Overview</h2>
+
+            <div class="info-box">
+                <strong>AWS ist global verteilt!</strong> Services laufen in verschiedenen geografischen Regions.
+                Die richtige Region-Wahl ist wichtig für Latenz, Kosten und Compliance!
+            </div>
+
+            <h3>🗺️ Was sind AWS Regions?</h3>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h4>📍 Region</h4>
+                    <p>Geografische Location (z.B. Frankfurt, Virginia, Tokyo). Jede Region hat einen Code, z.B. <strong>eu-central-1</strong> = Frankfurt</p>
+                </div>
+                <div class="card">
+                    <h4>🏢 Availability Zone (AZ)</h4>
+                    <p>Eine oder mehrere Rechenzentren IN einer Region. Frankfurt hat 3 AZs: eu-central-1a, 1b, 1c. Physisch getrennt!</p>
+                </div>
+                <div class="card">
+                    <h4>🌐 Edge Locations</h4>
+                    <p>Content Delivery Network (CDN) Points für CloudFront. Viel mehr als Regions (400+), näher am User!</p>
+                </div>
+                <div class="card">
+                    <h4>🔒 Local Zones</h4>
+                    <p>Erweiterungen von Regions für ultra-low latency (z.B. Gaming). Nur in wenigen Städten verfügbar.</p>
+                </div>
+            </div>
+
+            <h3>🌍 Wichtige AWS Regions</h3>
+
+            <table>
+                <tr>
+                    <th>Region Name</th>
+                    <th>Region Code</th>
+                    <th>AZs</th>
+                    <th>Wann nutzen?</th>
+                </tr>
+                <tr>
+                    <td><strong>EU (Frankfurt)</strong></td>
+                    <td>eu-central-1</td>
+                    <td>3</td>
+                    <td>🇩🇪 Deutsche/EU User, DSGVO Compliance, niedrige Latenz in Europa</td>
+                </tr>
+                <tr>
+                    <td><strong>EU (Ireland)</strong></td>
+                    <td>eu-west-1</td>
+                    <td>3</td>
+                    <td>🇬🇧 UK/West-Europa, oft günstiger als Frankfurt</td>
+                </tr>
+                <tr>
+                    <td><strong>US East (N. Virginia)</strong></td>
+                    <td>us-east-1</td>
+                    <td>6</td>
+                    <td>🇺🇸 USA, GÜNSTIGSTE Region, neue Services zuerst, Billing Metrics nur hier!</td>
+                </tr>
+                <tr>
+                    <td><strong>US West (Oregon)</strong></td>
+                    <td>us-west-2</td>
+                    <td>4</td>
+                    <td>🌎 West-USA User, Alternative zu us-east-1</td>
+                </tr>
+                <tr>
+                    <td><strong>Asia Pacific (Tokyo)</strong></td>
+                    <td>ap-northeast-1</td>
+                    <td>4</td>
+                    <td>🇯🇵 Japan/Ost-Asien User</td>
+                </tr>
+                <tr>
+                    <td><strong>Asia Pacific (Singapore)</strong></td>
+                    <td>ap-southeast-1</td>
+                    <td>3</td>
+                    <td>🇸🇬 Südost-Asien Hub</td>
+                </tr>
+            </table>
+
+            <div class="success-box">
+                <strong>📖 Alle Regions:</strong> <a href="https://aws.amazon.com/about-aws/global-infrastructure/regions_az/" target="_blank">AWS Global Infrastructure</a> - aktuell 33+ Regions weltweit!
+            </div>
+
+            <h3>🎯 Welche Region soll ich wählen?</h3>
+
+            <div class="command-box">
+                <pre>
+ENTSCHEIDUNGS-KRITERIEN:
+
+1. LATENZ / USER LOCATION
+   → Wo sind deine User?
+   → Frankfurt (eu-central-1) für Deutsche User
+   → Ireland (eu-west-1) für UK/West-Europa
+   → us-east-1 für USA
+
+2. KOSTEN
+   → us-east-1 ist meist AM GÜNSTIGSTEN
+   → Frankfurt/Tokyo sind teurer
+   → Beispiel: EC2 t2.micro
+      us-east-1: $0.0116/h
+      eu-central-1: $0.0126/h (8% teurer!)
+
+3. SERVICE VERFÜGBARKEIT
+   → Neue Services starten oft ZUERST in us-east-1
+   → Nicht alle Services in allen Regions!
+   → Check: aws.amazon.com/about-aws/global-infrastructure/regional-product-services/
+
+4. COMPLIANCE / DATENSCHUTZ
+   → DSGVO? → EU Regions (Frankfurt, Ireland)
+   → HIPAA? → Spezielle Regions
+   → Daten DÜRFEN Region nicht verlassen? → Wichtig!
+
+EMPFEHLUNG FÜR LEARNING:
+→ Frankfurt (eu-central-1) wenn du in Deutschland/EU bist
+→ us-east-1 wenn Kosten wichtig sind & USA OK ist
+                </pre>
+            </div>
+
+            <h3>⚙️ Wichtige AWS Services - Übersicht</h3>
+
+            <h4>💻 Compute (Server & Functions)</h4>
+            <table>
+                <tr>
+                    <th>Service</th>
+                    <th>Was ist das?</th>
+                    <th>Wann nutzen?</th>
+                    <th>Free Tier</th>
+                </tr>
+                <tr>
+                    <td><strong>EC2</strong></td>
+                    <td>Virtual Servers (VMs)</td>
+                    <td>Web Apps, Datenbanken, alles was auf Server läuft</td>
+                    <td>750h/Monat t2.micro (12 Monate)</td>
+                </tr>
+                <tr>
+                    <td><strong>Lambda</strong></td>
+                    <td>Serverless Functions</td>
+                    <td>Event-driven code, APIs, keine Server managen</td>
+                    <td>1M requests/Monat (Always Free!)</td>
+                </tr>
+                <tr>
+                    <td><strong>Elastic Beanstalk</strong></td>
+                    <td>PaaS - Deploy Apps easy</td>
+                    <td>Schnell Web Apps deployen (nutzt EC2 unter der Haube)</td>
+                    <td>Kostenfrei (zahlst nur für EC2/RDS)</td>
+                </tr>
+                <tr>
+                    <td><strong>ECS/Fargate</strong></td>
+                    <td>Container Service</td>
+                    <td>Docker Container hosten</td>
+                    <td>Teilweise Free Tier</td>
+                </tr>
+            </table>
+
+            <h4>💾 Storage (Daten speichern)</h4>
+            <table>
+                <tr>
+                    <th>Service</th>
+                    <th>Was ist das?</th>
+                    <th>Wann nutzen?</th>
+                    <th>Free Tier</th>
+                </tr>
+                <tr>
+                    <td><strong>S3</strong></td>
+                    <td>Object Storage (Files/Bilder/Videos)</td>
+                    <td>Static Website Hosting, File Storage, Backups</td>
+                    <td>5GB, 20k GET, 2k PUT (12 Monate)</td>
+                </tr>
+                <tr>
+                    <td><strong>EBS</strong></td>
+                    <td>Block Storage für EC2</td>
+                    <td>Festplatten für EC2 Instances</td>
+                    <td>30GB (12 Monate)</td>
+                </tr>
+                <tr>
+                    <td><strong>Glacier</strong></td>
+                    <td>Archive Storage (billig, langsam)</td>
+                    <td>Langzeit-Backups die selten gebraucht werden</td>
+                    <td>10GB (Always Free)</td>
+                </tr>
+                <tr>
+                    <td><strong>EFS</strong></td>
+                    <td>Network File System</td>
+                    <td>Shared Storage zwischen EC2 Instances</td>
+                    <td>5GB (12 Monate)</td>
+                </tr>
+            </table>
+
+            <h4>🗄️ Databases</h4>
+            <table>
+                <tr>
+                    <th>Service</th>
+                    <th>Was ist das?</th>
+                    <th>Wann nutzen?</th>
+                    <th>Free Tier</th>
+                </tr>
+                <tr>
+                    <td><strong>RDS</strong></td>
+                    <td>Managed SQL (MySQL, PostgreSQL, etc.)</td>
+                    <td>Relationale Datenbanken ohne Server-Management</td>
+                    <td>750h/Monat db.t2.micro (12 Monate)</td>
+                </tr>
+                <tr>
+                    <td><strong>DynamoDB</strong></td>
+                    <td>NoSQL Key-Value Store</td>
+                    <td>Schnelle NoSQL, serverless, auto-scaling</td>
+                    <td>25GB Storage (Always Free!)</td>
+                </tr>
+                <tr>
+                    <td><strong>Aurora</strong></td>
+                    <td>MySQL/PostgreSQL compatible, 5x faster</td>
+                    <td>High-Performance SQL (teurer als RDS)</td>
+                    <td>Kein Free Tier</td>
+                </tr>
+                <tr>
+                    <td><strong>ElastiCache</strong></td>
+                    <td>In-Memory Cache (Redis/Memcached)</td>
+                    <td>Session Storage, Caching für Performance</td>
+                    <td>Kein Free Tier</td>
+                </tr>
+            </table>
+
+            <h4>🌐 Networking & Content Delivery</h4>
+            <table>
+                <tr>
+                    <th>Service</th>
+                    <th>Was ist das?</th>
+                    <th>Wann nutzen?</th>
+                    <th>Free Tier</th>
+                </tr>
+                <tr>
+                    <td><strong>VPC</strong></td>
+                    <td>Virtual Private Cloud</td>
+                    <td>Isoliertes Netzwerk für deine Ressourcen (immer nötig!)</td>
+                    <td>Kostenlos</td>
+                </tr>
+                <tr>
+                    <td><strong>CloudFront</strong></td>
+                    <td>CDN - Content Delivery Network</td>
+                    <td>Statische Files global verteilen, schnellere Ladezeiten</td>
+                    <td>50GB/Monat (12 Monate)</td>
+                </tr>
+                <tr>
+                    <td><strong>Route 53</strong></td>
+                    <td>DNS Service</td>
+                    <td>Domain-Namen verwalten (z.B. example.com → deine IP)</td>
+                    <td>$0.50/Monat pro Hosted Zone</td>
+                </tr>
+                <tr>
+                    <td><strong>API Gateway</strong></td>
+                    <td>Managed APIs</td>
+                    <td>REST/WebSocket APIs erstellen (oft mit Lambda)</td>
+                    <td>1M API calls/Monat (12 Monate)</td>
+                </tr>
+            </table>
+
+            <h4>🛠️ Developer Tools & Management</h4>
+            <table>
+                <tr>
+                    <th>Service</th>
+                    <th>Was ist das?</th>
+                    <th>Wann nutzen?</th>
+                </tr>
+                <tr>
+                    <td><strong>CloudWatch</strong></td>
+                    <td>Monitoring & Logs</td>
+                    <td>Metrics, Logs, Alarms für alle Services</td>
+                </tr>
+                <tr>
+                    <td><strong>CloudFormation</strong></td>
+                    <td>Infrastructure as Code</td>
+                    <td>AWS Ressourcen als Code definieren (Templates)</td>
+                </tr>
+                <tr>
+                    <td><strong>CodePipeline</strong></td>
+                    <td>CI/CD Pipeline</td>
+                    <td>Automatisches Build/Test/Deploy</td>
+                </tr>
+                <tr>
+                    <td><strong>Systems Manager</strong></td>
+                    <td>Manage EC2 Instances</td>
+                    <td>Patch Management, Remote Shell, Parameter Store</td>
+                </tr>
+            </table>
+
+            <h3>🔧 Global vs. Regional Services</h3>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h4>🌍 Global Services</h4>
+                    <p><strong>Nicht region-spezifisch:</strong></p>
+                    <ul>
+                        <li>IAM (Users, Roles, Policies)</li>
+                        <li>Route 53 (DNS)</li>
+                        <li>CloudFront (CDN)</li>
+                        <li>WAF (Web Application Firewall)</li>
+                    </ul>
+                    <p><em>→ Einmal erstellt, überall verfügbar</em></p>
+                </div>
+                <div class="card">
+                    <h4>📍 Regional Services</h4>
+                    <p><strong>Müssen pro Region erstellt werden:</strong></p>
+                    <ul>
+                        <li>EC2 (Instances)</li>
+                        <li>S3 (Buckets - aber Name global unique!)</li>
+                        <li>RDS (Datenbanken)</li>
+                        <li>Lambda (Functions)</li>
+                        <li>VPC (Networks)</li>
+                    </ul>
+                    <p><em>→ Frankfurt EC2 ≠ Virginia EC2</em></p>
+                </div>
+            </div>
+
+            <h3>💡 Service-Kombinationen für typische Use Cases</h3>
+
+            <div class="command-box">
+                <pre>
+STATIC WEBSITE:
+- S3: HTML/CSS/JS Files hosten
+- CloudFront: CDN für schnelle Auslieferung
+- Route 53: Domain-Name (www.example.com)
+→ Kostet ~$1-2/Monat
+
+SIMPLE WEB APP:
+- EC2: Application Server
+- RDS: Database (MySQL/PostgreSQL)
+- S3: User Uploads speichern
+- CloudWatch: Monitoring
+→ Free Tier: Fast kostenlos! Sonst ~$20-30/Monat
+
+SERVERLESS API:
+- API Gateway: REST Endpoints
+- Lambda: Business Logic
+- DynamoDB: NoSQL Database
+- CloudWatch: Logs
+→ Nur pay-per-use! Kaum Kosten bei wenig Traffic
+
+MICROSERVICES:
+- ECS/Fargate: Docker Container
+- ALB: Load Balancer
+- RDS: Shared Database oder DynamoDB
+- ElastiCache: Redis für Sessions
+→ Skaliert automatisch, ~$50-100/Monat für kleine App
+                </pre>
+            </div>
+
+            <h3>🎯 Best Practices: Regions & Services</h3>
+
+            <div class="success-box">
+                <ul>
+                    <li>✅ Wähle Region NAHE deinen Usern (Latenz!)</li>
+                    <li>✅ Multi-Region nur wenn wirklich nötig (komplex & teuer)</li>
+                    <li>✅ Multi-AZ für Production (High Availability)</li>
+                    <li>✅ Single-AZ für Dev/Test (günstiger)</li>
+                    <li>✅ S3 Bucket Namen sind GLOBAL unique → wähle unique Namen!</li>
+                    <li>✅ Check Service Availability in deiner Region BEVOR du startest</li>
+                    <li>✅ us-east-1 für Billing Metrics (CloudWatch Billing nur dort!)</li>
+                </ul>
+            </div>
+
+            <div class="info-box">
+                <strong>🎯 Nächster Schritt:</strong> Tab 6 "Wichtige Warnungen" - Lerne die häufigsten Fehler und wie du sie vermeidest!
+            </div>
+        </div>
+
+        <div id="tab6" class="tab-content">
+            <h2>⚠️ Wichtige Warnungen & Common Mistakes</h2>
+
+            <div class="warning-box">
+                <strong>🚨 Lies diesen Tab BEVOR du Services nutzt!</strong><br>
+                Diese Fehler kosten jährlich tausende Leute viel Geld und Nerven. Du kannst sie ALLE vermeiden!
+            </div>
+
+            <h3>💸 Die 10 teuersten AWS-Fehler</h3>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h4>1️⃣ EC2 Instance vergessen</h4>
+                    <p><strong>Fehler:</strong> Test-Instance erstellt, vergessen zu stoppen/terminieren</p>
+                    <p><strong>Kosten:</strong> t2.micro: $8/Monat, t2.large: $70/Monat!</p>
+                    <p><strong>Lösung:</strong> IMMER Instances terminieren wenn fertig! STOP reicht NICHT (zahlst für EBS)!</p>
+                </div>
+                <div class="card">
+                    <h4>2️⃣ Kreditkarte gehackt</h4>
+                    <p><strong>Fehler:</strong> Access Keys in GitHub committed → Bots finden sie in Minuten!</p>
+                    <p><strong>Kosten:</strong> $10.000+ Rechnung für Crypto-Mining!</p>
+                    <p><strong>Lösung:</strong> MFA aktiviert, Keys NIE in Code, GitHub scannen mit git-secrets!</p>
+                </div>
+                <div class="card">
+                    <h4>3️⃣ NAT Gateway in Dev</h4>
+                    <p><strong>Fehler:</strong> NAT Gateway für Development erstellt</p>
+                    <p><strong>Kosten:</strong> $32/Monat + Data Transfer auch wenn idle!</p>
+                    <p><strong>Lösung:</strong> NAT Instance oder Public Subnets für Dev nutzen!</p>
+                </div>
+                <div class="card">
+                    <h4>4️⃣ S3 Public Bucket</h4>
+                    <p><strong>Fehler:</strong> S3 Bucket versehentlich Public gemacht</p>
+                    <p><strong>Risiko:</strong> Datenleak, DSGVO-Verstoß, Firmen-Secrets öffentlich!</p>
+                    <p><strong>Lösung:</strong> S3 Block Public Access IMMER aktiviert lassen!</p>
+                </div>
+                <div class="card">
+                    <h4>5️⃣ Data Transfer OUT</h4>
+                    <p><strong>Fehler:</strong> Große Files von S3 zu oft downloaden</p>
+                    <p><strong>Kosten:</strong> $0.09/GB nach 100GB → 1TB = $90!</p>
+                    <p><strong>Lösung:</strong> CloudFront nutzen, Downloads minimieren!</p>
+                </div>
+                <div class="card">
+                    <h4>6️⃣ RDS Multi-AZ für Test</h4>
+                    <p><strong>Fehler:</strong> Multi-AZ für Entwicklungs-Datenbank</p>
+                    <p><strong>Kosten:</strong> DOPPELTE Kosten! $30 statt $15/Monat!</p>
+                    <p><strong>Lösung:</strong> Multi-AZ NUR für Production!</p>
+                </div>
+                <div class="card">
+                    <h4>7️⃣ Load Balancer für nichts</h4>
+                    <p><strong>Fehler:</strong> ALB erstellt für Single Instance</p>
+                    <p><strong>Kosten:</strong> $16/Monat auch ohne Traffic!</p>
+                    <p><strong>Lösung:</strong> LB nur wenn wirklich Load Balancing nötig!</p>
+                </div>
+                <div class="card">
+                    <h4>8️⃣ CloudWatch Logs explodieren</h4>
+                    <p><strong>Fehler:</strong> Verbose Logging, nie gelöscht</p>
+                    <p><strong>Kosten:</strong> $0.50/GB → 100GB = $50/Monat!</p>
+                    <p><strong>Lösung:</strong> Log Retention setzen (7-30 Tage)!</p>
+                </div>
+                <div class="card">
+                    <h4>9️⃣ Elastic IP nicht attached</h4>
+                    <p><strong>Fehler:</strong> Elastic IP reserviert aber nicht genutzt</p>
+                    <p><strong>Kosten:</strong> $0.005/h = $3.60/Monat pro IP!</p>
+                    <p><strong>Lösung:</strong> Nicht genutzte IPs SOFORT löschen!</p>
+                </div>
+                <div class="card">
+                    <h4>🔟 EBS Snapshots vergessen</h4>
+                    <p><strong>Fehler:</strong> Automatische Snapshots, nie gelöscht</p>
+                    <p><strong>Kosten:</strong> $0.05/GB/Monat → 1TB = $50/Monat!</p>
+                    <p><strong>Lösung:</strong> Alte Snapshots löschen, Lifecycle Policies!</p>
+                </div>
+            </div>
+
+            <h3>🔒 Security Horror Stories - Was NICHT tun!</h3>
+
+            <div class="warning-box">
+                <strong>⛔ NIEMALS:</strong>
+                <ol>
+                    <li><strong>Access Keys in Code committen:</strong> GitHub Bots finden sie in < 1 Minute!</li>
+                    <li><strong>Root User für tägliche Arbeit:</strong> Ein Fehler = Account-Katastrophe!</li>
+                    <li><strong>MFA deaktiviert lassen:</strong> Passwort-Leaks passieren STÄNDIG!</li>
+                    <li><strong>Security Groups 0.0.0.0/0 für alles:</strong> Internet kann direkt auf DB zugreifen!</li>
+                    <li><strong>Secrets als Environment Variables:</strong> Sichtbar in Console/Logs!</li>
+                    <li><strong>Public S3 Buckets für interne Daten:</strong> Google indexed das!</li>
+                    <li><strong>IAM User mit AdministratorAccess für alle:</strong> Least Privilege vergessen!</li>
+                    <li><strong>Alte/ungenutzte Access Keys nicht löschen:</strong> Mehr Attack Surface!</li>
+                </ol>
+            </div>
+
+            <h3>💥 Echte Horror Stories</h3>
+
+            <div class="command-box">
+                <pre>
+STORY 1: $72.000 Rechnung in 24h
+→ Developer committed AWS Keys zu GitHub
+→ Bot fand Keys in 5 Minuten
+→ 100+ EC2 p3.8xlarge Instances für Crypto Mining
+→ $3/h × 100 × 24h = $7.200... aber Multi-Region!
+LESSON: git-secrets nutzen, MFA aktivieren, Billing Alerts!
+
+STORY 2: 1 Million Datensätze geleaked
+→ S3 Bucket "versehentlich" Public gemacht
+→ Google indexed alle Files
+→ Kundendaten öffentlich im Internet
+→ DSGVO-Bußgeld + Reputationsschaden
+LESSON: S3 Block Public Access aktivieren, niemals deaktivieren!
+
+STORY 3: $15.000 für vergessene RDS Instance
+→ "Temporäre" Test-DB erstellt
+→ db.r5.4xlarge ($1.50/h)
+→ Ein Jahr vergessen → $13.000!
+→ Multi-AZ war aktiv → doppelt teuer
+LESSON: Tagging nutzen, Cost Explorer checken, Billing Alerts!
+
+STORY 4: EBS Snapshots $5.000
+→ Automatische Snapshots alle 6h
+→ 3 Jahre lang nie gelöscht
+→ 100TB an Snapshots akkumuliert
+→ $0.05/GB × 100.000GB = $5.000/Monat
+LESSON: Lifecycle Policies, alte Snapshots löschen!
+                </pre>
+            </div>
+
+            <h3>🎯 Häufige Anfänger-Fehler</h3>
+
+            <table>
+                <tr>
+                    <th>Fehler</th>
+                    <th>Warum passiert's?</th>
+                    <th>Wie vermeiden?</th>
+                </tr>
+                <tr>
+                    <td><strong>Falsche Region gewählt</strong></td>
+                    <td>Nicht aufgepasst beim Erstellen</td>
+                    <td>Region-Selector (oben rechts) IMMER checken vor Erstellen!</td>
+                </tr>
+                <tr>
+                    <td><strong>Security Group zu offen</strong></td>
+                    <td>"Erstmal alles auf, dann fixe ich's" → Nie gefixt</td>
+                    <td>Least Privilege von Anfang an! Port 22 nur von DEINER IP!</td>
+                </tr>
+                <tr>
+                    <td><strong>Keine Backups</strong></td>
+                    <td>"Ist ja nur Test" → Production ohne Backup!</td>
+                    <td>RDS Automated Backups, EBS Snapshots, S3 Versioning aktivieren!</td>
+                </tr>
+                <tr>
+                    <td><strong>Hardcoded Credentials</strong></td>
+                    <td>Schnell getestet, vergessen zu ändern</td>
+                    <td>Environment Variables oder AWS Secrets Manager! NIE im Code!</td>
+                </tr>
+                <tr>
+                    <td><strong>Default VPC nutzen</strong></td>
+                    <td>Bequem, aber unsicher</td>
+                    <td>Eigene VPC erstellen mit Private Subnets für Databases!</td>
+                </tr>
+                <tr>
+                    <td><strong>Keine Monitoring/Alerts</strong></td>
+                    <td>"Läuft doch" → Merkt nicht wenn's kaputt geht</td>
+                    <td>CloudWatch Alarms für CPU, Disk, Errors setzen!</td>
+                </tr>
+            </table>
+
+            <h3>🛡️ Security Best Practices Checklist</h3>
+
+            <div class="success-box">
+                <h4>✅ Account Security:</h4>
+                <ul>
+                    <li>✅ Root User MFA aktiviert</li>
+                    <li>✅ Root User wird NICHT für tägliche Arbeit genutzt</li>
+                    <li>✅ IAM Admin User mit MFA erstellt</li>
+                    <li>✅ CloudTrail Logging aktiviert (alle Regions)</li>
+                    <li>✅ Billing Alerts konfiguriert ($5, $10, $50)</li>
+                    <li>✅ AWS Budgets erstellt mit Email Notifications</li>
+                </ul>
+                <h4>✅ Service Security:</h4>
+                <ul>
+                    <li>✅ S3 Block Public Access aktiviert (Account-Level)</li>
+                    <li>✅ Security Groups: Least Privilege (nicht 0.0.0.0/0 für alles!)</li>
+                    <li>✅ IAM Roles statt Access Keys für EC2/Lambda</li>
+                    <li>✅ Secrets Manager für Credentials (nicht Environment Variables)</li>
+                    <li>✅ VPC mit Private Subnets für Databases</li>
+                    <li>✅ Encryption at rest aktiviert (S3, RDS, EBS)</li>
+                </ul>
+            </div>
+
+            <h3>💰 Cost Optimization Checklist</h3>
+
+            <div class="success-box">
+                <ul>
+                    <li>✅ Ungenutzte EC2 Instances TERMINIEREN (nicht nur stoppen!)</li>
+                    <li>✅ Elastic IPs löschen wenn nicht attached</li>
+                    <li>✅ Alte EBS Snapshots löschen (älter als 30 Tage)</li>
+                    <li>✅ CloudWatch Log Retention setzen (7-30 Tage)</li>
+                    <li>✅ RDS Multi-AZ NUR für Production</li>
+                    <li>✅ Load Balancers NUR wenn wirklich nötig</li>
+                    <li>✅ Cost Explorer wöchentlich checken</li>
+                    <li>✅ Tags nutzen für Cost Allocation (Environment: Dev/Prod)</li>
+                    <li>✅ Reserved Instances für Langzeit-Workloads (40-60% Rabatt)</li>
+                    <li>✅ Spot Instances für flexible Workloads (bis zu 90% Rabatt)</li>
+                </ul>
+            </div>
+
+            <h3>🚨 Incident Response: Was tun wenn...</h3>
+
+            <div class="warning-box">
+                <h4>...deine Rechnung plötzlich explodiert?</h4>
+                <ol>
+                    <li>SOFORT: Billing Dashboard → Cost Explorer checken (welcher Service?)</li>
+                    <li>Verdächtige Ressourcen TERMINIEREN (EC2, RDS, etc.)</li>
+                    <li>CloudTrail Logs checken → Wer hat was erstellt?</li>
+                    <li>Root Passwort ändern + MFA neu konfigurieren</li>
+                    <li>Alle IAM Access Keys deaktivieren/rotieren</li>
+                    <li>AWS Support kontaktieren (oft kulant bei Hacks!)</li>
+                    <li>GitHub/GitLab nach leaked Keys durchsuchen</li>
+                </ol>
+            </div>
+
+            <div class="warning-box">
+                <h4>...du dich ausgesperrt hast (MFA verloren)?</h4>
+                <ol>
+                    <li>Account Recovery Process starten (aws.amazon.com)</li>
+                    <li>"Can't sign in?" → "Troubleshoot MFA"</li>
+                    <li>Du musst Identity verifizieren (Kreditkarte, Telefon)</li>
+                    <li>AWS Support kontaktiert dich (kann 24h dauern)</li>
+                    <li><strong>Prävention:</strong> Backup MFA Device + Recovery Codes sicher speichern!</li>
+                </ol>
+            </div>
+
+            <div class="warning-box">
+                <h4>...du versehentlich Production DB gelöscht hast?</h4>
+                <ol>
+                    <li>NICHT PANIKEN! Oft kann restored werden</li>
+                    <li>RDS: Automated Backups checken → Point-in-Time Restore</li>
+                    <li>S3: Versioning aktiviert? → Previous Version wiederherstellen</li>
+                    <li>EC2: Snapshots vorhanden? → Neue Instance aus Snapshot</li>
+                    <li><strong>Prävention:</strong> Deletion Protection aktivieren für Production!</li>
+                </ol>
+            </div>
+
+            <h3>📋 Pre-Production Checklist</h3>
+
+            <div class="command-box">
+                <pre>
+BEVOR DU IN PRODUCTION GEHST:
+
+SECURITY:
+□ MFA aktiviert für alle Admin Users
+□ IAM Roles statt Access Keys
+□ Security Groups: Least Privilege
+□ S3 Buckets NICHT Public (außer für Website)
+□ Encryption aktiviert (at rest + in transit)
+□ CloudTrail Logging für Audit
+□ VPC mit Private Subnets für DB
+
+HIGH AVAILABILITY:
+□ Multi-AZ für RDS/ElastiCache
+□ Auto Scaling für EC2
+□ Load Balancer für Traffic Distribution
+□ Health Checks konfiguriert
+□ Route 53 Failover (bei Multi-Region)
+
+BACKUPS & DISASTER RECOVERY:
+□ RDS Automated Backups (Retention > 7 Tage)
+□ EBS Snapshots (täglich)
+□ S3 Versioning aktiviert
+□ Cross-Region Backups (bei kritischen Daten)
+□ Restore-Prozess getestet!
+
+MONITORING & ALERTS:
+□ CloudWatch Alarms für CPU, Memory, Disk
+□ CloudWatch Alarms für Application Errors
+□ Billing Alerts (mehrere Thresholds)
+□ SNS Topics für Notifications
+□ On-Call Rotation definiert
+
+COST OPTIMIZATION:
+□ Richtige Instance Sizes (nicht oversized!)
+□ Reserved Instances für Baseline
+□ Spot Instances wo möglich
+□ Auto-Scaling Policies getestet
+□ Tags für Cost Allocation
+□ Cost Explorer Reports eingerichtet
+                </pre>
+            </div>
+
+            <div class="info-box">
+                <strong>🎯 Nächster Schritt:</strong> Tab 7 "Account Management" - Lerne wie du deinen Account sauber hältst und bei Bedarf schließt!
+            </div>
+        </div>
+
+        <div id="tab7" class="tab-content">
+            <h2>🧹 Account Management & Cleanup</h2>
+
+            <div class="card">
+                <h3>📋 Account Lifecycle Management</h3>
+                <p>Ein gut verwalteter AWS Account braucht regelmäßige Wartung und Cleanup. Hier sind die wichtigsten Prozesse:</p>
+
+                <div class="step-container">
+                    <div class="step-item">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <strong>Wöchentliche Checks</strong>
+                            <ul>
+                                <li>Ungenutzte EC2 Instances identifizieren</li>
+                                <li>Verwaiste EBS Volumes löschen</li>
+                                <li>Elastic IPs ohne Attachment entfernen</li>
+                                <li>CloudWatch Billing Alerts prüfen</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="step-item">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <strong>Monatliche Reviews</strong>
+                            <ul>
+                                <li>Cost Explorer Analyse (Kosten-Trends)</li>
+                                <li>IAM Users und Permissions Audit</li>
+                                <li>Security Group Rules überprüfen</li>
+                                <li>Alte Snapshots archivieren/löschen</li>
+                                <li>CloudTrail Logs analysieren</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="step-item">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <strong>Quartalsweise Tasks</strong>
+                            <ul>
+                                <li>Reserved Instances Optimierung</li>
+                                <li>AWS Trusted Advisor Empfehlungen umsetzen</li>
+                                <li>Backup & Disaster Recovery Test</li>
+                                <li>Access Keys rotieren</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🏷️ Tagging Strategy für Resource Management</h3>
+                <p><strong>Tags sind essentiell</strong> für Cost Allocation, Automation und Organisation. Definiere eine konsistente Tagging Strategy:</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tag Key</th>
+                            <th>Beispiel Value</th>
+                            <th>Zweck</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Environment</code></td>
+                            <td>Production, Staging, Dev</td>
+                            <td>Umgebung identifizieren</td>
+                        </tr>
+                        <tr>
+                            <td><code>Project</code></td>
+                            <td>WebApp, API, Analytics</td>
+                            <td>Projekt-Zuordnung</td>
+                        </tr>
+                        <tr>
+                            <td><code>Owner</code></td>
+                            <td>team-backend, john@company.com</td>
+                            <td>Verantwortlichkeit</td>
+                        </tr>
+                        <tr>
+                            <td><code>CostCenter</code></td>
+                            <td>Engineering, Marketing</td>
+                            <td>Kosten-Zuordnung</td>
+                        </tr>
+                        <tr>
+                            <td><code>AutoShutdown</code></td>
+                            <td>true, 18:00</td>
+                            <td>Automation Trigger</td>
+                        </tr>
+                        <tr>
+                            <td><code>CreatedBy</code></td>
+                            <td>Terraform, Manual, CI/CD</td>
+                            <td>Provenance Tracking</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="warning-box" style="margin-top: 20px;">
+                    <strong>⚡ Pro-Tipp:</strong> Nutze <strong>Tag Policies</strong> in AWS Organizations, um Tags zu erzwingen. Aktiviere <strong>Cost Allocation Tags</strong> in Billing für detaillierte Cost Reports.
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🧹 Resource Cleanup Strategien</h3>
+
+                <div class="grid-2">
+                    <div class="card-item">
+                        <strong>🔍 Ungenutzte Resources finden</strong>
+                        <ul>
+                            <li><strong>AWS Cost Explorer:</strong> Filter nach $0 Usage</li>
+                            <li><strong>Trusted Advisor:</strong> "Low Utilization" Checks</li>
+                            <li><strong>CloudWatch Metrics:</strong> CPU/Network &lt; 5%</li>
+                            <li><strong>AWS Config Rules:</strong> Custom Compliance Checks</li>
+                        </ul>
+                    </div>
+
+                    <div class="card-item">
+                        <strong>🗑️ Was regelmäßig cleanen?</strong>
+                        <ul>
+                            <li><strong>EC2:</strong> Stopped Instances &gt; 30 Tage</li>
+                            <li><strong>EBS:</strong> Available Volumes (nicht attached)</li>
+                            <li><strong>EBS Snapshots:</strong> Älter als Retention Policy</li>
+                            <li><strong>S3:</strong> Incomplete Multipart Uploads</li>
+                            <li><strong>Elastic IPs:</strong> Nicht zugewiesen</li>
+                            <li><strong>Load Balancers:</strong> Keine Targets</li>
+                            <li><strong>CloudWatch Logs:</strong> Alte Log Streams</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🤖 Automation Scripts für Cleanup</h3>
+                <p>Automatisiere wiederkehrende Cleanup-Tasks mit Lambda Functions oder Scripts:</p>
+
+                <div class="warning-box" style="margin-top: 15px; background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 100%);">
+                    <strong>💡 Lambda Function Beispiel: Auto-Stop EC2 Instances</strong>
+                    <pre style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; overflow-x: auto; margin-top: 10px;"><code>import boto3
+from datetime import datetime, timedelta
+
+def lambda_handler(event, context):
+    ec2 = boto3.client('ec2')
+
+    # Find instances with AutoShutdown tag
+    instances = ec2.describe_instances(
+        Filters=[
+            {'Name': 'tag:AutoShutdown', 'Values': ['true']},
+            {'Name': 'instance-state-name', 'Values': ['running']}
+        ]
+    )
+
+    instance_ids = []
+    for reservation in instances['Reservations']:
+        for instance in reservation['Instances']:
+            instance_ids.append(instance['InstanceId'])
+
+    if instance_ids:
+        ec2.stop_instances(InstanceIds=instance_ids)
+        print(f"Stopped instances: {instance_ids}")
+
+    return {'statusCode': 200, 'body': f'Stopped {len(instance_ids)} instances'}</code></pre>
+                </div>
+
+                <div class="step-container" style="margin-top: 20px;">
+                    <div class="step-item">
+                        <div class="step-number">📅</div>
+                        <div class="step-content">
+                            <strong>EventBridge Schedule</strong>
+                            <p>Trigger Lambda täglich um 18:00 Uhr: <code>cron(0 18 * * ? *)</code></p>
+                        </div>
+                    </div>
+
+                    <div class="step-item">
+                        <div class="step-number">🔑</div>
+                        <div class="step-content">
+                            <strong>IAM Permissions</strong>
+                            <p>Lambda braucht: <code>ec2:DescribeInstances</code>, <code>ec2:StopInstances</code></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🏢 AWS Organizations: Multi-Account Setup</h3>
+                <p>Für Teams/Unternehmen: Nutze <strong>AWS Organizations</strong> um mehrere Accounts zu verwalten:</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Account Typ</th>
+                            <th>Zweck</th>
+                            <th>Best Practice</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Management Account</strong></td>
+                            <td>Billing & Organizations Management</td>
+                            <td>⚠️ KEINE Workloads! Nur Admin-Tasks</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Production Account</strong></td>
+                            <td>Live Workloads</td>
+                            <td>Höchste Security, MFA erzwingen</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Staging Account</strong></td>
+                            <td>Pre-Production Testing</td>
+                            <td>Gespiegelte Prod-Konfiguration</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Development Account</strong></td>
+                            <td>Entwickler Playground</td>
+                            <td>Mehr Freiheiten, Auto-Cleanup</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Security/Log Account</strong></td>
+                            <td>Zentrales Logging & Monitoring</td>
+                            <td>CloudTrail, GuardDuty, Security Hub</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Shared Services Account</strong></td>
+                            <td>CI/CD, Artifact Registry</td>
+                            <td>CodePipeline, ECR, Artifactory</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="warning-box" style="margin-top: 20px;">
+                    <strong>💰 Vorteile:</strong> Consolidated Billing (Volume Discounts), Zentrale Policies (SCPs), Resource Isolation, Bessere Cost Tracking
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🔒 Account schließen (letzte Option!)</h3>
+                <p>Falls du deinen AWS Account wirklich schließen willst (z.B. nach einem Lernprojekt):</p>
+
+                <div class="step-container">
+                    <div class="step-item">
+                        <div class="step-number">⚠️</div>
+                        <div class="step-content">
+                            <strong>Vorbereitung: ALLE Ressourcen löschen!</strong>
+                            <ul>
+                                <li>EC2 Instances terminieren</li>
+                                <li>RDS Databases löschen (Snapshots vorher!)</li>
+                                <li>S3 Buckets leeren und löschen</li>
+                                <li>EBS Volumes & Snapshots löschen</li>
+                                <li>Load Balancers entfernen</li>
+                                <li>Elastic IPs freigeben</li>
+                                <li>Lambda Functions löschen</li>
+                                <li>CloudWatch Log Groups löschen</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="step-item">
+                        <div class="step-number">💳</div>
+                        <div class="step-content">
+                            <strong>Ausstehende Rechnungen bezahlen</strong>
+                            <p>Prüfe Billing Dashboard - ALLE Rechnungen müssen bezahlt sein!</p>
+                        </div>
+                    </div>
+
+                    <div class="step-item">
+                        <div class="step-number">🔑</div>
+                        <div class="step-content">
+                            <strong>Als Root User einloggen</strong>
+                            <p>Account Closure kann nur der Root User durchführen.</p>
+                        </div>
+                    </div>
+
+                    <div class="step-item">
+                        <div class="step-number">🗑️</div>
+                        <div class="step-content">
+                            <strong>Account schließen</strong>
+                            <ol>
+                                <li>AWS Console → Oben rechts auf Account-Name klicken</li>
+                                <li>"Account" auswählen</li>
+                                <li>Runter scrollen zu "Close Account"</li>
+                                <li>Bestätigen (mehrfach!)</li>
+                            </ol>
+                            <p><strong>⚠️ Wichtig:</strong> Account ist danach 90 Tage lang in "Suspended" Status (kann noch reaktiviert werden). Nach 90 Tagen: Endgültig gelöscht!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="warning-box" style="margin-top: 20px; background: linear-gradient(135deg, #7a1a1a 0%, #5a1515 100%);">
+                    <strong>🚨 WARNUNG:</strong> Account Closure ist fast irreversibel! Alle Daten gehen verloren. Überlege gut, ob nicht ein "Freeze" (alle Ressourcen stoppen) besser ist.
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📊 Wartungs-Checkliste für Production Accounts</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Frequenz</th>
+                            <th>Task</th>
+                            <th>Tool/Service</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Täglich</strong></td>
+                            <td>CloudWatch Alarms prüfen</td>
+                            <td>CloudWatch Dashboard</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Täglich</strong></td>
+                            <td>Billing Alerts checken</td>
+                            <td>Billing Console</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Wöchentlich</strong></td>
+                            <td>Security Findings reviewen</td>
+                            <td>Security Hub, GuardDuty</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Wöchentlich</strong></td>
+                            <td>Ungenutzte Ressourcen identifizieren</td>
+                            <td>Trusted Advisor, Cost Explorer</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Monatlich</strong></td>
+                            <td>IAM Access Audit</td>
+                            <td>IAM Access Analyzer</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Monatlich</strong></td>
+                            <td>Backup & Restore Test</td>
+                            <td>AWS Backup, Snapshot Testing</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Quartalsweise</strong></td>
+                            <td>Reserved Instances Review</td>
+                            <td>Cost Explorer RI Recommendations</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Quartalsweise</strong></td>
+                            <td>Access Keys Rotation</td>
+                            <td>IAM Credential Report</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Jährlich</strong></td>
+                            <td>Disaster Recovery Drill</td>
+                            <td>Full DR Simulation</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3>🎯 Zusammenfassung: Account Management Best Practices</h3>
+                <div class="grid-2">
+                    <div class="card-item">
+                        <strong>✅ DO</strong>
+                        <ul>
+                            <li>Regelmäßige Resource Audits durchführen</li>
+                            <li>Tagging Strategy definieren und durchsetzen</li>
+                            <li>Cleanup Automation implementieren</li>
+                            <li>Multi-Account Setup für Production nutzen</li>
+                            <li>Wartungs-Checklisten abarbeiten</li>
+                            <li>Cost Optimization kontinuierlich betreiben</li>
+                        </ul>
+                    </div>
+
+                    <div class="card-item">
+                        <strong>❌ DON'T</strong>
+                        <ul>
+                            <li>Ressourcen "vergessen" und laufen lassen</li>
+                            <li>Tags ignorieren oder inkonsistent nutzen</li>
+                            <li>Account ohne Cleanup schließen</li>
+                            <li>Production & Development im gleichen Account</li>
+                            <li>Manuelle Prozesse ohne Automation</li>
+                            <li>Backups nicht testen</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab8" class="tab-content">
+            <h2>✅ AWS Setup Quiz</h2>
+            <p>Teste dein Wissen über AWS Account Setup, Security, IAM, Billing und Best Practices! 25 Fragen aus allen Tabs.</p>
+
+            <div id="quiz-container">
+                <!-- Frage 1 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>1.</strong> Was solltest du als ERSTES tun, nachdem du einen neuen AWS Account erstellt hast?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q1" value="a"> Sofort EC2 Instances starten</label>
+                        <label><input type="radio" name="q1" value="b"> MFA für Root Account aktivieren</label>
+                        <label><input type="radio" name="q1" value="c"> Access Keys für Root User erstellen</label>
+                        <label><input type="radio" name="q1" value="d"> Billing Alerts deaktivieren</label>
+                    </div>
+                </div>
+
+                <!-- Frage 2 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>2.</strong> Wie lange ist die AWS Free Tier Periode für EC2 t2.micro Instances gültig?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q2" value="a"> 6 Monate</label>
+                        <label><input type="radio" name="q2" value="b"> 12 Monate</label>
+                        <label><input type="radio" name="q2" value="c"> Unbegrenzt (Always Free)</label>
+                        <label><input type="radio" name="q2" value="d"> 3 Monate</label>
+                    </div>
+                </div>
+
+                <!-- Frage 3 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>3.</strong> Was ist der GRÖSSTE Unterschied zwischen IAM Users und IAM Roles?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q3" value="a"> Users haben Passwörter, Roles nicht</label>
+                        <label><input type="radio" name="q3" value="b"> Roles sind billiger als Users</label>
+                        <label><input type="radio" name="q3" value="c"> Users können keine EC2 Instances starten</label>
+                        <label><input type="radio" name="q3" value="d"> Roles funktionieren nur in us-east-1</label>
+                    </div>
+                </div>
+
+                <!-- Frage 4 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>4.</strong> Du willst sicherstellen, dass deine monatlichen AWS Kosten 50$ nicht überschreiten. Was solltest du einrichten?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q4" value="a"> CloudWatch Billing Alarm</label>
+                        <label><input type="radio" name="q4" value="b"> EC2 Auto Scaling</label>
+                        <label><input type="radio" name="q4" value="c"> S3 Lifecycle Policy</label>
+                        <label><input type="radio" name="q4" value="d"> Lambda Function</label>
+                    </div>
+                </div>
+
+                <!-- Frage 5 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>5.</strong> Welche AWS Region hat den Code "eu-central-1"?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q5" value="a"> London</label>
+                        <label><input type="radio" name="q5" value="b"> Frankfurt</label>
+                        <label><input type="radio" name="q5" value="c"> Paris</label>
+                        <label><input type="radio" name="q5" value="d"> Irland</label>
+                    </div>
+                </div>
+
+                <!-- Frage 6 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>6.</strong> Was ist eine Availability Zone (AZ) in AWS?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q6" value="a"> Ein einzelnes Rechenzentrum</label>
+                        <label><input type="radio" name="q6" value="b"> Ein oder mehrere isolierte Rechenzentren in einer Region</label>
+                        <label><input type="radio" name="q6" value="c"> Ein geografisches Land</label>
+                        <label><input type="radio" name="q6" value="d"> Ein virtuelles Netzwerk</label>
+                    </div>
+                </div>
+
+                <!-- Frage 7 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>7.</strong> Welche Aussage über den AWS Root User ist KORREKT?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q7" value="a"> Sollte täglich für normale Admin-Tasks genutzt werden</label>
+                        <label><input type="radio" name="q7" value="b"> Sollte MFA aktiviert haben und NUR für kritische Account-Tasks genutzt werden</label>
+                        <label><input type="radio" name="q7" value="c"> Kann keine IAM Users erstellen</label>
+                        <label><input type="radio" name="q7" value="d"> Hat keine Billing-Permissions</label>
+                    </div>
+                </div>
+
+                <!-- Frage 8 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>8.</strong> Was kostet eine "nicht zugewiesene" Elastic IP (EIP) pro Stunde?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q8" value="a"> Ist kostenlos</label>
+                        <label><input type="radio" name="q8" value="b"> ~$0.005/Stunde (~$3.60/Monat)</label>
+                        <label><input type="radio" name="q8" value="c"> $10/Monat</label>
+                        <label><input type="radio" name="q8" value="d"> $1/Monat</label>
+                    </div>
+                </div>
+
+                <!-- Frage 9 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>9.</strong> Welcher AWS Service ist ein "Object Storage" Service?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q9" value="a"> EC2</label>
+                        <label><input type="radio" name="q9" value="b"> S3</label>
+                        <label><input type="radio" name="q9" value="c"> RDS</label>
+                        <label><input type="radio" name="q9" value="d"> Lambda</label>
+                    </div>
+                </div>
+
+                <!-- Frage 10 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>10.</strong> Was ist der größte Fehler, den du mit AWS Access Keys machen kannst?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q10" value="a"> Sie in einer .env Datei speichern</label>
+                        <label><input type="radio" name="q10" value="b"> Sie auf GitHub committen (public repo)</label>
+                        <label><input type="radio" name="q10" value="c"> Sie nur einmal verwenden</label>
+                        <label><input type="radio" name="q10" value="d"> Sie in AWS Secrets Manager speichern</label>
+                    </div>
+                </div>
+
+                <!-- Frage 11 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>11.</strong> Was bedeutet "IAM Policy Effect: Deny"?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q11" value="a"> Erlaubt die Aktion explizit</label>
+                        <label><input type="radio" name="q11" value="b"> Verbietet die Aktion (überschreibt alle "Allow")</label>
+                        <label><input type="radio" name="q11" value="c"> Ignoriert die Policy</label>
+                        <label><input type="radio" name="q11" value="d"> Fragt den Admin um Erlaubnis</label>
+                    </div>
+                </div>
+
+                <!-- Frage 12 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>12.</strong> Wie viel kostet Data Transfer OUT von EC2 zu S3 (innerhalb derselben Region)?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q12" value="a"> $0.09/GB</label>
+                        <label><input type="radio" name="q12" value="b"> $0.00 (kostenlos)</label>
+                        <label><input type="radio" name="q12" value="c"> $0.50/GB</label>
+                        <label><input type="radio" name="q12" value="d"> $1.00/GB</label>
+                    </div>
+                </div>
+
+                <!-- Frage 13 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>13.</strong> Was ist AWS CloudTrail?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q13" value="a"> Ein Load Balancer Service</label>
+                        <label><input type="radio" name="q13" value="b"> Ein Audit Logging Service (wer hat was wann gemacht)</label>
+                        <label><input type="radio" name="q13" value="c"> Ein Database Service</label>
+                        <label><input type="radio" name="q13" value="d"> Ein Container Orchestration Service</label>
+                    </div>
+                </div>
+
+                <!-- Frage 14 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>14.</strong> Welcher Service ist ein "Serverless Compute" Service?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q14" value="a"> EC2</label>
+                        <label><input type="radio" name="q14" value="b"> RDS</label>
+                        <label><input type="radio" name="q14" value="c"> Lambda</label>
+                        <label><input type="radio" name="q14" value="d"> EBS</label>
+                    </div>
+                </div>
+
+                <!-- Frage 15 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>15.</strong> Was solltest du NIEMALS für den Root User erstellen?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q15" value="a"> MFA Device</label>
+                        <label><input type="radio" name="q15" value="b"> Billing Alerts</label>
+                        <label><input type="radio" name="q15" value="c"> Access Keys (AWS_ACCESS_KEY_ID)</label>
+                        <label><input type="radio" name="q15" value="d"> CloudWatch Dashboard</label>
+                    </div>
+                </div>
+
+                <!-- Frage 16 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>16.</strong> Was ist der Hauptvorteil von AWS Organizations?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q16" value="a"> Macht EC2 Instances schneller</label>
+                        <label><input type="radio" name="q16" value="b"> Ermöglicht Multi-Account Management mit Consolidated Billing</label>
+                        <label><input type="radio" name="q16" value="c"> Ist ein Backup Service</label>
+                        <label><input type="radio" name="q16" value="d"> Kostenlose EC2 Instances</label>
+                    </div>
+                </div>
+
+                <!-- Frage 17 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>17.</strong> Wie viele GB S3 Storage bekommst du im Free Tier (erste 12 Monate)?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q17" value="a"> 1 GB</label>
+                        <label><input type="radio" name="q17" value="b"> 5 GB</label>
+                        <label><input type="radio" name="q17" value="c"> 20 GB</label>
+                        <label><input type="radio" name="q17" value="d"> 100 GB</label>
+                    </div>
+                </div>
+
+                <!-- Frage 18 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>18.</strong> Was ist eine "IAM Group"?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q18" value="a"> Eine Sammlung von EC2 Instances</label>
+                        <label><input type="radio" name="q18" value="b"> Eine Sammlung von IAM Users mit gemeinsamen Permissions</label>
+                        <label><input type="radio" name="q18" value="c"> Ein Netzwerk-Segment</label>
+                        <label><input type="radio" name="q18" value="d"> Ein Storage Volume</label>
+                    </div>
+                </div>
+
+                <!-- Frage 19 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>19.</strong> Welcher Service ist GLOBAL (nicht Region-spezifisch)?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q19" value="a"> EC2</label>
+                        <label><input type="radio" name="q19" value="b"> S3 (Buckets sind regional, aber Service ist global)</label>
+                        <label><input type="radio" name="q19" value="c"> IAM</label>
+                        <label><input type="radio" name="q19" value="d"> RDS</label>
+                    </div>
+                </div>
+
+                <!-- Frage 20 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>20.</strong> Was kostet ein NAT Gateway ungefähr pro Monat (24/7 Betrieb)?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q20" value="a"> $5/Monat</label>
+                        <label><input type="radio" name="q20" value="b"> $32/Monat (+ Data Transfer)</label>
+                        <label><input type="radio" name="q20" value="c"> $100/Monat</label>
+                        <label><input type="radio" name="q20" value="d"> Kostenlos</label>
+                    </div>
+                </div>
+
+                <!-- Frage 21 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>21.</strong> Was ist der beste Weg, um temporäre Credentials für eine Lambda Function bereitzustellen?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q21" value="a"> Access Keys in Environment Variables</label>
+                        <label><input type="radio" name="q21" value="b"> IAM Role für die Lambda Function</label>
+                        <label><input type="radio" name="q21" value="c"> Hardcoded im Code</label>
+                        <label><input type="radio" name="q21" value="d"> Passwort in S3 speichern</label>
+                    </div>
+                </div>
+
+                <!-- Frage 22 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>22.</strong> Welches Tag ist ESSENTIELL für Cost Allocation und Tracking?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q22" value="a"> Name</label>
+                        <label><input type="radio" name="q22" value="b"> Environment (Dev/Staging/Prod)</label>
+                        <label><input type="radio" name="q22" value="c"> Owner</label>
+                        <label><input type="radio" name="q22" value="d"> Alle oben genannten (konsistente Tagging Strategy)</label>
+                    </div>
+                </div>
+
+                <!-- Frage 23 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>23.</strong> Wie lange ist ein geschlossener AWS Account in "Suspended" Status (reaktivierbar)?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q23" value="a"> 7 Tage</label>
+                        <label><input type="radio" name="q23" value="b"> 30 Tage</label>
+                        <label><input type="radio" name="q23" value="c"> 90 Tage</label>
+                        <label><input type="radio" name="q23" value="d"> Sofort gelöscht</label>
+                    </div>
+                </div>
+
+                <!-- Frage 24 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>24.</strong> Was ist AWS Cost Explorer?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q24" value="a"> Ein Tool zur Visualisierung und Analyse von AWS Kosten</label>
+                        <label><input type="radio" name="q24" value="b"> Ein Database Service</label>
+                        <label><input type="radio" name="q24" value="c"> Ein Monitoring Tool für EC2</label>
+                        <label><input type="radio" name="q24" value="d"> Ein DNS Service</label>
+                    </div>
+                </div>
+
+                <!-- Frage 25 -->
+                <div class="quiz-question">
+                    <p class="question-text"><strong>25.</strong> Was solltest du als LETZTES tun, bevor du deinen AWS Account schließt?</p>
+                    <div class="options">
+                        <label><input type="radio" name="q25" value="a"> MFA deaktivieren</label>
+                        <label><input type="radio" name="q25" value="b"> Alle Ressourcen löschen und ausstehende Rechnungen bezahlen</label>
+                        <label><input type="radio" name="q25" value="c"> Neue EC2 Instances starten</label>
+                        <label><input type="radio" name="q25" value="d"> IAM Users erstellen</label>
+                    </div>
+                </div>
+
+                <!-- Quiz Controls -->
+                <div style="margin: 2rem 0; display: flex; gap: 1rem; justify-content: center;">
+                    <button onclick="checkQuiz()" style="background: #667eea; color: white; border: none; padding: 1rem 2rem; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);">
+                        📊 Auswertung anzeigen
+                    </button>
+                    <button onclick="resetQuiz()" style="background: #718096; color: white; border: none; padding: 1rem 2rem; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer;">
+                        🔄 Quiz zurücksetzen
+                    </button>
+                </div>
+
+                <!-- Quiz Result Container -->
+                <div id="quiz-result" style="margin-top: 30px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // Remove active class from all buttons
+            const buttons = document.querySelectorAll('.tab');
+            buttons.forEach(button => button.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById(tabId).classList.add('active');
+
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        function checkQuiz() {
+            // Richtige Antworten
+            const answers = {
+                q1: 'b',  // MFA für Root Account aktivieren
+                q2: 'b',  // 12 Monate
+                q3: 'a',  // Users haben Passwörter, Roles nicht
+                q4: 'a',  // CloudWatch Billing Alarm
+                q5: 'b',  // Frankfurt
+                q6: 'b',  // Ein oder mehrere isolierte Rechenzentren in einer Region
+                q7: 'b',  // MFA aktiviert, nur für kritische Tasks
+                q8: 'b',  // ~$0.005/Stunde
+                q9: 'b',  // S3
+                q10: 'b', // Auf GitHub committen
+                q11: 'b', // Verbietet die Aktion (überschreibt alle "Allow")
+                q12: 'b', // $0.00 (kostenlos)
+                q13: 'b', // Audit Logging Service
+                q14: 'c', // Lambda
+                q15: 'c', // Access Keys
+                q16: 'b', // Multi-Account Management mit Consolidated Billing
+                q17: 'b', // 5 GB
+                q18: 'b', // Sammlung von IAM Users mit gemeinsamen Permissions
+                q19: 'c', // IAM
+                q20: 'b', // $32/Monat (+ Data Transfer)
+                q21: 'b', // IAM Role für die Lambda Function
+                q22: 'd', // Alle oben genannten
+                q23: 'c', // 90 Tage
+                q24: 'a', // Tool zur Visualisierung und Analyse von AWS Kosten
+                q25: 'b'  // Alle Ressourcen löschen und ausstehende Rechnungen bezahlen
+            };
+
+            let score = 0;
+            let total = Object.keys(answers).length;
+            let wrongAnswers = [];
+
+            // Alle Fragen durchgehen
+            for (let question in answers) {
+                const selected = document.querySelector(`input[name="${question}"]:checked`);
+
+                if (selected) {
+                    if (selected.value === answers[question]) {
+                        score++;
+                        // Markiere richtige Antwort grün
+                        selected.parentElement.style.color = '#2ecc71';
+                        selected.parentElement.style.fontWeight = 'bold';
+                    } else {
+                        // Markiere falsche Antwort rot
+                        selected.parentElement.style.color = '#e74c3c';
+                        selected.parentElement.style.fontWeight = 'bold';
+
+                        // Zeige richtige Antwort grün
+                        const correctAnswer = document.querySelector(`input[name="${question}"][value="${answers[question]}"]`);
+                        if (correctAnswer) {
+                            correctAnswer.parentElement.style.color = '#2ecc71';
+                            correctAnswer.parentElement.style.fontWeight = 'bold';
+                        }
+
+                        wrongAnswers.push(parseInt(question.substring(1)));
+                    }
+                } else {
+                    // Keine Antwort ausgewählt - zeige richtige Antwort
+                    const correctAnswer = document.querySelector(`input[name="${question}"][value="${answers[question]}"]`);
+                    if (correctAnswer) {
+                        correctAnswer.parentElement.style.color = '#FF9900';
+                        correctAnswer.parentElement.style.fontWeight = 'bold';
+                    }
+                    wrongAnswers.push(parseInt(question.substring(1)));
+                }
+            }
+
+            // Prozentsatz berechnen
+            const percentage = Math.round((score / total) * 100);
+
+            // Bewertung basierend auf Score
+            let rating = '';
+            let ratingColor = '';
+            let ratingEmoji = '';
+
+            if (percentage >= 90) {
+                rating = 'AWS Experte! 🏆';
+                ratingColor = '#2ecc71';
+                ratingEmoji = '🎉';
+            } else if (percentage >= 75) {
+                rating = 'Sehr gut! 👍';
+                ratingColor = '#27ae60';
+                ratingEmoji = '✨';
+            } else if (percentage >= 60) {
+                rating = 'Gut gemacht! 👌';
+                ratingColor = '#f39c12';
+                ratingEmoji = '💪';
+            } else if (percentage >= 50) {
+                rating = 'Noch Übung nötig 📚';
+                ratingColor = '#e67e22';
+                ratingEmoji = '📖';
+            } else {
+                rating = 'Wiederhole die Tabs nochmal! 🔄';
+                ratingColor = '#e74c3c';
+                ratingEmoji = '🔁';
+            }
+
+            // Ergebnis anzeigen
+            const resultDiv = document.getElementById('quiz-result');
+            resultDiv.innerHTML = `
+                <div style="background: linear-gradient(135deg, ${ratingColor}22 0%, ${ratingColor}11 100%);
+                            border-left: 5px solid ${ratingColor};
+                            padding: 30px;
+                            border-radius: 12px;
+                            box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+                    <h3 style="color: ${ratingColor}; margin-top: 0; font-size: 28px;">
+                        ${ratingEmoji} ${rating}
+                    </h3>
+                    <p style="font-size: 24px; margin: 15px 0;">
+                        <strong style="color: #FF9900;">Dein Ergebnis: ${score} von ${total} Punkten (${percentage}%)</strong>
+                    </p>
+                    ${wrongAnswers.length > 0 ? `
+                        <p style="margin: 10px 0; color: #e74c3c;">
+                            <strong>Falsch beantwortet:</strong> Frage(n) ${wrongAnswers.join(', ')}
+                        </p>
+                        <p style="margin: 10px 0; font-size: 14px; color: #7f8c8d;">
+                            💡 <em>Tipp: Gehe die entsprechenden Tabs nochmal durch!</em>
+                        </p>
+                    ` : `
+                        <p style="margin: 10px 0; color: #2ecc71; font-size: 18px;">
+                            <strong>🎯 Perfekt! Alle Fragen richtig beantwortet!</strong>
+                        </p>
+                    `}
+                    <button onclick="resetQuiz()" style="margin-top: 20px; padding: 12px 30px; background: linear-gradient(135deg, #232F3E 0%, #37475A 100%); color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,0.2);">
+                        🔄 Quiz zurücksetzen
+                    </button>
+                </div>
+            `;
+
+            // Scroll zu Ergebnis
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function resetQuiz() {
+            // Alle Radio Buttons deselektieren
+            const radios = document.querySelectorAll('input[type="radio"]');
+            radios.forEach(radio => {
+                radio.checked = false;
+                radio.parentElement.style.color = '';
+                radio.parentElement.style.fontWeight = '';
+            });
+
+            // Ergebnis löschen
+            document.getElementById('quiz-result').innerHTML = '';
+
+            // Scroll zu Quiz-Start
+            document.getElementById('quiz-container').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+    <!-- Cross-Linking zwischen Artefakten -->
+    <script src="cross-linking.js"></script>
+</body>
+</html>

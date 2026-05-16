@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPC/CIDR Calculator - OverCloud</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <style>
+        /* Additional styles for better visual hierarchy */
+        .cidr-calculator {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .subnet-item {
+            transition: all 0.2s ease;
+        }
+
+        .subnet-item:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .subnet-card {
+            transition: all 0.2s ease;
+        }
+
+        .subnet-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Smooth transitions */
+        input:focus,
+        select:focus,
+        button:focus {
+            outline: none;
+        }
+
+        /* Loading state */
+        .loading {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">VPC/CIDR Calculator</h1>
+                    <p class="text-sm text-gray-600 mt-1">Plane deine AWS VPC und Subnets mit visueller Validierung</p>
+                </div>
+                <a href="/" class="text-purple-600 hover:text-purple-700 text-sm font-medium">
+                    ← Zurück
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Info Box -->
+        <div class="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h3 class="font-semibold text-blue-900 mb-2">ℹ️ Wie funktioniert der CIDR Calculator?</h3>
+            <ul class="text-sm text-blue-800 space-y-1">
+                <li>1. Gib deinen VPC CIDR Block ein (z.B. <code class="bg-blue-100 px-1 rounded">10.0.0.0/16</code>)</li>
+                <li>2. Füge Subnets manuell hinzu oder nutze die "Vorschläge"-Funktion</li>
+                <li>3. Berechne den VPC Plan und prüfe auf Overlaps</li>
+                <li>4. AWS reserviert automatisch 5 IPs pro Subnet (Network, Router, DNS, Reserved, Broadcast)</li>
+            </ul>
+        </div>
+
+        <!-- CIDR Calculator Component -->
+        <div id="cidrCalculator"></div>
+
+        <!-- Examples Section -->
+        <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-lg font-semibold mb-4">Beispiele für häufige VPC CIDR Blocks</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-semibold text-gray-900 mb-2">Kleine VPC</h4>
+                    <code class="text-sm bg-gray-100 px-2 py-1 rounded block mb-2">10.0.0.0/24</code>
+                    <p class="text-xs text-gray-600">256 IPs total (251 usable)</p>
+                    <p class="text-xs text-gray-500">Ideal für kleine Dev-Umgebungen</p>
+                </div>
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-semibold text-gray-900 mb-2">Standard VPC</h4>
+                    <code class="text-sm bg-gray-100 px-2 py-1 rounded block mb-2">10.0.0.0/16</code>
+                    <p class="text-xs text-gray-600">65,536 IPs total</p>
+                    <p class="text-xs text-gray-500">Empfohlen für Production</p>
+                </div>
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-semibold text-gray-900 mb-2">Große VPC</h4>
+                    <code class="text-sm bg-gray-100 px-2 py-1 rounded block mb-2">172.16.0.0/12</code>
+                    <p class="text-xs text-gray-600">1,048,576 IPs total</p>
+                    <p class="text-xs text-gray-500">Enterprise-Umgebungen</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Best Practices -->
+        <div class="mt-8 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-purple-900">🎯 Best Practices</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                    <h4 class="font-semibold text-purple-800 mb-2">VPC Design</h4>
+                    <ul class="space-y-1 text-purple-700">
+                        <li>• Nutze private IP-Ranges (10.x, 172.16.x, 192.168.x)</li>
+                        <li>• Wähle /16 für Flexibilität (AWS Standard)</li>
+                        <li>• Plane genug Platz für zukünftiges Wachstum</li>
+                        <li>• Vermeide Overlaps mit anderen VPCs</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-purple-800 mb-2">Subnet Strategie</h4>
+                    <ul class="space-y-1 text-purple-700">
+                        <li>• Mindestens 3 AZs für High Availability</li>
+                        <li>• Public Subnets für Load Balancer / NAT Gateway</li>
+                        <li>• Private Subnets für Application Server</li>
+                        <li>• Separate Database Subnets isolieren</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-12 border-t border-gray-200 bg-white">
+        <div class="max-w-7xl mx-auto px-4 py-6 text-center text-sm text-gray-600">
+            <p>OverCloud VPC/CIDR Calculator - AWS-kompatible Netzwerkplanung</p>
+            <p class="mt-1 text-xs">Entwickelt mit <span class="text-red-500">❤</span> für besseres Cloud Infrastructure Management</p>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { CIDRCalculator } from '/js/components/CIDRCalculator.js';
+
+        // Initialize CIDR Calculator
+        const calc = new CIDRCalculator('cidrCalculator');
+        calc.render();
+
+        // Add example quick-fill buttons
+        document.querySelectorAll('code').forEach(code => {
+            code.style.cursor = 'pointer';
+            code.addEventListener('click', () => {
+                const cidr = code.textContent;
+                document.getElementById('vpcCidrInput').value = cidr;
+                calc.vpcCidr = cidr;
+                calc.validateVPC();
+            });
+        });
+    </script>
+</body>
+</html>

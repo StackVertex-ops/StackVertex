@@ -1,0 +1,66 @@
+# ============================================================================
+# Generic Resources (Fallback Template)
+# ============================================================================
+# WARNING: This is a generic fallback template for component type "{{ type }}"
+# Consider creating a dedicated template file: {{ type }}.tf.j2
+# ============================================================================
+
+{% for comp in components %}
+# {{ comp.name }}
+# Type: {{ comp.config.resourceType | default('aws_' ~ type) }}
+
+resource "{{ comp.config.resourceType | default('aws_' ~ type) }}" "{{ comp.id }}" {
+  # GENERATED CONFIG - May need manual adjustment
+  {% for key, value in comp.config.items() %}
+  {% if key not in ['resourceType', 'name', 'type'] %}
+  {% if value is string %}
+  {{ key }} = "{{ value }}"
+  {% elif value is boolean %}
+  {{ key }} = {{ value | lower }}
+  {% elif value is number %}
+  {{ key }} = {{ value }}
+  {% elif value is mapping %}
+  {{ key }} = {
+    {% for k, v in value.items() %}
+    {% if v is string %}
+    {{ k }} = "{{ v }}"
+    {% elif v is boolean %}
+    {{ k }} = {{ v | lower }}
+    {% elif v is number %}
+    {{ k }} = {{ v }}
+    {% else %}
+    {{ k }} = {{ v | tojson }}
+    {% endif %}
+    {% endfor %}
+  }
+  {% elif value is iterable and value is not string %}
+  {{ key }} = {{ value | tojson }}
+  {% endif %}
+  {% endif %}
+  {% endfor %}
+
+  tags = {
+    Name = "{{ comp.name }}"
+    Type = "{{ type }}"
+    GeneratedBy = "OverCloud-GenericTemplate"
+  }
+
+  {% if comp.depends_on %}
+  depends_on = [
+    {% for dep in comp.depends_on %}
+    {{ dep }},
+    {% endfor %}
+  ]
+  {% endif %}
+}
+
+{% endfor %}
+
+# ============================================================================
+# NOTE: This generic template provides basic resource generation.
+# For production use, create a dedicated template with:
+# - Proper attribute mapping
+# - Validation and defaults
+# - Nested blocks and complex types
+# - Resource-specific outputs
+# ============================================================================

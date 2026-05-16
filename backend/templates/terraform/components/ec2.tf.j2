@@ -1,0 +1,67 @@
+# ============================================================================
+# EC2 Instances
+# ============================================================================
+
+{% for comp in components %}
+# {{ comp.name }}
+resource "aws_instance" "{{ comp.id }}" {
+  ami           = data.aws_ami.{{ comp.id }}_ami.id
+  instance_type = "{{ comp.config.instanceType }}"
+  subnet_id     = aws_subnet.{{ comp.config.subnet }}.id
+
+  {% if comp.config.privateIp %}
+  private_ip = "{{ comp.config.privateIp }}"
+  {% endif %}
+
+  {% if comp.config.securityGroups %}
+  vpc_security_group_ids = [
+    {% for sg in comp.config.securityGroups %}
+    aws_security_group.{{ sg }}.id,
+    {% endfor %}
+  ]
+  {% endif %}
+
+  {% if comp.config.hasPublicIp | default(false) %}
+  associate_public_ip_address = true
+  {% endif %}
+
+  {% if comp.config.keyPair %}
+  key_name = "{{ comp.config.keyPair }}"
+  {% endif %}
+
+  {% if comp.config.userData %}
+  user_data = <<-EOF
+{{ comp.config.userData | indent(4) }}
+  EOF
+  {% endif %}
+
+  {% if comp.depends_on %}
+  depends_on = [
+    {% for dep in comp.depends_on %}
+    {{ dep }},
+    {% endfor %}
+  ]
+  {% endif %}
+
+  tags = {
+    Name = "{{ comp.name }}"
+  }
+}
+
+# AMI Data Source for {{ comp.name }}
+data "aws_ami" "{{ comp.id }}_ami" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["{{ comp.config.amiFilter | default('amzn2-ami-hvm-*-x86_64-gp2') }}"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
+{% endfor %}

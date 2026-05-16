@@ -1,0 +1,108 @@
+# ============================================================================
+# S3 Buckets
+# ============================================================================
+
+{% for comp in components %}
+# {{ comp.name }}
+resource "aws_s3_bucket" "{{ comp.id }}" {
+  bucket = "{{ comp.config.bucketName | default(comp.id) }}"
+
+  tags = {
+    Name = "{{ comp.name }}"
+  }
+}
+
+{% if comp.config.versioning | default(false) %}
+# Versioning for {{ comp.name }}
+resource "aws_s3_bucket_versioning" "{{ comp.id }}_versioning" {
+  bucket = aws_s3_bucket.{{ comp.id }}.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+{% endif %}
+
+{% if comp.config.encryption | default(true) %}
+# Server-side encryption for {{ comp.name }}
+resource "aws_s3_bucket_server_side_encryption_configuration" "{{ comp.id }}_encryption" {
+  bucket = aws_s3_bucket.{{ comp.id }}.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "{{ comp.config.sseAlgorithm | default('AES256') }}"
+    }
+  }
+}
+{% endif %}
+
+{% if comp.config.publicAccess | default(false) %}
+# Public access configuration for {{ comp.name }}
+resource "aws_s3_bucket_public_access_block" "{{ comp.id }}_public_access" {
+  bucket = aws_s3_bucket.{{ comp.id }}.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+}
+
+# Bucket policy for public read access
+resource "aws_s3_bucket_policy" "{{ comp.id }}_policy" {
+  bucket = aws_s3_bucket.{{ comp.id }}.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "PublicReadGetObject"
+        Effect    = "Allow"
+        Principal = "*"
+        Action    = "s3:GetObject"
+        Resource  = "${aws_s3_bucket.{{ comp.id }}.arn}/*"
+      }
+    ]
+  })
+
+  depends_on = [aws_s3_bucket_public_access_block.{{ comp.id }}_public_access]
+}
+{% else %}
+# Block all public access for {{ comp.name }}
+resource "aws_s3_bucket_public_access_block" "{{ comp.id }}_public_access" {
+  bucket = aws_s3_bucket.{{ comp.id }}.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+{% endif %}
+
+{% if comp.config.lifecycle %}
+# Lifecycle rules for {{ comp.name }}
+resource "aws_s3_bucket_lifecycle_configuration" "{{ comp.id }}_lifecycle" {
+  bucket = aws_s3_bucket.{{ comp.id }}.id
+
+  {% for rule in comp.config.lifecycle %}
+  rule {
+    id     = "{{ rule.id }}"
+    status = "{{ rule.status | default('Enabled') }}"
+
+    {% if rule.expiration %}
+    expiration {
+      days = {{ rule.expiration.days }}
+    }
+    {% endif %}
+
+    {% if rule.transition %}
+    transition {
+      days          = {{ rule.transition.days }}
+      storage_class = "{{ rule.transition.storageClass }}"
+    }
+    {% endif %}
+  }
+  {% endfor %}
+}
+{% endif %}
+
+{% endfor %}

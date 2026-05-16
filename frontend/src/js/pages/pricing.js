@@ -62,17 +62,36 @@ async function loadPricing() {
 
     try {
         pricingData = await billingAPI.getPricing();
-
         renderPricingCards();
     } catch (error) {
-        console.error('Failed to load pricing:', error);
+        console.warn('Failed to load pricing from API, using fallback data:', error);
 
-        cardsContainer.innerHTML = `
-            <div class="col-span-3 text-center py-12">
-                <p class="text-red-600 mb-4">⚠️ Pricing-Daten konnten nicht geladen werden</p>
-                <p class="text-gray-600 text-sm">Stelle sicher, dass das Backend läuft.</p>
-            </div>
-        `;
+        // Fallback: Use static pricing data when backend is not available
+        pricingData = [
+            {
+                plan: 'FREE',
+                monthly_price_eur: 0,
+                yearly_price_eur: 0,
+                stripe_monthly_price_id: null,
+                stripe_yearly_price_id: null
+            },
+            {
+                plan: 'PRO',
+                monthly_price_eur: 29,
+                yearly_price_eur: 290,
+                stripe_monthly_price_id: 'price_pro_monthly',
+                stripe_yearly_price_id: 'price_pro_yearly'
+            },
+            {
+                plan: 'ENTERPRISE',
+                monthly_price_eur: 99,
+                yearly_price_eur: 990,
+                stripe_monthly_price_id: 'price_enterprise_monthly',
+                stripe_yearly_price_id: 'price_enterprise_yearly'
+            }
+        ];
+
+        renderPricingCards();
     }
 }
 
@@ -240,7 +259,7 @@ window.handleUpgrade = async function(plan, interval) {
         // Save current page as return URL
         localStorage.setItem('return_url', window.location.href);
         alert('Bitte melde dich zuerst an, um einen Plan zu kaufen.');
-        window.location.href = '/src/login.html';
+        window.location.href = '/login.html';
         return;
     }
 
@@ -258,8 +277,8 @@ window.handleUpgrade = async function(plan, interval) {
                 plan: plan.toLowerCase(),
                 interval: interval,
                 auto_renewal: false, // Default: no auto-renewal
-                success_url: `${window.location.origin}/src/billing/success.html`,
-                cancel_url: `${window.location.origin}/src/pricing.html`
+                success_url: `${window.location.origin}/billing/success.html`,
+                cancel_url: `${window.location.origin}/pricing.html`
             },
             token
         );

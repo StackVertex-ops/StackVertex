@@ -1,0 +1,83 @@
+.component-palette {
+    @apply select-none;
+}
+
+.palette-component {
+    @apply p-3 bg-gray-50 border border-gray-300 rounded-lg cursor-move;
+    @apply hover:bg-gray-100 hover:border-gray-400 transition;
+    @apply flex flex-col items-center gap-2;
+}
+
+.palette-component:active {
+    @apply opacity-50;
+}
+
+.component-icon {
+    @apply text-2xl;
+}
+
+.component-name {
+    @apply text-xs font-medium text-gray-700 text-center;
+}
+
+/* Canvas Container */
+#canvas-container {
+    width: 100%;
+    height: 100%;
+    background: #F9FAFB;
+    position: relative;
+}
+
+/* Designer Layout */
+.designer-layout {
+    display: grid;
+    grid-template-rows: 60% 40%;
+    height: calc(100vh - 64px);
+}
+
+.canvas-area {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    border-bottom: 2px solid #E5E7EB;
+}
+
+.tabs-area {
+    overflow-y: auto;
+    background: white;
+}
+
+/* Toolbar Buttons */
+.toolbar {
+    @apply flex items-center gap-3 px-6 py-3 bg-white border-b border-gray-200;
+}
+
+.toolbar-group {
+    @apply flex items-center gap-2;
+}
+
+.toolbar-divider {
+    @apply h-6 w-px bg-gray-300;
+}
+
+/* Component Palette Scrollbar */
+#component-palette {
+    scrollbar-width: thin;
+    scrollbar-color: #CBD5E0 #F7FAFC;
+}
+
+#component-palette::-webkit-scrollbar {
+    width: 6px;
+}
+
+#component-palette::-webkit-scrollbar-track {
+    background: #F7FAFC;
+}
+
+#component-palette::-webkit-scrollbar-thumb {
+    background: #CBD5E0;
+    border-radius: 3px;
+}
+
+#component-palette::-webkit-scrollbar-thumb:hover {
+    background: #A0AEC0;
+}

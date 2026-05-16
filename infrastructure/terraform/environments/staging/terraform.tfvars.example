@@ -1,0 +1,32 @@
+# Staging Environment Configuration
+# Copy this file to terraform.tfvars and fill in your values
+
+project_name = "overcloud"
+environment  = "staging"
+aws_region   = "eu-central-1"
+
+# Networking
+vpc_cidr = "10.1.0.0/16" # Staging CIDR (different from dev: 10.0.x.x)
+
+# Database
+database_name       = "overcloud"
+db_master_username  = "overcloud_admin"
+db_master_password  = "CHANGEME_16_CHARS_MIN" # Use GitHub Secrets in CI/CD
+
+# Lambda (wird von CI/CD gesetzt)
+# lambda_image_uri = "123456789012.dkr.ecr.eu-central-1.amazonaws.com/overcloud-staging:latest"
+
+# Terraform State Bucket (from bootstrap)
+terraform_state_bucket = "overcloud-terraform-state-staging"
+
+# Monitoring & Alerts
+alert_emails = [
+  "alerts@example.com",
+  "devops@example.com"
+]
+
+# Optional: Slack Webhook for alerts
+# slack_webhook_url = "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+
+# CORS Origins (staging frontend)
+cors_origins = "https://staging.overcloud.example.com"

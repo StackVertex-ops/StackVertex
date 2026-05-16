@@ -1,0 +1,153 @@
+# ============================================================================
+# Application Load Balancer Resources
+# ============================================================================
+
+{% for comp in components %}
+# {{ comp.name }}
+resource "aws_lb" "{{ comp.id }}" {
+  name               = "{{ comp.name | lower | replace('_', '-') }}"
+  internal           = {{ comp.config.internal | default(false) | lower }}
+  load_balancer_type = "application"
+
+  {% if comp.config.securityGroups %}
+  security_groups = [
+    {% for sg in comp.config.securityGroups %}
+    aws_security_group.{{ sg }}.id,
+    {% endfor %}
+  ]
+  {% endif %}
+
+  {% if comp.config.subnets %}
+  subnets = [
+    {% for subnet in comp.config.subnets %}
+    aws_subnet.{{ subnet }}.id,
+    {% endfor %}
+  ]
+  {% endif %}
+
+  enable_deletion_protection = {{ comp.config.deletionProtection | default(false) | lower }}
+  enable_http2              = {{ comp.config.enableHttp2 | default(true) | lower }}
+  enable_cross_zone_load_balancing = {{ comp.config.crossZone | default(true) | lower }}
+
+  {% if comp.config.accessLogs %}
+  access_logs {
+    bucket  = "{{ comp.config.accessLogs.bucket }}"
+    prefix  = "{{ comp.config.accessLogs.prefix | default('alb') }}"
+    enabled = {{ comp.config.accessLogs.enabled | default(true) | lower }}
+  }
+  {% endif %}
+
+  tags = {
+    Name = "{{ comp.name }}"
+  }
+
+  {% if comp.depends_on %}
+  depends_on = [
+    {% for dep in comp.depends_on %}
+    {{ dep }},
+    {% endfor %}
+  ]
+  {% endif %}
+}
+
+# Target Group für {{ comp.name }}
+resource "aws_lb_target_group" "{{ comp.id }}_tg" {
+  name     = "{{ comp.name | lower | replace('_', '-') }}-tg"
+  port     = {{ comp.config.targetPort | default(80) }}
+  protocol = "{{ comp.config.protocol | default('HTTP') }}"
+  vpc_id   = aws_vpc.{{ comp.config.vpc }}.id
+
+  {% if comp.config.targetType %}
+  target_type = "{{ comp.config.targetType }}"
+  {% endif %}
+
+  health_check {
+    enabled             = true
+    healthy_threshold   = {{ comp.config.healthCheck.healthyThreshold | default(2) }}
+    unhealthy_threshold = {{ comp.config.healthCheck.unhealthyThreshold | default(2) }}
+    timeout             = {{ comp.config.healthCheck.timeout | default(5) }}
+    interval            = {{ comp.config.healthCheck.interval | default(30) }}
+    path                = "{{ comp.config.healthCheck.path | default('/') }}"
+    port                = "{{ comp.config.healthCheck.port | default('traffic-port') }}"
+    protocol            = "{{ comp.config.healthCheck.protocol | default('HTTP') }}"
+
+    {% if comp.config.healthCheck.matcher %}
+    matcher             = "{{ comp.config.healthCheck.matcher }}"
+    {% endif %}
+  }
+
+  {% if comp.config.stickinessEnabled | default(false) %}
+  stickiness {
+    type            = "{{ comp.config.stickinessType | default('lb_cookie') }}"
+    cookie_duration = {{ comp.config.stickinessDuration | default(86400) }}
+    enabled         = true
+  }
+  {% endif %}
+
+  tags = {
+    Name = "{{ comp.name }}-tg"
+  }
+}
+
+# HTTP Listener für {{ comp.name }}
+resource "aws_lb_listener" "{{ comp.id }}_listener_http" {
+  load_balancer_arn = aws_lb.{{ comp.id }}.arn
+  port              = "{{ comp.config.listenerPort | default(80) }}"
+  protocol          = "{{ comp.config.listenerProtocol | default('HTTP') }}"
+
+  {% if comp.config.redirectToHttps | default(false) %}
+  default_action {
+    type = "redirect"
+
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+  {% else %}
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.{{ comp.id }}_tg.arn
+  }
+  {% endif %}
+}
+
+{% if comp.config.enableHttps | default(false) %}
+# HTTPS Listener für {{ comp.name }}
+resource "aws_lb_listener" "{{ comp.id }}_listener_https" {
+  load_balancer_arn = aws_lb.{{ comp.id }}.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "{{ comp.config.sslPolicy | default('ELBSecurityPolicy-TLS13-1-2-2021-06') }}"
+  certificate_arn   = "{{ comp.config.certificateArn }}"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.{{ comp.id }}_tg.arn
+  }
+}
+{% endif %}
+
+# Target Attachments für {{ comp.name }}
+{% if comp.config.targets %}
+{% for target in comp.config.targets %}
+resource "aws_lb_target_group_attachment" "{{ comp.id }}_target_{{ loop.index }}" {
+  target_group_arn = aws_lb_target_group.{{ comp.id }}_tg.arn
+
+  {% if target.instance %}
+  target_id = aws_instance.{{ target.instance }}.id
+  {% elif target.ip %}
+  target_id = "{{ target.ip }}"
+  {% elif target.lambda %}
+  target_id = aws_lambda_function.{{ target.lambda }}.arn
+  {% endif %}
+
+  {% if target.port %}
+  port = {{ target.port }}
+  {% endif %}
+}
+{% endfor %}
+{% endif %}
+
+{% endfor %}

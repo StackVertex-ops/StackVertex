@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Cost Estimation - Test</title>
+    <link rel="stylesheet" href="/src/css/main.css">
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Live Cost Estimation</h1>
+        <p class="text-gray-600 mb-8">Test für Real-Time Blueprint Cost Calculation</p>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Form Column (2/3) -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-md border border-gray-200 p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Blueprint Konfiguration</h2>
+
+                    <!-- Blueprint Selection -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Blueprint auswählen
+                        </label>
+                        <select id="blueprintSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">-- Bitte wählen --</option>
+                            <option value="static-website">Static Website (S3 + CloudFront)</option>
+                            <option value="three-tier-web">Three-Tier Web App (EC2 + RDS + ALB)</option>
+                            <option value="serverless-api">Serverless API (Lambda + API Gateway)</option>
+                        </select>
+                    </div>
+
+                    <!-- Dynamic Form Container -->
+                    <div id="dynamicForm" class="space-y-4">
+                        <!-- Forms will be injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cost Panel Column (1/3) -->
+            <div class="lg:col-span-1">
+                <div id="liveCostPanel" class="sticky top-4">
+                    <!-- LiveCostPanel renders here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { LiveCostPanel } from './js/components/LiveCostPanel.js';
+
+        const blueprintSelect = document.getElementById('blueprintSelect');
+        const dynamicForm = document.getElementById('dynamicForm');
+        let costPanel = null;
+
+        // Blueprint Configurations (Simplified for testing)
+        const blueprintForms = {
+            'static-website': {
+                fields: [
+                    { name: 'storage_gb', label: 'Storage (GB)', type: 'number', default: 50, min: 1, max: 10000 },
+                    { name: 'traffic_gb', label: 'Monthly Traffic (GB)', type: 'number', default: 1000, min: 1, max: 100000 },
+                    { name: 'monthly_requests', label: 'Monthly Requests', type: 'number', default: 1000000, min: 1000, max: 100000000 },
+                    { name: 'domain_name', label: 'Custom Domain', type: 'text', default: 'example.com' },
+                ]
+            },
+            'three-tier-web': {
+                fields: [
+                    {
+                        name: 'ec2_instance_type',
+                        label: 'EC2 Instance Type',
+                        type: 'select',
+                        default: 't3.small',
+                        options: [
+                            { value: 't3.micro', label: 't3.micro (2 vCPU, 1GB RAM) - $0.0104/h' },
+                            { value: 't3.small', label: 't3.small (2 vCPU, 2GB RAM) - $0.0208/h' },
+                            { value: 't3.medium', label: 't3.medium (2 vCPU, 4GB RAM) - $0.0416/h' },
+                            { value: 't3.large', label: 't3.large (2 vCPU, 8GB RAM) - $0.0832/h' },
+                        ]
+                    },
+                    { name: 'min_instances', label: 'Number of Instances', type: 'number', default: 2, min: 1, max: 10 },
+                    {
+                        name: 'rds_instance_class',
+                        label: 'RDS Instance Class',
+                        type: 'select',
+                        default: 'db.t3.micro',
+                        options: [
+                            { value: 'db.t3.micro', label: 'db.t3.micro - $0.016/h' },
+                            { value: 'db.t3.small', label: 'db.t3.small - $0.032/h' },
+                            { value: 'db.t3.medium', label: 'db.t3.medium - $0.064/h' },
+                            { value: 'db.t3.large', label: 'db.t3.large - $0.128/h' },
+                        ]
+                    },
+                    { name: 'rds_engine', label: 'Database Engine', type: 'select', default: 'postgres', options: [
+                        { value: 'postgres', label: 'PostgreSQL' },
+                        { value: 'mysql', label: 'MySQL' },
+                        { value: 'mariadb', label: 'MariaDB' },
+                    ]},
+                    { name: 'rds_allocated_storage', label: 'RDS Storage (GB)', type: 'number', default: 20, min: 20, max: 1000 },
+                    { name: 'rds_multi_az', label: 'Multi-AZ', type: 'checkbox', default: false },
+                ]
+            },
+            'serverless-api': {
+                fields: [
+                    { name: 'lambda_invocations_per_month', label: 'Lambda Invocations / Month', type: 'number', default: 1000000, min: 1000, max: 100000000 },
+                    { name: 'lambda_memory_mb', label: 'Lambda Memory (MB)', type: 'number', default: 512, min: 128, max: 10240, step: 64 },
+                    { name: 'lambda_avg_duration_ms', label: 'Avg Duration (ms)', type: 'number', default: 200, min: 100, max: 900000 },
+                    { name: 'api_requests_per_month', label: 'API Gateway Requests / Month', type: 'number', default: 1000000, min: 1000, max: 100000000 },
+                ]
+            }
+        };
+
+        // Handle Blueprint Selection
+        blueprintSelect.addEventListener('change', (e) => {
+            const blueprintId = e.target.value;
+
+            if (!blueprintId) {
+                dynamicForm.innerHTML = '';
+                if (costPanel) {
+                    costPanel.reset();
+                }
+                return;
+            }
+
+            // Initialize Cost Panel
+            costPanel = new LiveCostPanel(blueprintId);
+            costPanel.render();
+
+            // Render Form
+            renderForm(blueprintId);
+        });
+
+        function renderForm(blueprintId) {
+            const config = blueprintForms[blueprintId];
+            if (!config) return;
+
+            dynamicForm.innerHTML = '';
+
+            config.fields.forEach(field => {
+                const fieldElement = createFormField(field);
+                dynamicForm.appendChild(fieldElement);
+
+                // Listen to changes
+                const input = fieldElement.querySelector('input, select');
+                if (input) {
+                    input.addEventListener('change', () => updateCost());
+                    input.addEventListener('input', () => updateCost());
+                }
+            });
+
+            // Initial cost calculation
+            updateCost();
+        }
+
+        function createFormField(field) {
+            const container = document.createElement('div');
+            container.className = 'form-field-container';
+
+            const label = document.createElement('label');
+            label.className = 'block text-sm font-medium text-gray-700 mb-2';
+            label.textContent = field.label;
+
+            let input;
+
+            if (field.type === 'select') {
+                input = document.createElement('select');
+                input.className = 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500';
+
+                field.options.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt.value;
+                    option.textContent = opt.label;
+                    if (opt.value === field.default) {
+                        option.selected = true;
+                    }
+                    input.appendChild(option);
+                });
+
+            } else if (field.type === 'checkbox') {
+                input = document.createElement('input');
+                input.type = 'checkbox';
+                input.className = 'h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500';
+                input.checked = field.default || false;
+
+            } else {
+                input = document.createElement('input');
+                input.type = field.type;
+                input.className = 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500';
+                input.value = field.default || '';
+
+                if (field.min !== undefined) input.min = field.min;
+                if (field.max !== undefined) input.max = field.max;
+                if (field.step !== undefined) input.step = field.step;
+            }
+
+            input.name = field.name;
+
+            container.appendChild(label);
+            container.appendChild(input);
+
+            return container;
+        }
+
+        function updateCost() {
+            if (!costPanel) return;
+
+            const formData = {};
+            const inputs = dynamicForm.querySelectorAll('input, select');
+
+            inputs.forEach(input => {
+                if (input.type === 'checkbox') {
+                    formData[input.name] = input.checked;
+                } else if (input.type === 'number') {
+                    formData[input.name] = parseFloat(input.value) || 0;
+                } else {
+                    formData[input.name] = input.value;
+                }
+            });
+
+            costPanel.updateCost(formData);
+        }
+    </script>
+</body>
+</html>

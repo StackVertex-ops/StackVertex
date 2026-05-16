@@ -5,12 +5,35 @@ Provides common DynamoDB operations with S3 offload for large items.
 
 from typing import Any, Dict, List, Optional, TypeVar, Generic
 from datetime import datetime
+from decimal import Decimal
 from mypy_boto3_dynamodb.service_resource import Table
 from boto3.dynamodb.conditions import Key, Attr, ConditionBase
 
 from app.db.dynamodb import get_dynamodb_table
 from app.db.s3_storage import S3Storage
 from app.config import settings
+
+
+def convert_floats_to_decimal(obj: Any) -> Any:
+    """Convert all float values to Decimal for DynamoDB compatibility.
+
+    DynamoDB doesn't support Python float types, only Decimal.
+    This recursively converts all floats in nested structures.
+
+    Args:
+        obj: Object to convert (dict, list, or primitive)
+
+    Returns:
+        Object with all floats converted to Decimal
+    """
+    if isinstance(obj, float):
+        return Decimal(str(obj))
+    elif isinstance(obj, dict):
+        return {k: convert_floats_to_decimal(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_floats_to_decimal(item) for item in obj]
+    else:
+        return obj
 
 
 T = TypeVar("T")
@@ -55,6 +78,9 @@ class BaseRepository(Generic[T]):
         if "created_at" not in item:
             item["created_at"] = now
         item["updated_at"] = now
+
+        # Convert floats to Decimal (DynamoDB requirement)
+        item = convert_floats_to_decimal(item)
 
         # Put item
         self.table.put_item(Item=item)

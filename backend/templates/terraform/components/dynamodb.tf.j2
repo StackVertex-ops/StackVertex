@@ -1,0 +1,170 @@
+# ============================================================================
+# DynamoDB Table Resources
+# ============================================================================
+
+{% for comp in components %}
+# {{ comp.name }}
+resource "aws_dynamodb_table" "{{ comp.id }}" {
+  name           = "{{ comp.name }}"
+  billing_mode   = "{{ comp.config.billingMode | default('PAY_PER_REQUEST') }}"
+
+  {% if comp.config.billingMode == 'PROVISIONED' %}
+  read_capacity  = {{ comp.config.readCapacity | default(5) }}
+  write_capacity = {{ comp.config.writeCapacity | default(5) }}
+  {% endif %}
+
+  hash_key  = "{{ comp.config.hashKey }}"
+
+  {% if comp.config.rangeKey %}
+  range_key = "{{ comp.config.rangeKey }}"
+  {% endif %}
+
+  # Primary Key Attribute
+  attribute {
+    name = "{{ comp.config.hashKey }}"
+    type = "{{ comp.config.hashKeyType | default('S') }}"
+  }
+
+  {% if comp.config.rangeKey %}
+  attribute {
+    name = "{{ comp.config.rangeKey }}"
+    type = "{{ comp.config.rangeKeyType | default('S') }}"
+  }
+  {% endif %}
+
+  # Additional Attributes (für GSI/LSI)
+  {% if comp.config.attributes %}
+  {% for attr in comp.config.attributes %}
+  attribute {
+    name = "{{ attr.name }}"
+    type = "{{ attr.type }}"
+  }
+  {% endfor %}
+  {% endif %}
+
+  # Global Secondary Indexes
+  {% if comp.config.globalSecondaryIndexes %}
+  {% for gsi in comp.config.globalSecondaryIndexes %}
+  global_secondary_index {
+    name               = "{{ gsi.name }}"
+    hash_key           = "{{ gsi.hashKey }}"
+    {% if gsi.rangeKey %}
+    range_key          = "{{ gsi.rangeKey }}"
+    {% endif %}
+    projection_type    = "{{ gsi.projectionType | default('ALL') }}"
+
+    {% if gsi.projectionType == 'INCLUDE' %}
+    non_key_attributes = {{ gsi.nonKeyAttributes | tojson }}
+    {% endif %}
+
+    {% if comp.config.billingMode == 'PROVISIONED' %}
+    read_capacity      = {{ gsi.readCapacity | default(5) }}
+    write_capacity     = {{ gsi.writeCapacity | default(5) }}
+    {% endif %}
+  }
+  {% endfor %}
+  {% endif %}
+
+  # Local Secondary Indexes
+  {% if comp.config.localSecondaryIndexes %}
+  {% for lsi in comp.config.localSecondaryIndexes %}
+  local_secondary_index {
+    name               = "{{ lsi.name }}"
+    range_key          = "{{ lsi.rangeKey }}"
+    projection_type    = "{{ lsi.projectionType | default('ALL') }}"
+
+    {% if lsi.projectionType == 'INCLUDE' %}
+    non_key_attributes = {{ lsi.nonKeyAttributes | tojson }}
+    {% endif %}
+  }
+  {% endfor %}
+  {% endif %}
+
+  # Time To Live
+  {% if comp.config.ttlEnabled | default(false) %}
+  ttl {
+    enabled        = true
+    attribute_name = "{{ comp.config.ttlAttribute }}"
+  }
+  {% endif %}
+
+  # Point-in-Time Recovery
+  point_in_time_recovery {
+    enabled = {{ comp.config.pointInTimeRecovery | default(true) | lower }}
+  }
+
+  # Encryption
+  {% if comp.config.encryption | default('AWS_OWNED') != 'AWS_OWNED' %}
+  server_side_encryption {
+    enabled     = true
+    kms_key_arn = "{{ comp.config.kmsKeyArn | default('') }}"
+  }
+  {% endif %}
+
+  # Stream Configuration
+  {% if comp.config.streamEnabled | default(false) %}
+  stream_enabled   = true
+  stream_view_type = "{{ comp.config.streamViewType | default('NEW_AND_OLD_IMAGES') }}"
+  {% endif %}
+
+  # Auto-scaling (nur bei PROVISIONED mode)
+  {% if comp.config.billingMode == 'PROVISIONED' and comp.config.autoScaling | default(false) %}
+  # Note: Auto-scaling requires separate aws_appautoscaling_target resources
+  {% endif %}
+
+  tags = {
+    Name = "{{ comp.name }}"
+  }
+}
+
+# Auto-Scaling für Read Capacity (optional)
+{% if comp.config.billingMode == 'PROVISIONED' and comp.config.autoScaling | default(false) %}
+resource "aws_appautoscaling_target" "{{ comp.id }}_read" {
+  max_capacity       = {{ comp.config.autoScaling.read.max | default(100) }}
+  min_capacity       = {{ comp.config.autoScaling.read.min | default(5) }}
+  resource_id        = "table/${aws_dynamodb_table.{{ comp.id }}.name}"
+  scalable_dimension = "dynamodb:table:ReadCapacityUnits"
+  service_namespace  = "dynamodb"
+}
+
+resource "aws_appautoscaling_policy" "{{ comp.id }}_read_policy" {
+  name               = "DynamoDBReadCapacityUtilization:${aws_appautoscaling_target.{{ comp.id }}_read.resource_id}"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.{{ comp.id }}_read.resource_id
+  scalable_dimension = aws_appautoscaling_target.{{ comp.id }}_read.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.{{ comp.id }}_read.service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "DynamoDBReadCapacityUtilization"
+    }
+    target_value = {{ comp.config.autoScaling.read.target | default(70.0) }}
+  }
+}
+
+# Auto-Scaling für Write Capacity
+resource "aws_appautoscaling_target" "{{ comp.id }}_write" {
+  max_capacity       = {{ comp.config.autoScaling.write.max | default(100) }}
+  min_capacity       = {{ comp.config.autoScaling.write.min | default(5) }}
+  resource_id        = "table/${aws_dynamodb_table.{{ comp.id }}.name}"
+  scalable_dimension = "dynamodb:table:WriteCapacityUnits"
+  service_namespace  = "dynamodb"
+}
+
+resource "aws_appautoscaling_policy" "{{ comp.id }}_write_policy" {
+  name               = "DynamoDBWriteCapacityUtilization:${aws_appautoscaling_target.{{ comp.id }}_write.resource_id}"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.{{ comp.id }}_write.resource_id
+  scalable_dimension = aws_appautoscaling_target.{{ comp.id }}_write.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.{{ comp.id }}_write.service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "DynamoDBWriteCapacityUtilization"
+    }
+    target_value = {{ comp.config.autoScaling.write.target | default(70.0) }}
+  }
+}
+{% endif %}
+
+{% endfor %}

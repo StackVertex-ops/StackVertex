@@ -1,0 +1,21 @@
+# OWASP ZAP Rules Configuration
+# Format: Rule ID	Threshold	Action (IGNORE, INFO, WARN, FAIL)
+#
+# Common False Positives:
+# - 10021: X-Content-Type-Options header missing (often not needed for APIs)
+# - 10020: X-Frame-Options header missing (not needed for headless APIs)
+# - 10096: Timestamp Disclosure (acceptable for API responses)
+
+# Ignore non-critical headers for API-only endpoints
+10021	IGNORE	# X-Content-Type-Options missing (API endpoint)
+10020	IGNORE	# X-Frame-Options missing (API endpoint)
+10096	INFO	# Timestamp Disclosure (acceptable)
+
+# Strict security headers (should be present)
+10035	FAIL	# Strict-Transport-Security missing
+10038	FAIL	# Content Security Policy missing (for web frontend)
+
+# Common vulnerabilities (fail on detection)
+40012	FAIL	# CSRF token missing
+40014	FAIL	# Cross Site Scripting (XSS)
+90018	FAIL	# SQL Injection

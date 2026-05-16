@@ -1,0 +1,38 @@
+/**
+ * Architecture Builder specific styles
+ */
+
+/* Fix z-index stacking and ensure proper layout */
+#canvas-container {
+    position: relative;
+    z-index: 1;
+    flex-shrink: 1;
+    min-width: 0; /* Allow flex item to shrink below content size */
+}
+
+#properties-panel {
+    position: relative;
+    z-index: 0;
+    flex-shrink: 0; /* Don't shrink */
+    pointer-events: auto; /* Ensure it only intercepts within its bounds */
+}
+
+#component-palette {
+    position: relative;
+    z-index: 0;
+    flex-shrink: 0; /* Don't shrink */
+}
+
+/* Ensure canvas SVG can receive pointer events and doesn't overflow */
+#canvas-svg {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+}
+
+/* Component nodes should be clickable */
+.component-node {
+    position: relative;
+    z-index: 10;
+    pointer-events: auto;
+}

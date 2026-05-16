@@ -304,6 +304,94 @@ def sample_large_architecture_json() -> Dict[str, Any]:
     return arch
 
 
+@pytest.fixture
+def sample_architecture_minimal() -> Dict[str, Any]:
+    """Provide minimal architecture JSON (Alias für sample_architecture_json).
+
+    Für Rückwärtskompatibilität mit alten Tests.
+    """
+    from datetime import datetime, timezone
+    from uuid import uuid4
+
+    return {
+        "version": "1.0.0",
+        "metadata": {
+            "id": str(uuid4()),
+            "name": "Minimal Test Architecture",
+            "description": "Minimal architecture for testing",
+            "provider": "aws",
+            "region": "us-east-1",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        },
+        "requirements": {
+            "compute": {},
+            "storage": {},
+            "networking": {}
+        },
+        "architecture": {
+            "components": [],
+            "relationships": []
+        }
+    }
+
+
+@pytest.fixture
+def sample_architecture_simple_web() -> Dict[str, Any]:
+    """Provide simple web app architecture for E2E testing."""
+    return {
+        "version": "1.0.0",
+        "metadata": {
+            "name": "Simple Web Application",
+            "description": "Basic web app with VPC, subnet, EC2, and S3",
+            "provider": "aws",
+            "region": "us-east-1"
+        },
+        "architecture": {
+            "components": [
+                {
+                    "id": "main_vpc",
+                    "type": "vpc",
+                    "name": "Main VPC",
+                    "configuration": {
+                        "cidr_block": "10.0.0.0/16",
+                        "enable_dns_hostnames": True,
+                        "enable_dns_support": True
+                    }
+                },
+                {
+                    "id": "public_subnet",
+                    "type": "subnet",
+                    "name": "Public Subnet",
+                    "configuration": {
+                        "cidr_block": "10.0.1.0/24",
+                        "availability_zone": "us-east-1a",
+                        "map_public_ip_on_launch": True
+                    }
+                },
+                {
+                    "id": "web_server",
+                    "type": "ec2",
+                    "name": "Web Server",
+                    "configuration": {
+                        "instance_type": "t3.micro",
+                        "ami": "ami-0c55b159cbfafe1f0"
+                    }
+                },
+                {
+                    "id": "storage_bucket",
+                    "type": "s3",
+                    "name": "Storage Bucket",
+                    "configuration": {
+                        "bucket_name": "simple-web-app-storage",
+                        "versioning_enabled": True
+                    }
+                }
+            ]
+        }
+    }
+
+
 # =============================================================================
 # Repository Fixtures
 # =============================================================================

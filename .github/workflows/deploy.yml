@@ -3,11 +3,13 @@ name: Deploy OverCloud to AWS
 on:
   push:
     branches:
-      - main
-      - develop
+      - main      # Production
+      - staging   # Staging
+      - develop   # Development
   pull_request:
     branches:
       - main
+      - staging
       - develop
   workflow_dispatch:
     inputs:
@@ -102,6 +104,8 @@ jobs:
             echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
           elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
             echo "environment=prod" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/staging" ]; then
+            echo "environment=staging" >> $GITHUB_OUTPUT
           elif [ "${{ github.ref }}" == "refs/heads/develop" ]; then
             echo "environment=dev" >> $GITHUB_OUTPUT
           else
@@ -161,6 +165,8 @@ jobs:
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
           elif [ "${{ github.base_ref }}" == "main" ]; then
+            echo "environment=prod" >> $GITHUB_OUTPUT
+          elif [ "${{ github.base_ref }}" == "staging" ]; then
             echo "environment=staging" >> $GITHUB_OUTPUT
           else
             echo "environment=dev" >> $GITHUB_OUTPUT
@@ -188,7 +194,15 @@ jobs:
           db_master_password     = "${{ secrets.DB_MASTER_PASSWORD }}"
           terraform_state_bucket = "${{ secrets.TERRAFORM_STATE_BUCKET }}"
           lambda_image_uri       = "${{ needs.build.outputs.image_uri }}"
+          alert_emails           = [$(echo "${{ secrets.ALERT_EMAILS }}" | sed 's/,/", "/g' | sed 's/^/"/' | sed 's/$/"/')]
+          slack_webhook_url      = "${{ secrets.SLACK_WEBHOOK_URL }}"
+          cors_origins           = "${{ secrets.CORS_ORIGINS }}"
           EOF
+
+          # Add optional secrets (only if defined)
+          if [ -n "${{ secrets.PAGERDUTY_ENDPOINT }}" ]; then
+            echo 'pagerduty_endpoint = "${{ secrets.PAGERDUTY_ENDPOINT }}"' >> terraform.tfvars
+          fi
 
       - name: Terraform Init
         run: terraform init
@@ -256,6 +270,10 @@ jobs:
             echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
           elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
             echo "environment=prod" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/staging" ]; then
+            echo "environment=staging" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/develop" ]; then
+            echo "environment=dev" >> $GITHUB_OUTPUT
           else
             echo "environment=dev" >> $GITHUB_OUTPUT
           fi
@@ -283,7 +301,15 @@ jobs:
           db_master_password     = "${{ secrets.DB_MASTER_PASSWORD }}"
           terraform_state_bucket = "${{ secrets.TERRAFORM_STATE_BUCKET }}"
           lambda_image_uri       = "${{ needs.build.outputs.image_uri }}"
+          alert_emails           = [$(echo "${{ secrets.ALERT_EMAILS }}" | sed 's/,/", "/g' | sed 's/^/"/' | sed 's/$/"/')]
+          slack_webhook_url      = "${{ secrets.SLACK_WEBHOOK_URL }}"
+          cors_origins           = "${{ secrets.CORS_ORIGINS }}"
           EOF
+
+          # Add optional secrets (only if defined)
+          if [ -n "${{ secrets.PAGERDUTY_ENDPOINT }}" ]; then
+            echo 'pagerduty_endpoint = "${{ secrets.PAGERDUTY_ENDPOINT }}"' >> terraform.tfvars
+          fi
 
       - name: Terraform Init
         run: terraform init

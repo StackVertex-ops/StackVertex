@@ -1,0 +1,51 @@
+# ============================================================================
+# Subnet Resources
+# ============================================================================
+
+{% for comp in components %}
+# {{ comp.name }}
+resource "aws_subnet" "{{ comp.id }}" {
+  vpc_id            = aws_vpc.{{ comp.config.vpc }}.id
+  cidr_block        = "{{ comp.config.cidr }}"
+  availability_zone = "{{ comp.config.az }}"
+
+  {% if comp.config.subnetType == 'public' %}
+  map_public_ip_on_launch = true
+  {% endif %}
+
+  {% if comp.depends_on %}
+  depends_on = [
+    {% for dep in comp.depends_on %}
+    {{ dep }},
+    {% endfor %}
+  ]
+  {% endif %}
+
+  tags = {
+    Name = "{{ comp.name }}"
+    Type = "{{ comp.config.subnetType | default('private') }}"
+  }
+}
+
+{% if comp.config.subnetType == 'public' %}
+# Route table for public subnet {{ comp.name }}
+resource "aws_route_table" "{{ comp.id }}_rt" {
+  vpc_id = aws_vpc.{{ comp.config.vpc }}.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.{{ comp.config.vpc }}_igw.id
+  }
+
+  tags = {
+    Name = "{{ comp.name }}-rt"
+  }
+}
+
+resource "aws_route_table_association" "{{ comp.id }}_rta" {
+  subnet_id      = aws_subnet.{{ comp.id }}.id
+  route_table_id = aws_route_table.{{ comp.id }}_rt.id
+}
+{% endif %}
+
+{% endfor %}

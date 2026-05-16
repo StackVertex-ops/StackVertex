@@ -331,7 +331,7 @@ function checkHighAvailability(components) {
  * @param {HTMLElement} container - Container Element
  * @param {Object} architecture - Current Architecture
  */
-export function renderAIAdvisor(container, architecture) {
+export function renderAIAdvisor(container, architecture, initiallyCollapsed = true) {
     const recommendations = analyzeArchitecture(architecture);
 
     // Group by severity
@@ -350,13 +350,13 @@ export function renderAIAdvisor(container, architecture) {
                         AI Advisor
                     </h3>
                 </div>
-                <button id="toggle-advisor" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                <button id="collapse-advisor" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
                     ${recommendations.length === 0 ? 'Keine Empfehlungen' : `${recommendations.length} Empfehlungen`}
                 </button>
             </div>
 
             <!-- Content -->
-            <div id="advisor-content" class="p-4 space-y-3 max-h-96 overflow-y-auto">
+            <div id="advisor-content" class="${initiallyCollapsed ? 'hidden ' : ''}p-4 space-y-3 max-h-96 overflow-y-auto">
                 ${recommendations.length === 0 ? renderEmptyState() : ''}
                 ${high.length > 0 ? renderRecommendationGroup('Kritisch', high, 'red') : ''}
                 ${medium.length > 0 ? renderRecommendationGroup('Wichtig', medium, 'yellow') : ''}
@@ -433,12 +433,12 @@ function renderRecommendation(rec, colorClass) {
  * Setup Event Handlers
  */
 function setupAdvisorHandlers(container) {
-    // Toggle Advisor
-    const toggleBtn = container.querySelector('#toggle-advisor');
+    // Collapse Advisor (internal collapse button)
+    const collapseBtn = container.querySelector('#collapse-advisor');
     const content = container.querySelector('#advisor-content');
 
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
+    if (collapseBtn) {
+        collapseBtn.addEventListener('click', () => {
             content.classList.toggle('hidden');
         });
     }

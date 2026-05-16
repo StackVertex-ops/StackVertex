@@ -16,6 +16,10 @@ class TestTerraformE2E:
         """Test: Komplette Web-App Architecture generieren."""
         generator = TerraformGenerator()
 
+        # Ensure architecture structure
+        if "architecture" not in sample_architecture_simple_web:
+            sample_architecture_simple_web["architecture"] = {"components": []}
+
         # Generate project
         project = generator.generate(sample_architecture_simple_web, validate=False)
 
@@ -44,6 +48,8 @@ class TestTerraformE2E:
 
         # Add some components
         arch = sample_architecture_minimal.copy()
+        if "architecture" not in arch:
+            arch["architecture"] = {}
         arch["architecture"]["components"] = [
             {
                 "id": "main_vpc",
@@ -88,6 +94,8 @@ class TestTerraformE2E:
         generator = TerraformGenerator()
 
         arch = sample_architecture_minimal.copy()
+        if "architecture" not in arch:
+            arch["architecture"] = {}
         arch["architecture"]["components"] = [
             {
                 "id": "test_vpc",
@@ -109,6 +117,8 @@ class TestTerraformE2E:
         generator = TerraformGenerator()
 
         arch = sample_architecture_minimal.copy()
+        if "architecture" not in arch:
+            arch["architecture"] = {}
         arch["architecture"]["components"] = [
             {"id": "vpc1", "type": "vpc", "name": "VPC", "configuration": {}},
             {"id": "subnet1", "type": "subnet", "name": "Subnet", "configuration": {}},
@@ -137,6 +147,8 @@ class TestTerraformE2E:
         generator = TerraformGenerator()
 
         arch = sample_architecture_minimal.copy()
+        if "architecture" not in arch:
+            arch["architecture"] = {}
         arch["architecture"]["components"] = [
             {"id": "my_vpc", "type": "vpc", "name": "VPC", "configuration": {}},
             {"id": "my_ec2", "type": "ec2", "name": "EC2", "configuration": {}},

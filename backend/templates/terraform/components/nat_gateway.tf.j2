@@ -1,0 +1,70 @@
+# ============================================================================
+# NAT Gateway Resources
+# ============================================================================
+
+{% for comp in components %}
+# {{ comp.name }}
+
+# Elastic IP für NAT Gateway
+resource "aws_eip" "{{ comp.id }}_eip" {
+  domain = "vpc"
+
+  tags = {
+    Name = "{{ comp.name }}-eip"
+  }
+
+  {% if comp.depends_on %}
+  depends_on = [
+    {% for dep in comp.depends_on %}
+    {{ dep }},
+    {% endfor %}
+  ]
+  {% endif %}
+}
+
+# NAT Gateway
+resource "aws_nat_gateway" "{{ comp.id }}" {
+  allocation_id = aws_eip.{{ comp.id }}_eip.id
+  subnet_id     = aws_subnet.{{ comp.config.subnet }}.id
+
+  tags = {
+    Name = "{{ comp.name }}"
+  }
+
+  {% if comp.depends_on %}
+  depends_on = [
+    {% for dep in comp.depends_on %}
+    {{ dep }},
+    {% endfor %}
+  ]
+  {% endif %}
+}
+
+{% if comp.config.createRouteTable | default(true) %}
+# Private Route Table für {{ comp.name }}
+resource "aws_route_table" "{{ comp.id }}_private_rt" {
+  vpc_id = aws_vpc.{{ comp.config.vpc }}.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.{{ comp.id }}.id
+  }
+
+  tags = {
+    Name = "{{ comp.name }}-private-rt"
+    Type = "private"
+  }
+}
+
+# Route Table Associations für private Subnets
+{% if comp.config.privateSubnets %}
+{% for subnet in comp.config.privateSubnets %}
+resource "aws_route_table_association" "{{ comp.id }}_{{ subnet }}_assoc" {
+  subnet_id      = aws_subnet.{{ subnet }}.id
+  route_table_id = aws_route_table.{{ comp.id }}_private_rt.id
+}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% endfor %}

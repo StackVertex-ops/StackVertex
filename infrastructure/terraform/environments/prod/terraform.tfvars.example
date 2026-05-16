@@ -1,0 +1,37 @@
+# Production Environment Configuration
+# Copy this file to terraform.tfvars and fill in your values
+# IMPORTANT: Never commit terraform.tfvars to git (it's in .gitignore)
+
+project_name = "overcloud"
+environment  = "prod"
+aws_region   = "eu-central-1"
+
+# Networking
+vpc_cidr = "10.2.0.0/16" # Production CIDR (different from dev: 10.0.x.x, staging: 10.1.x.x)
+
+# Database
+database_name       = "overcloud"
+db_master_username  = "overcloud_admin"
+db_master_password  = "CHANGEME_16_CHARS_MIN" # Use GitHub Secrets in CI/CD (REQUIRED)
+
+# Lambda (wird von CI/CD gesetzt)
+# lambda_image_uri = "123456789012.dkr.ecr.eu-central-1.amazonaws.com/overcloud-prod:v1.0.0"
+
+# Terraform State Bucket (from bootstrap)
+terraform_state_bucket = "overcloud-terraform-state-prod"
+
+# Monitoring & Alerts (REQUIRED for Production)
+alert_emails = [
+  "critical-alerts@overcloud.io",
+  "oncall@overcloud.io",
+  "devops@overcloud.io"
+]
+
+# Slack Webhook for critical alerts (REQUIRED)
+slack_webhook_url = "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+
+# PagerDuty Integration for 24/7 On-Call (REQUIRED)
+pagerduty_endpoint = "https://events.pagerduty.com/integration/YOUR_INTEGRATION_KEY/enqueue"
+
+# CORS Origins (production frontend)
+cors_origins = "https://app.overcloud.io"

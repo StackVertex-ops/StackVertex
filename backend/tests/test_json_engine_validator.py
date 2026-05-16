@@ -17,6 +17,10 @@ class TestArchitectureValidator:
         """Test: Validiere valides Architecture JSON."""
         validator = ArchitectureValidator()
 
+        # Ensure architecture structure
+        if "architecture" not in sample_architecture_minimal:
+            sample_architecture_minimal["architecture"] = {"components": []}
+
         result = validator.validate(sample_architecture_minimal)
 
         assert result.valid is True
@@ -27,6 +31,10 @@ class TestArchitectureValidator:
     def test_validate_with_custom_version(self, sample_architecture_minimal):
         """Test: Validiere mit custom Schema-Version."""
         validator = ArchitectureValidator(default_version="1.0.0")
+
+        # Ensure architecture structure
+        if "architecture" not in sample_architecture_minimal:
+            sample_architecture_minimal["architecture"] = {"components": []}
 
         result = validator.validate(sample_architecture_minimal, version="1.0.0")
 
@@ -52,6 +60,10 @@ class TestArchitectureValidator:
         """Test: validate_and_raise mit validem JSON."""
         validator = ArchitectureValidator()
 
+        # Ensure architecture structure
+        if "architecture" not in sample_architecture_minimal:
+            sample_architecture_minimal["architecture"] = {"components": []}
+
         result = validator.validate_and_raise(sample_architecture_minimal)
 
         assert result.valid is True
@@ -73,6 +85,10 @@ class TestArchitectureValidator:
         """Test: Validation mit nicht-existentem Schema."""
         validator = ArchitectureValidator()
 
+        # Ensure architecture structure
+        if "architecture" not in sample_architecture_minimal:
+            sample_architecture_minimal["architecture"] = {"components": []}
+
         with pytest.raises(SchemaNotFoundError) as exc_info:
             validator.validate(sample_architecture_minimal, version="99.99.99")
 
@@ -81,6 +97,10 @@ class TestArchitectureValidator:
     def test_extract_version_from_json(self, sample_architecture_minimal):
         """Test: Version aus JSON extrahieren."""
         validator = ArchitectureValidator()
+
+        # Ensure version field exists
+        if "version" not in sample_architecture_minimal:
+            sample_architecture_minimal["version"] = "1.0.0"
 
         version = validator.extract_version(sample_architecture_minimal)
 
@@ -99,6 +119,10 @@ class TestArchitectureValidator:
         """Test: Architecture ist kompatibel mit Version."""
         validator = ArchitectureValidator()
 
+        # Ensure architecture structure
+        if "architecture" not in sample_architecture_minimal:
+            sample_architecture_minimal["architecture"] = {"components": []}
+
         compatible = validator.is_compatible(sample_architecture_minimal, "1.0.0")
 
         assert compatible is True
@@ -115,6 +139,10 @@ class TestArchitectureValidator:
     def test_is_compatible_schema_not_found(self, sample_architecture_minimal):
         """Test: is_compatible mit nicht-existentem Schema."""
         validator = ArchitectureValidator()
+
+        # Ensure architecture structure
+        if "architecture" not in sample_architecture_minimal:
+            sample_architecture_minimal["architecture"] = {"components": []}
 
         compatible = validator.is_compatible(sample_architecture_minimal, "99.99.99")
 

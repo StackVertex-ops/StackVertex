@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration Tabs - Test | OverCloud</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen p-8">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    Configuration Tabs System
+                </h1>
+                <p class="text-gray-600">
+                    Tab-basiertes Konfigurationssystem mit integriertem IP Calculator
+                </p>
+            </div>
+
+            <!-- Main Container -->
+            <div class="bg-white rounded-lg shadow-lg">
+                <!-- Canvas Mockup -->
+                <div class="p-6 border-b border-gray-200">
+                    <div class="bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg p-8 text-center">
+                        <p class="text-gray-700 font-medium">
+                            🎨 Infrastructure Canvas (Mockup)
+                        </p>
+                        <p class="text-sm text-gray-500 mt-2">
+                            Visual representation of components
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Configuration Tabs -->
+                <div id="configurationTabs" class="h-[600px]">
+                    <!-- Tabs werden hier gerendert -->
+                </div>
+            </div>
+
+            <!-- Test Controls -->
+            <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">
+                    Test Controls
+                </h2>
+                <div class="flex gap-3">
+                    <button
+                        id="addVPCBtn"
+                        class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                    >
+                        + Add VPC
+                    </button>
+                    <button
+                        id="addSubnetBtn"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    >
+                        + Add Subnet
+                    </button>
+                    <button
+                        id="addEC2Btn"
+                        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                    >
+                        + Add EC2
+                    </button>
+                    <button
+                        id="addRDSBtn"
+                        class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors font-medium"
+                    >
+                        + Add RDS
+                    </button>
+                    <button
+                        id="addSGBtn"
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                    >
+                        + Add Security Group
+                    </button>
+                </div>
+            </div>
+
+            <!-- Component State Display -->
+            <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">
+                    Component State (JSON)
+                </h2>
+                <pre id="componentState" class="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto text-sm font-mono">
+{
+  "network": [],
+  "security": [],
+  "data": [],
+  "computing": []
+}
+                </pre>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { ConfigurationTabs } from './js/components/ConfigurationTabs.js';
+
+        // Mock Components Storage
+        let components = [];
+        let componentIdCounter = 1;
+
+        // Initialize Tabs
+        const tabs = new ConfigurationTabs(
+            'configurationTabs',
+            handleComponentUpdate,
+            handleComponentDelete
+        );
+
+        // Event Handlers
+        function handleComponentUpdate(id, field, value) {
+            console.log('Component updated:', { id, field, value });
+            const component = components.find(c => c.id === id);
+            if (component) {
+                if (field === 'name') {
+                    component.name = value;
+                } else {
+                    component.config = component.config || {};
+                    component.config[field] = value;
+                }
+                updateComponentState();
+            }
+        }
+
+        function handleComponentDelete(id) {
+            components = components.filter(c => c.id !== id);
+            tabs.setComponents(components);
+            updateComponentState();
+        }
+
+        // Add Component Functions
+        function addVPC() {
+            const id = `vpc-${componentIdCounter++}`;
+            components.push({
+                id,
+                type: 'vpc',
+                name: `VPC ${componentIdCounter - 1}`,
+                config: {
+                    cidr: '10.0.0.0/16',
+                    region: 'us-east-1',
+                    enableDnsHostnames: true,
+                    enableDnsSupport: true
+                }
+            });
+            tabs.setComponents(components);
+            updateComponentState();
+        }
+
+        function addSubnet() {
+            const id = `subnet-${componentIdCounter++}`;
+            components.push({
+                id,
+                type: 'subnet',
+                name: `Subnet ${componentIdCounter - 1}`,
+                config: {
+                    cidr: '10.0.1.0/24',
+                    vpcCidr: '10.0.0.0/16',
+                    subnetType: 'public',
+                    az: 'us-east-1a'
+                }
+            });
+            tabs.setComponents(components);
+            updateComponentState();
+        }
+
+        function addEC2() {
+            const id = `ec2-${componentIdCounter++}`;
+            components.push({
+                id,
+                type: 'ec2',
+                name: `EC2 Instance ${componentIdCounter - 1}`,
+                config: {
+                    instanceType: 't3.micro',
+                    ipMode: 'auto',
+                    assignPublicIP: false
+                }
+            });
+            tabs.setComponents(components);
+            updateComponentState();
+        }
+
+        function addRDS() {
+            const id = `rds-${componentIdCounter++}`;
+            components.push({
+                id,
+                type: 'rds',
+                name: `RDS Database ${componentIdCounter - 1}`,
+                config: {
+                    engine: 'postgres',
+                    instanceClass: 'db.t3.micro'
+                }
+            });
+            tabs.setComponents(components);
+            updateComponentState();
+        }
+
+        function addSecurityGroup() {
+            const id = `sg-${componentIdCounter++}`;
+            components.push({
+                id,
+                type: 'sg',
+                name: `Security Group ${componentIdCounter - 1}`,
+                config: {
+                    inboundRules: [],
+                    outboundRules: []
+                }
+            });
+            tabs.setComponents(components);
+            updateComponentState();
+        }
+
+        function updateComponentState() {
+            const stateDisplay = document.getElementById('componentState');
+            const categorized = {
+                network: components.filter(c => ['vpc', 'subnet', 'igw', 'nat'].includes(c.type)),
+                security: components.filter(c => ['sg', 'nacl', 'iam'].includes(c.type)),
+                data: components.filter(c => ['rds', 'dynamodb', 's3', 'elasticache'].includes(c.type)),
+                computing: components.filter(c => ['ec2', 'lambda', 'ecs', 'alb'].includes(c.type))
+            };
+            stateDisplay.textContent = JSON.stringify(categorized, null, 2);
+        }
+
+        // Attach Button Listeners
+        document.getElementById('addVPCBtn').addEventListener('click', addVPC);
+        document.getElementById('addSubnetBtn').addEventListener('click', addSubnet);
+        document.getElementById('addEC2Btn').addEventListener('click', addEC2);
+        document.getElementById('addRDSBtn').addEventListener('click', addRDS);
+        document.getElementById('addSGBtn').addEventListener('click', addSecurityGroup);
+
+        // Initialize with sample data
+        console.log('Configuration Tabs initialized');
+        updateComponentState();
+    </script>
+</body>
+</html>

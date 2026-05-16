@@ -1,0 +1,22 @@
+# ============================================================================
+# Variables
+# ============================================================================
+
+{% for var in variables %}
+variable "{{ var.name }}" {
+  type        = {{ var.type }}
+  description = "{{ var.description }}"
+  {% if var.default is defined %}
+  {% if var.type == 'string' %}
+  default     = "{{ var.default }}"
+  {% elif var.type == 'bool' %}
+  default     = {{ var.default | lower }}
+  {% elif var.type == 'number' %}
+  default     = {{ var.default }}
+  {% else %}
+  default     = {{ var.default }}
+  {% endif %}
+  {% endif %}
+}
+
+{% endfor %}

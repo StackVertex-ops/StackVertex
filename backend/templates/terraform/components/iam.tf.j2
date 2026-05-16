@@ -1,0 +1,104 @@
+# ============================================================================
+# IAM Role Resources
+# ============================================================================
+
+{% for comp in components %}
+# {{ comp.name }}
+
+# IAM Role
+resource "aws_iam_role" "{{ comp.id }}" {
+  name               = "{{ comp.name }}"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          {% if comp.config.principalType == 'Service' %}
+          Service = "{{ comp.config.principal }}"
+          {% elif comp.config.principalType == 'AWS' %}
+          AWS = "{{ comp.config.principal }}"
+          {% elif comp.config.principalType == 'Federated' %}
+          Federated = "{{ comp.config.principal }}"
+          {% endif %}
+        }
+        Action = "sts:AssumeRole"
+
+        {% if comp.config.conditions %}
+        Condition = {{ comp.config.conditions | tojson }}
+        {% endif %}
+      }
+    ]
+  })
+
+  {% if comp.config.description %}
+  description = "{{ comp.config.description }}"
+  {% endif %}
+
+  {% if comp.config.maxSessionDuration %}
+  max_session_duration = {{ comp.config.maxSessionDuration }}
+  {% endif %}
+
+  {% if comp.config.permissionsBoundary %}
+  permissions_boundary = "{{ comp.config.permissionsBoundary }}"
+  {% endif %}
+
+  tags = {
+    Name = "{{ comp.name }}"
+  }
+}
+
+# Inline Policies
+{% if comp.config.inlinePolicies %}
+{% for policy in comp.config.inlinePolicies %}
+resource "aws_iam_role_policy" "{{ comp.id }}_{{ policy.name }}" {
+  name   = "{{ policy.name }}"
+  role   = aws_iam_role.{{ comp.id }}.id
+  policy = jsonencode({{ policy.document | tojson }})
+}
+{% endfor %}
+{% endif %}
+
+# Managed Policy Attachments (AWS Managed)
+{% if comp.config.managedPolicyArns %}
+{% for arn in comp.config.managedPolicyArns %}
+resource "aws_iam_role_policy_attachment" "{{ comp.id }}_managed_{{ loop.index }}" {
+  role       = aws_iam_role.{{ comp.id }}.name
+  policy_arn = "{{ arn }}"
+}
+{% endfor %}
+{% endif %}
+
+# Custom Managed Policies
+{% if comp.config.customPolicies %}
+{% for policy in comp.config.customPolicies %}
+resource "aws_iam_policy" "{{ comp.id }}_{{ policy.name }}" {
+  name        = "{{ policy.name }}"
+  description = "{{ policy.description | default('Custom policy for ' ~ comp.name) }}"
+  policy      = jsonencode({{ policy.document | tojson }})
+
+  tags = {
+    Name = "{{ policy.name }}"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "{{ comp.id }}_custom_{{ policy.name }}" {
+  role       = aws_iam_role.{{ comp.id }}.name
+  policy_arn = aws_iam_policy.{{ comp.id }}_{{ policy.name }}.arn
+}
+{% endfor %}
+{% endif %}
+
+# Instance Profile (für EC2)
+{% if comp.config.createInstanceProfile | default(false) %}
+resource "aws_iam_instance_profile" "{{ comp.id }}_profile" {
+  name = "{{ comp.name }}-profile"
+  role = aws_iam_role.{{ comp.id }}.name
+
+  tags = {
+    Name = "{{ comp.name }}-profile"
+  }
+}
+{% endif %}
+
+{% endfor %}

@@ -1,0 +1,123 @@
+/**
+ * Live Cost Panel Styles
+ *
+ * Styles für Real-Time Cost Estimation Panel
+ */
+
+/* Panel Container */
+.cost-estimation-panel {
+    @apply bg-white rounded-lg shadow-md border border-gray-200 p-6;
+}
+
+.cost-estimation-panel.sticky {
+    @apply sticky top-4;
+}
+
+/* Panel Title */
+.cost-estimation-title {
+    @apply text-lg font-semibold text-gray-900 mb-4 pb-3 border-b border-gray-200 flex items-center;
+}
+
+/* Cost Breakdown Items */
+.cost-breakdown-item {
+    @apply flex justify-between items-center py-2 border-b border-gray-100 last:border-0;
+}
+
+.cost-breakdown-label {
+    @apply flex flex-col space-y-1;
+}
+
+.cost-service-badge {
+    @apply inline-block text-xs font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded;
+}
+
+.cost-resource-name {
+    @apply text-sm text-gray-700;
+}
+
+.cost-breakdown-value {
+    @apply text-sm font-semibold text-gray-900 tabular-nums;
+}
+
+/* Total Cost */
+.cost-total {
+    @apply mt-4 pt-4 border-t-2 border-gray-300 flex justify-between items-center;
+}
+
+.cost-total-label {
+    @apply text-base font-semibold text-gray-900;
+}
+
+.cost-total-value {
+    @apply text-2xl font-bold text-green-600 tabular-nums;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+/* Animated Cost Update */
+.cost-value-updated {
+    @apply scale-110 text-blue-600;
+}
+
+/* Assumptions */
+.cost-assumptions {
+    @apply mt-4 pt-4 border-t border-gray-200;
+}
+
+.cost-assumptions-title {
+    @apply text-xs font-medium text-gray-700 mb-2;
+}
+
+.cost-assumptions-list {
+    @apply text-xs text-gray-600 space-y-1 list-disc list-inside;
+}
+
+.cost-assumptions-list li {
+    @apply leading-relaxed;
+}
+
+/* Yearly Projection */
+.cost-yearly-projection {
+    @apply mt-3 pt-3 border-t border-gray-200;
+}
+
+/* Loading State */
+.cost-estimation-panel.loading {
+    @apply bg-gray-50;
+}
+
+/* Error State */
+.cost-estimation-panel.error {
+    @apply bg-white;
+}
+
+/* Empty State */
+.cost-estimation-panel.empty {
+    @apply bg-gray-50;
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
+    .cost-estimation-panel {
+        @apply p-4;
+    }
+
+    .cost-total-value {
+        @apply text-xl;
+    }
+}
+
+/* Animation für smooth number transitions */
+@keyframes cost-pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.9;
+        transform: scale(1.05);
+    }
+}
+
+.cost-value-updating {
+    animation: cost-pulse 0.6s ease-in-out;
+}

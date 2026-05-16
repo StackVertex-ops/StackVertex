@@ -1,0 +1,28 @@
+# ============================================================================
+# VPC Resources
+# ============================================================================
+
+{% for comp in components %}
+# {{ comp.name }}
+resource "aws_vpc" "{{ comp.id }}" {
+  cidr_block           = "{{ comp.config.cidr }}"
+  enable_dns_hostnames = {{ comp.config.enableDns | default(true) | lower }}
+  enable_dns_support   = true
+
+  tags = {
+    Name = "{{ comp.name }}"
+  }
+}
+
+{% if comp.config.needsIGW | default(true) %}
+# Internet Gateway for {{ comp.name }}
+resource "aws_internet_gateway" "{{ comp.id }}_igw" {
+  vpc_id = aws_vpc.{{ comp.id }}.id
+
+  tags = {
+    Name = "{{ comp.name }}-igw"
+  }
+}
+{% endif %}
+
+{% endfor %}

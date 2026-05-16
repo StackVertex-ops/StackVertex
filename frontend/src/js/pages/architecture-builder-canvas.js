@@ -74,9 +74,8 @@ export async function renderArchitectureBuilderCanvas(appContainer, architecture
         // Render Properties Panel (initially empty)
         renderPropertiesPanel(propertiesContainer, null);
 
-        // Render AI Advisor (initially hidden)
-        renderAIAdvisor(advisorContainer, currentArchitecture);
-        advisorContainer.querySelector('#advisor-content')?.classList.add('hidden');
+        // Render AI Advisor (initially collapsed)
+        renderAIAdvisor(advisorContainer, currentArchitecture, true);
 
         // Setup Global Event Handlers
         setupGlobalHandlers(canvas, currentArchitecture, architectureId);
@@ -157,6 +156,7 @@ export async function renderArchitectureBuilderCanvas(appContainer, architecture
             component.configuration = updatedProperties.configuration;
             canvas.renderComponents();
             updateStatus('Properties aktualisiert');
+            updateAIAdvisor(); // Refresh advisor after property changes
         }
     }
 
@@ -185,6 +185,7 @@ export async function renderArchitectureBuilderCanvas(appContainer, architecture
         canvas.loadArchitecture(template);
         updateStatus(`Template geladen: ${template.metadata.name}`);
         updateComponentCount();
+        updateAIAdvisor(); // Refresh advisor after template load
     }
 
     /**
@@ -432,15 +433,20 @@ export async function renderArchitectureBuilderCanvas(appContainer, architecture
      */
     function updateAIAdvisor() {
         const advisorContainer = document.getElementById('ai-advisor-bar');
-        if (advisorContainer && currentArchitecture) {
-            renderAIAdvisor(advisorContainer, currentArchitecture);
-            // Keep collapsed state
+        if (advisorContainer && currentArchitecture && canvas) {
+            // Check current collapsed state before re-rendering
             const content = advisorContainer.querySelector('#advisor-content');
-            if (content && !content.classList.contains('hidden')) {
-                // Was expanded, keep it expanded
-            } else {
-                content?.classList.add('hidden');
-            }
+            const wasCollapsed = content?.classList.contains('hidden') ?? true;
+
+            // Get current architecture from canvas
+            const canvasData = canvas.exportArchitecture();
+            const updatedArchitecture = {
+                ...currentArchitecture,
+                architecture: canvasData
+            };
+
+            // Re-render with same collapsed state
+            renderAIAdvisor(advisorContainer, updatedArchitecture, wasCollapsed);
         }
     }
 }

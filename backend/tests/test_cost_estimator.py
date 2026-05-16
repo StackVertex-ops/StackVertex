@@ -60,6 +60,12 @@ class TestCostEstimator:
         """Test: Architecture ohne Components."""
         estimator = CostEstimator()
 
+        # Ensure architecture key exists
+        if "architecture" not in sample_architecture_minimal:
+            sample_architecture_minimal["architecture"] = {}
+        if "components" not in sample_architecture_minimal["architecture"]:
+            sample_architecture_minimal["architecture"]["components"] = []
+
         estimate = estimator.estimate_architecture_cost(sample_architecture_minimal)
 
         assert estimate.total_hourly == Decimal("0")
@@ -71,6 +77,8 @@ class TestCostEstimator:
         estimator = CostEstimator()
 
         arch = sample_architecture_minimal.copy()
+        if "architecture" not in arch:
+            arch["architecture"] = {}
         arch["architecture"]["components"] = [
             {
                 "id": "web_server",
@@ -93,6 +101,8 @@ class TestCostEstimator:
         estimator = CostEstimator()
 
         arch = sample_architecture_minimal.copy()
+        if "architecture" not in arch:
+            arch["architecture"] = {}
         arch["architecture"]["components"] = [
             {
                 "id": "database",
@@ -121,6 +131,8 @@ class TestCostEstimator:
         estimator = CostEstimator()
 
         arch = sample_architecture_minimal.copy()
+        if "architecture" not in arch:
+            arch["architecture"] = {}
         arch["architecture"]["components"] = [
             {
                 "id": "storage",
@@ -144,6 +156,8 @@ class TestCostEstimator:
         estimator = CostEstimator()
 
         arch = sample_architecture_minimal.copy()
+        if "architecture" not in arch:
+            arch["architecture"] = {}
         arch["architecture"]["components"] = [
             {
                 "id": "function",
@@ -172,6 +186,8 @@ class TestCostEstimator:
         estimator = CostEstimator()
 
         arch = sample_architecture_minimal.copy()
+        if "architecture" not in arch:
+            arch["architecture"] = {}
         arch["architecture"]["components"] = [
             {
                 "id": "web",
@@ -211,6 +227,8 @@ class TestCostEstimator:
         estimator = CostEstimator()
 
         arch = sample_architecture_minimal.copy()
+        if "architecture" not in arch:
+            arch["architecture"] = {}
         arch["architecture"]["components"] = [
             {
                 "id": "unknown",
@@ -230,7 +248,11 @@ class TestCostEstimator:
         estimator = CostEstimator()
 
         arch = sample_architecture_minimal.copy()
+        if "metadata" not in arch:
+            arch["metadata"] = {}
         arch["metadata"]["region"] = "eu-central-1"
+        if "architecture" not in arch:
+            arch["architecture"] = {}
         arch["architecture"]["components"] = [
             {
                 "id": "web",
@@ -249,6 +271,8 @@ class TestCostEstimator:
         estimator = CostEstimator()
 
         arch = sample_architecture_minimal.copy()
+        if "architecture" not in arch:
+            arch["architecture"] = {}
         arch["architecture"]["components"] = [
             {
                 "id": "web",

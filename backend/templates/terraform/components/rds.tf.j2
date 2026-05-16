@@ -1,0 +1,73 @@
+# ============================================================================
+# RDS Database Instances
+# ============================================================================
+
+{% for comp in components %}
+# DB Subnet Group for {{ comp.name }}
+resource "aws_db_subnet_group" "{{ comp.id }}_subnet_group" {
+  name       = "{{ comp.id }}-subnet-group"
+  {% if comp.config.subnets %}
+  subnet_ids = [
+    {% for subnet in comp.config.subnets %}
+    aws_subnet.{{ subnet }}.id,
+    {% endfor %}
+  ]
+  {% else %}
+  # Fallback: use all private subnets in VPC
+  subnet_ids = [] # TODO: Configure subnets
+  {% endif %}
+
+  tags = {
+    Name = "{{ comp.name }}-subnet-group"
+  }
+}
+
+# {{ comp.name }}
+resource "aws_db_instance" "{{ comp.id }}" {
+  identifier     = "{{ comp.id }}"
+  engine         = "{{ comp.config.engine | default('postgres') }}"
+  engine_version = "{{ comp.config.engineVersion | default('14.7') }}"
+  instance_class = "{{ comp.config.instanceClass | default('db.t3.micro') }}"
+
+  allocated_storage     = {{ comp.config.allocatedStorage | default(20) }}
+  max_allocated_storage = {{ comp.config.maxAllocatedStorage | default(100) }}
+  storage_type          = "{{ comp.config.storageType | default('gp3') }}"
+  storage_encrypted     = {{ comp.config.storageEncrypted | default(true) | lower }}
+
+  db_name  = "{{ comp.config.dbName | default('mydb') }}"
+  username = "{{ comp.config.username | default('admin') }}"
+  password = "{{ comp.config.password | default('CHANGE_ME') }}" # TODO: Use secrets manager
+
+  db_subnet_group_name = aws_db_subnet_group.{{ comp.id }}_subnet_group.name
+
+  {% if comp.config.securityGroups %}
+  vpc_security_group_ids = [
+    {% for sg in comp.config.securityGroups %}
+    aws_security_group.{{ sg }}.id,
+    {% endfor %}
+  ]
+  {% endif %}
+
+  multi_az               = {{ comp.config.multiAz | default(false) | lower }}
+  publicly_accessible    = {{ comp.config.publiclyAccessible | default(false) | lower }}
+  skip_final_snapshot    = {{ comp.config.skipFinalSnapshot | default(true) | lower }}
+  final_snapshot_identifier = "{{ comp.id }}-final-snapshot"
+
+  backup_retention_period = {{ comp.config.backupRetentionPeriod | default(7) }}
+  backup_window          = "{{ comp.config.backupWindow | default('03:00-04:00') }}"
+  maintenance_window     = "{{ comp.config.maintenanceWindow | default('mon:04:00-mon:05:00') }}"
+
+  {% if comp.depends_on %}
+  depends_on = [
+    {% for dep in comp.depends_on %}
+    {{ dep }},
+    {% endfor %}
+  ]
+  {% endif %}
+
+  tags = {
+    Name = "{{ comp.name }}"
+  }
+}
+
+{% endfor %}

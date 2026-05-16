@@ -28,6 +28,10 @@ class TestTerraformGenerator:
         """Test: Minimale Architecture ohne Components."""
         generator = TerraformGenerator()
 
+        # Ensure architecture structure
+        if "architecture" not in sample_architecture_minimal:
+            sample_architecture_minimal["architecture"] = {"components": []}
+
         # Generate (skip validation da keine terraform CLI)
         project = generator.generate(sample_architecture_minimal, validate=False)
 
@@ -42,6 +46,8 @@ class TestTerraformGenerator:
 
         # Add VPC component
         arch = sample_architecture_minimal.copy()
+        if "architecture" not in arch:
+            arch["architecture"] = {}
         arch["architecture"]["components"] = [
             {
                 "id": "main_vpc",
@@ -69,6 +75,8 @@ class TestTerraformGenerator:
         generator = TerraformGenerator()
 
         arch = sample_architecture_minimal.copy()
+        if "architecture" not in arch:
+            arch["architecture"] = {}
         arch["architecture"]["components"] = [
             {
                 "id": "web_server",
@@ -95,6 +103,8 @@ class TestTerraformGenerator:
         generator = TerraformGenerator()
 
         arch = sample_architecture_minimal.copy()
+        if "architecture" not in arch:
+            arch["architecture"] = {}
         arch["architecture"]["components"] = [
             {
                 "id": "storage_bucket",
@@ -119,6 +129,10 @@ class TestTerraformGenerator:
         """Test: Architecture mit mehreren Components."""
         generator = TerraformGenerator()
 
+        # Ensure architecture structure
+        if "architecture" not in sample_architecture_simple_web:
+            sample_architecture_simple_web["architecture"] = {"components": []}
+
         project = generator.generate(sample_architecture_simple_web, validate=False)
 
         main_content = project.files["main.tf"]
@@ -132,6 +146,8 @@ class TestTerraformGenerator:
         generator = TerraformGenerator()
 
         arch = sample_architecture_minimal.copy()
+        if "architecture" not in arch:
+            arch["architecture"] = {}
         arch["architecture"]["components"] = [
             {
                 "id": "main_vpc",
@@ -162,6 +178,10 @@ class TestTerraformGenerator:
         """Test: Variables werden generiert."""
         generator = TerraformGenerator()
 
+        # Ensure architecture structure
+        if "architecture" not in sample_architecture_minimal:
+            sample_architecture_minimal["architecture"] = {"components": []}
+
         project = generator.generate(sample_architecture_minimal, validate=False)
 
         # Prüfe dass variables.tf existiert
@@ -179,6 +199,8 @@ class TestTerraformGenerator:
         generator = TerraformGenerator()
 
         arch = sample_architecture_minimal.copy()
+        if "architecture" not in arch:
+            arch["architecture"] = {}
         arch["architecture"]["components"] = [
             {
                 "id": "unknown",
@@ -197,6 +219,8 @@ class TestTerraformGenerator:
         generator = TerraformGenerator()
 
         arch = sample_architecture_minimal.copy()
+        if "architecture" not in arch:
+            arch["architecture"] = {}
         arch["architecture"]["components"] = [
             {
                 "id": "my_network",
@@ -220,7 +244,11 @@ class TestTerraformGenerator:
         generator = TerraformGenerator()
 
         arch = sample_architecture_minimal.copy()
+        if "metadata" not in arch:
+            arch["metadata"] = {}
         arch["metadata"]["region"] = "eu-central-1"
+        if "architecture" not in arch:
+            arch["architecture"] = {"components": []}
 
         project = generator.generate(arch, validate=False)
 
@@ -234,9 +262,13 @@ class TestTerraformGenerator:
         generator = TerraformGenerator()
 
         arch = sample_architecture_minimal.copy()
+        if "metadata" not in arch:
+            arch["metadata"] = {}
         arch["metadata"]["name"] = "Test Project"
         arch["metadata"]["provider"] = "aws"
         arch["metadata"]["region"] = "us-west-2"
+        if "architecture" not in arch:
+            arch["architecture"] = {"components": []}
 
         project = generator.generate(arch, validate=False)
 
@@ -249,6 +281,8 @@ class TestTerraformGenerator:
         generator = TerraformGenerator()
 
         arch = sample_architecture_minimal.copy()
+        if "architecture" not in arch:
+            arch["architecture"] = {}
         arch["architecture"]["components"] = [
             {"id": "vpc1", "type": "vpc", "name": "VPC", "configuration": {}}
         ]

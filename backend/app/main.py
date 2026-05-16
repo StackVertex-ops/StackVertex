@@ -166,15 +166,20 @@ async def health_check():
 # API Routes
 from app.api import (
     validation,
+    blueprints,
     architectures,
     costs,
     deployments,
+    terraform,
     websockets,
     audit,
     auth,
     users,
     organisations,
     billing,
+    cidr,
+    designer,
+    # dsgvo,  # TODO: Port to DynamoDB
     webhooks as webhooks_module,  # Renamed to avoid conflict with websockets
 )
 
@@ -186,11 +191,19 @@ app.include_router(billing.router, prefix="/api/v1/billing", tags=["billing"])
 
 # Core Features
 app.include_router(validation.router, prefix="/api/v1", tags=["validation"])
+app.include_router(blueprints.router, prefix="/api/v1", tags=["blueprints"])
 app.include_router(architectures.router, prefix="/api/v1", tags=["architectures"])
 app.include_router(costs.router, prefix="/api/v1", tags=["costs"])
 app.include_router(deployments.router, prefix="/api/v1", tags=["deployments"])
+app.include_router(terraform.router, prefix="/api/v1", tags=["terraform"])
 app.include_router(websockets.router, prefix="/api/v1", tags=["websockets"])
 app.include_router(audit.router, prefix="/api/v1", tags=["audit"])
+app.include_router(cidr.router, prefix="/api/v1", tags=["cidr"])
+app.include_router(designer.router, prefix="/api/v1", tags=["designer"])
+
+# DSGVO / GDPR Endpoints
+# TODO: Port dsgvo.py to DynamoDB (currently uses SQLAlchemy)
+# app.include_router(dsgvo.router, prefix="/api/v1/dsgvo", tags=["dsgvo"])
 
 # Webhooks (no auth required)
 app.include_router(webhooks_module.router, prefix="/webhooks", tags=["webhooks"])

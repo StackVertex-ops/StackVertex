@@ -1,0 +1,60 @@
+# ============================================================================
+# Route Table Resources
+# ============================================================================
+
+{% for comp in components %}
+# {{ comp.name }}
+resource "aws_route_table" "{{ comp.id }}" {
+  vpc_id = aws_vpc.{{ comp.config.vpc }}.id
+
+  {% if comp.config.routes %}
+  {% for route in comp.config.routes %}
+  route {
+    cidr_block = "{{ route.cidr }}"
+
+    {% if route.gateway %}
+    gateway_id = aws_internet_gateway.{{ route.gateway }}.id
+    {% endif %}
+
+    {% if route.natGateway %}
+    nat_gateway_id = aws_nat_gateway.{{ route.natGateway }}.id
+    {% endif %}
+
+    {% if route.instance %}
+    instance_id = aws_instance.{{ route.instance }}.id
+    {% endif %}
+
+    {% if route.vpcPeeringConnection %}
+    vpc_peering_connection_id = aws_vpc_peering_connection.{{ route.vpcPeeringConnection }}.id
+    {% endif %}
+  }
+  {% endfor %}
+  {% endif %}
+
+  tags = {
+    Name = "{{ comp.name }}"
+    {% if comp.config.routeType %}
+    Type = "{{ comp.config.routeType }}"
+    {% endif %}
+  }
+
+  {% if comp.depends_on %}
+  depends_on = [
+    {% for dep in comp.depends_on %}
+    {{ dep }},
+    {% endfor %}
+  ]
+  {% endif %}
+}
+
+# Route Table Associations
+{% if comp.config.subnets %}
+{% for subnet in comp.config.subnets %}
+resource "aws_route_table_association" "{{ comp.id }}_{{ subnet }}_assoc" {
+  subnet_id      = aws_subnet.{{ subnet }}.id
+  route_table_id = aws_route_table.{{ comp.id }}.id
+}
+{% endfor %}
+{% endif %}
+
+{% endfor %}
