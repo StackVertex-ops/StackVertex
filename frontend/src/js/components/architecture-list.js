@@ -86,6 +86,9 @@ function renderEmptyState() {
  * @returns {string} HTML für Error State
  */
 function renderErrorState(error) {
+    // SECURITY FIX: Escape error message to prevent XSS
+    const safeErrorMessage = escapeHtml(error.message || 'Die Architekturen konnten nicht geladen werden.');
+
     return `
         <div class="text-center py-12">
             <div class="text-6xl mb-4">⚠️</div>
@@ -93,7 +96,7 @@ function renderErrorState(error) {
                 Fehler beim Laden
             </h3>
             <p class="text-gray-600 dark:text-gray-400 mb-6">
-                ${error.message || 'Die Architekturen konnten nicht geladen werden.'}
+                ${safeErrorMessage}
             </p>
             <button
                 onclick="window.location.reload()"

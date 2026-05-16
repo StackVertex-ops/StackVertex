@@ -5,12 +5,13 @@
  */
 
 export class CIDRCalculator {
-    constructor(containerId, apiBaseUrl = 'http://localhost:8000/api/v1') {
+    constructor(containerId, apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000') + '/api/v1') {
         this.container = document.getElementById(containerId);
         if (!this.container) {
             throw new Error(`Container with id "${containerId}" not found`);
         }
 
+        // SECURITY FIX: No hardcoded URL
         this.apiBaseUrl = apiBaseUrl;
         this.vpcCidr = '';
         this.vpcData = null;

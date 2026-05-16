@@ -3,10 +3,11 @@
 API Request/Response Models für User Management.
 """
 
+import re
 from datetime import datetime
 from typing import Optional, List
 from uuid import UUID
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from pydantic import BaseModel, EmailStr, Field, ConfigDict, field_validator
 
 from app.models.user import AuthProvider, UserRole, UserStatus, SystemRole
 
@@ -27,6 +28,7 @@ class UserCreate(BaseModel):
     """Schema für User Registration.
 
     Nur Email + Name, Password wird via Auth Provider gehandhabt.
+    SECURITY: Password Complexity Requirements enforced.
     """
 
     email: EmailStr
@@ -36,6 +38,43 @@ class UserCreate(BaseModel):
     # Optional: Auth Provider Info (für OAuth)
     auth_provider: AuthProvider = Field(default=AuthProvider.EMAIL)
     auth_provider_id: Optional[str] = Field(None, description="OAuth Provider User ID")
+
+    @field_validator('password')
+    @classmethod
+    def validate_password_strength(cls, v: str) -> str:
+        """Validate password complexity.
+
+        SECURITY FIX: Enforce strong passwords.
+
+        Requirements:
+        - Min 8 characters (Pydantic Field handles this)
+        - At least 1 uppercase letter
+        - At least 1 lowercase letter
+        - At least 1 digit
+        - At least 1 special character (!@#$%^&*(),.?":{}|<>)
+
+        Args:
+            v: Password string
+
+        Returns:
+            Password if valid
+
+        Raises:
+            ValueError: If password doesn't meet complexity requirements
+        """
+        if not re.search(r'[A-Z]', v):
+            raise ValueError('Password must contain at least one uppercase letter')
+
+        if not re.search(r'[a-z]', v):
+            raise ValueError('Password must contain at least one lowercase letter')
+
+        if not re.search(r'\d', v):
+            raise ValueError('Password must contain at least one digit')
+
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', v):
+            raise ValueError('Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)')
+
+        return v
 
 
 class UserUpdate(BaseModel):
@@ -50,10 +89,31 @@ class UserUpdate(BaseModel):
 
 
 class UserPasswordUpdate(BaseModel):
-    """Schema für Password Update."""
+    """Schema für Password Update.
+
+    SECURITY: New password must meet complexity requirements.
+    """
 
     current_password: str = Field(..., description="Current password for verification")
     new_password: str = Field(..., min_length=8, max_length=128, description="New password")
+
+    @field_validator('new_password')
+    @classmethod
+    def validate_new_password_strength(cls, v: str) -> str:
+        """Validate new password complexity (same rules as UserCreate)."""
+        if not re.search(r'[A-Z]', v):
+            raise ValueError('Password must contain at least one uppercase letter')
+
+        if not re.search(r'[a-z]', v):
+            raise ValueError('Password must contain at least one lowercase letter')
+
+        if not re.search(r'\d', v):
+            raise ValueError('Password must contain at least one digit')
+
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', v):
+            raise ValueError('Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)')
+
+        return v
 
 
 class UserLogin(BaseModel):

@@ -6,8 +6,8 @@
 
 import { APIClient } from '../lib/api-client.js';
 
-// API Client Instanz
-const apiClient = new APIClient('http://localhost:8000');
+// API Client Instanz - SECURITY FIX: No hardcoded URL
+const apiClient = new APIClient();
 
 /**
  * Liste aller Architekturen abrufen

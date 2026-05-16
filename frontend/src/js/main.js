@@ -10,8 +10,9 @@ import { renderArchitecturesPage } from './pages/architectures.js';
 import { renderArchitectureBuilder } from './pages/architecture-builder.js';
 import { renderArchitectureDetail } from './pages/architecture-detail.js';
 
-// Initialize API client
-const api = new APIClient('http://localhost:8000');
+// Initialize API client - SECURITY FIX: No hardcoded URL
+// APIClient now uses import.meta.env.VITE_API_URL
+const api = new APIClient();
 
 /**
  * Initialize application

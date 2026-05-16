@@ -7,8 +7,11 @@ import logging
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
+from app.config import settings
 from app.db.dynamodb import get_dynamodb_table
 from app.repositories.user import UserRepository
 from app.schemas.user import (
@@ -22,6 +25,9 @@ from app.api.auth import get_current_user
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+# Rate limiter
+limiter = Limiter(key_func=get_remote_address)
 
 
 # ============================================================================
@@ -40,7 +46,9 @@ def get_user_repository(table=Depends(get_dynamodb_table)) -> UserRepository:
 
 
 @router.get("", response_model=UserListResponse)
+@limiter.limit("1000/minute" if settings.TESTING else "100/minute")
 async def list_users(
+    request: Request,  # Required for rate limiting
     skip: int = Query(0, ge=0, description="Number of items to skip"),
     limit: int = Query(100, ge=1, le=1000, description="Max items to return"),
     current_user: Annotated[dict, Depends(get_current_user)] = None,
@@ -48,6 +56,7 @@ async def list_users(
 ):
     """List all users (Admin only in production).
 
+    SECURITY: Rate Limited - 100 requests/minute.
     For now: Any authenticated user can list users.
     TODO: Add admin role check.
     """
@@ -62,15 +71,28 @@ async def list_users(
 
 
 @router.get("/{user_id}", response_model=UserResponse)
+@limiter.limit("1000/minute" if settings.TESTING else "100/minute")
 async def get_user(
+    request: Request,  # Required for rate limiting
     user_id: UUID,
     current_user: Annotated[dict, Depends(get_current_user)] = None,
     user_repo: UserRepository = Depends(get_user_repository)
 ):
-    """Get user by ID.
+    """Get user by ID - FIXED: Authorization check (IDOR prevention).
 
-    Users can view their own profile + other users (public info only).
+    SECURITY: Rate Limited - 100 requests/minute.
+    SECURITY: Users können nur ihr eigenes Profil sehen.
+    Ausnahme: SuperAdmins können alle Profile sehen.
     """
+    # SECURITY FIX: Prevent IDOR - users can only view their own profile
+    if str(user_id) != str(current_user["id"]):
+        # Check if SuperAdmin (admins can view all profiles)
+        if current_user.get("system_role") != "superadmin":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to view this user"
+            )
+
     user = user_repo.get(user_id)
 
     if not user:
@@ -83,22 +105,27 @@ async def get_user(
 
 
 @router.patch("/{user_id}", response_model=UserResponse)
+@limiter.limit("1000/minute" if settings.TESTING else "50/minute")
 async def update_user(
+    request: Request,  # Required for rate limiting
     user_id: UUID,
     user_update: UserUpdate,
     current_user: Annotated[dict, Depends(get_current_user)] = None,
     user_repo: UserRepository = Depends(get_user_repository)
 ):
-    """Update user profile.
+    """Update user profile - FIXED: Authorization check.
 
-    Users can only update their own profile.
+    SECURITY: Rate Limited - 50 requests/minute.
+    SECURITY: Users können nur ihr eigenes Profil ändern.
+    Ausnahme: SuperAdmins können alle Profile ändern.
     """
-    # Check if user is updating their own profile
-    if str(user_id) != current_user["id"]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only update your own profile"
-        )
+    # SECURITY FIX: Check if user is updating their own profile or is SuperAdmin
+    if str(user_id) != str(current_user["id"]):
+        if current_user.get("system_role") != "superadmin":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only update your own profile"
+            )
 
     # Update user
     updated_user = user_repo.update(
@@ -121,21 +148,26 @@ async def update_user(
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("1000/minute" if settings.TESTING else "10/minute")
 async def delete_user(
+    request: Request,  # Required for rate limiting
     user_id: UUID,
     current_user: Annotated[dict, Depends(get_current_user)] = None,
     user_repo: UserRepository = Depends(get_user_repository)
 ):
-    """Delete user account (soft delete).
+    """Delete user account (soft delete) - FIXED: Authorization check.
 
-    Users can only delete their own account.
+    SECURITY: Rate Limited - 10 requests/minute (destructive operation).
+    SECURITY: Users können nur ihr eigenes Konto löschen.
+    Ausnahme: SuperAdmins können alle Konten löschen.
     """
-    # Check if user is deleting their own account
-    if str(user_id) != current_user["id"]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only delete your own account"
-        )
+    # SECURITY FIX: Check if user is deleting their own account or is SuperAdmin
+    if str(user_id) != str(current_user["id"]):
+        if current_user.get("system_role") != "superadmin":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only delete your own account"
+            )
 
     deleted = user_repo.delete(user_id)
 
@@ -154,21 +186,26 @@ async def delete_user(
 
 
 @router.get("/{user_id}/organisations", response_model=list[dict])
+@limiter.limit("1000/minute" if settings.TESTING else "100/minute")
 async def get_user_organisations(
+    request: Request,  # Required for rate limiting
     user_id: UUID,
     current_user: Annotated[dict, Depends(get_current_user)] = None,
     user_repo: UserRepository = Depends(get_user_repository)
 ):
-    """Get all organisations user is member of.
+    """Get all organisations user is member of - FIXED: Authorization check.
 
-    Users can only view their own organisations.
+    SECURITY: Rate Limited - 100 requests/minute.
+    SECURITY: Users können nur ihre eigenen Organisationen sehen.
+    Ausnahme: SuperAdmins können alle Organisationen sehen.
     """
-    # Check if user is requesting their own organisations
-    if str(user_id) != current_user["id"]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only view your own organisations"
-        )
+    # SECURITY FIX: Check if user is requesting their own organisations or is SuperAdmin
+    if str(user_id) != str(current_user["id"]):
+        if current_user.get("system_role") != "superadmin":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only view your own organisations"
+            )
 
     organisations = user_repo.get_organisations(user_id)
 
@@ -176,19 +213,23 @@ async def get_user_organisations(
 
 
 @router.patch("/{user_id}/password", response_model=dict)
+@limiter.limit("1000/minute" if settings.TESTING else "10/minute")
 async def update_password(
+    request: Request,  # Required for rate limiting
     user_id: UUID,
     password_update: UserPasswordUpdate,
     current_user: Annotated[dict, Depends(get_current_user)] = None,
     user_repo: UserRepository = Depends(get_user_repository)
 ):
-    """Update user password.
+    """Update user password - FIXED: Authorization check.
 
-    Users can only update their own password.
+    SECURITY: Rate Limited - 10 requests/minute (sensitive operation).
+    SECURITY: Users können nur ihr eigenes Passwort ändern.
+    SuperAdmins können NICHT fremde Passwörter ändern (würde altes PW benötigen).
     Requires current password for verification.
     """
-    # Check if user is updating their own password
-    if str(user_id) != current_user["id"]:
+    # SECURITY FIX: STRICT - Only user themselves can change password (not even SuperAdmin)
+    if str(user_id) != str(current_user["id"]):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You can only update your own password"

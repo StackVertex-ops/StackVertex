@@ -9,7 +9,8 @@
 
 import { FormBuilder } from '../components/forms/FormBuilder.js';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+// SECURITY FIX: No hardcoded URL
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000') + '/api/v1';
 
 class BlueprintArchitectureBuilder {
     constructor() {

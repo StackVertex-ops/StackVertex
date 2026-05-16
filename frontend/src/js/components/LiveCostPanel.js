@@ -38,8 +38,11 @@ export class LiveCostPanel {
         this.error = null;
         this.render(); // Show loading state
 
+        // SECURITY FIX: No hardcoded URL
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
         try {
-            const response = await fetch('http://localhost:8000/api/v1/costs/calculate-live', {
+            const response = await fetch(`${apiUrl}/api/v1/costs/calculate-live`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -8,8 +8,11 @@ export class APIClient {
     /**
      * Create API client
      * @param {string} baseURL - Base URL of the API (e.g., 'http://localhost:8000')
+     *
+     * SECURITY FIX: No hardcoded URLs - use environment variable.
+     * Falls from Vite env (VITE_API_URL), sonst localhost default.
      */
-    constructor(baseURL = 'http://localhost:8000') {
+    constructor(baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000') {
         this.baseURL = baseURL.replace(/\/$/, ''); // Remove trailing slash
     }
 

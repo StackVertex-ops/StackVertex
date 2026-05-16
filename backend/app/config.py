@@ -15,7 +15,9 @@ class Settings(BaseSettings):
 
     # App Settings
     APP_NAME: str = "OverCloud API"
-    DEBUG: bool = True
+    # SECURITY: DEBUG=True zeigt Stack Traces in Production - NIEMALS True in Prod!
+    # Set via .env: DEBUG=false
+    DEBUG: bool = False  # Secure default: False
 
     # Server Settings
     # In production: Set HOST="127.0.0.1" or specific IP
@@ -60,7 +62,9 @@ class Settings(BaseSettings):
     # Security
     SECRET_KEY: str  # REQUIRED in .env - min 32 chars, cryptographically random
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
+    # SECURITY FIX: Reduced from 24h to 1h (Quick Fix for MVP)
+    # TODO: Implement Refresh Token Pattern (15min access + 7d refresh)
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60  # 1 hour (was 24h)
     ENV: str = "development"  # development, staging, production
     TESTING: bool = False  # Set True in tests to disable rate limiting
 
