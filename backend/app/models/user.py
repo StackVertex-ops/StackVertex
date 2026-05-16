@@ -32,3 +32,15 @@ class UserStatus(str, Enum):
     INACTIVE = "inactive"
     SUSPENDED = "suspended"
     PENDING_EMAIL_VERIFICATION = "pending_email_verification"
+
+
+class SystemRole(str, Enum):
+    """System-level Roles (nicht Organisation-gebunden).
+
+    Diese Rollen sind global und unabhängig von Organisation-Memberships.
+    """
+
+    USER = "user"              # Regular User (default)
+    SUPERADMIN = "superadmin"  # System Administrator - Zugriff auf ALLE Daten
+    SUPPORT = "support"        # Support Staff - Read-only Zugriff für Support
+    AUDITOR = "auditor"        # Audit/Compliance - Read-only Zugriff auf Logs

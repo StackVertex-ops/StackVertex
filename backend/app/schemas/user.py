@@ -8,7 +8,7 @@ from typing import Optional, List
 from uuid import UUID
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
-from app.models.user import AuthProvider, UserRole, UserStatus
+from app.models.user import AuthProvider, UserRole, UserStatus, SystemRole
 
 
 # ============================================================================
@@ -78,6 +78,7 @@ class UserResponse(UserBase):
     id: UUID
     auth_provider: AuthProvider
     status: UserStatus
+    system_role: SystemRole = Field(default=SystemRole.USER, description="System-level role")
     personal_org_id: UUID = Field(..., description="Personal Organisation ID")
     created_at: datetime
     updated_at: datetime

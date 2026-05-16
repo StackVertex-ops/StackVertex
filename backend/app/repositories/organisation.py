@@ -169,6 +169,34 @@ class OrganisationRepository(BaseRepository):
             f"USER#{str(user_id)}"
         )
 
+    def list_all(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> Tuple[List[dict], int]:
+        """List ALL organisations (Admin only).
+
+        Args:
+            skip: Offset for pagination
+            limit: Max items
+
+        Returns:
+            (items, total_count)
+        """
+        # Query all (GSI1) - get ALL items first
+        items, _ = self._query(
+            key_condition=Key("GSI1PK").eq("organisation"),
+            index_name="GSI1"
+        )
+
+        # Calculate total before pagination
+        total = len(items)
+
+        # Manual pagination
+        paginated_items = items[skip:skip + limit] if items else []
+
+        return paginated_items, total
+
     def list(
         self,
         skip: int = 0,

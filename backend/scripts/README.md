@@ -1,5 +1,55 @@
 # OverCloud Backend Scripts
 
+Utility Scripts für Administration, Seeding & Maintenance.
+
+---
+
+## Admin Scripts
+
+### create_superadmin.py
+
+Erstellt einen SuperAdmin User für System-Administration.
+
+**Usage:**
+
+```bash
+# Mit automatisch generiertem Passwort
+python scripts/create_superadmin.py \
+  --email admin@overcloud.io \
+  --name "Super Admin"
+
+# Mit eigenem Passwort
+python scripts/create_superadmin.py \
+  --email admin@overcloud.io \
+  --name "Super Admin" \
+  --password "YourSecurePassword123!"
+
+# Force creation (auch wenn bereits SuperAdmin existiert)
+python scripts/create_superadmin.py \
+  --email admin2@overcloud.io \
+  --name "Second Admin" \
+  --force
+```
+
+**Sicherheit:**
+- Password: Mindestens 20 Zeichen, zufällig generiert
+- 2FA: Nach erstem Login aktivieren (coming soon)
+- Audit Log: Alle Admin-Aktionen werden geloggt
+
+**Environment:**
+
+Benötigt DynamoDB Table und AWS Credentials:
+
+```bash
+# .env
+DYNAMODB_TABLE_NAME=overcloud
+AWS_REGION=eu-central-1
+```
+
+**Siehe auch:** `/docs/ADMIN_SYSTEM.md` für Details zum Admin System.
+
+---
+
 ## Seed Data Script
 
 Befüllt die Datenbank mit realistischen AWS-Beispiel-Architekturen.

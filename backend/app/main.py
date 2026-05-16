@@ -179,6 +179,7 @@ from app.api import (
     billing,
     cidr,
     designer,
+    admin,
     # dsgvo,  # TODO: Port to DynamoDB
     webhooks as webhooks_module,  # Renamed to avoid conflict with websockets
 )
@@ -188,6 +189,9 @@ app.include_router(auth.router, prefix="/api/v1/auth", tags=["authentication"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
 app.include_router(organisations.router, prefix="/api/v1/organisations", tags=["organisations"])
 app.include_router(billing.router, prefix="/api/v1/billing", tags=["billing"])
+
+# Admin Endpoints (SuperAdmin only)
+app.include_router(admin.router, prefix="/api/v1", tags=["admin"])
 
 # Core Features
 app.include_router(validation.router, prefix="/api/v1", tags=["validation"])

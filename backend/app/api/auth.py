@@ -125,6 +125,85 @@ async def get_current_user(
     return user
 
 
+async def get_current_superadmin(
+    current_user: Annotated[dict, Depends(get_current_user)]
+) -> dict:
+    """Verify user is SuperAdmin.
+
+    Args:
+        current_user: Current authenticated user
+
+    Returns:
+        User dict if SuperAdmin
+
+    Raises:
+        HTTPException: 403 if not SuperAdmin
+    """
+    system_role = current_user.get("system_role", SystemRole.USER.value)
+
+    if system_role != SystemRole.SUPERADMIN.value:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="SuperAdmin access required"
+        )
+
+    return current_user
+
+
+async def get_current_support(
+    current_user: Annotated[dict, Depends(get_current_user)]
+) -> dict:
+    """Verify user is Support or SuperAdmin.
+
+    Args:
+        current_user: Current authenticated user
+
+    Returns:
+        User dict if Support or SuperAdmin
+
+    Raises:
+        HTTPException: 403 if not Support or SuperAdmin
+    """
+    system_role = current_user.get("system_role", SystemRole.USER.value)
+
+    if system_role not in [SystemRole.SUPERADMIN.value, SystemRole.SUPPORT.value]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Support access required"
+        )
+
+    return current_user
+
+
+async def get_current_auditor(
+    current_user: Annotated[dict, Depends(get_current_user)]
+) -> dict:
+    """Verify user is Auditor, Support or SuperAdmin.
+
+    Args:
+        current_user: Current authenticated user
+
+    Returns:
+        User dict if Auditor, Support or SuperAdmin
+
+    Raises:
+        HTTPException: 403 if not authorized
+    """
+    system_role = current_user.get("system_role", SystemRole.USER.value)
+
+    if system_role not in [
+        SystemRole.SUPERADMIN.value,
+        SystemRole.SUPPORT.value,
+        SystemRole.AUDITOR.value
+    ]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Auditor access required"
+        )
+
+    return current_user
+
+
 # ============================================================================
 # Endpoints
 # ============================================================================

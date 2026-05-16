@@ -13,7 +13,7 @@ from mypy_boto3_dynamodb.service_resource import Table
 from passlib.context import CryptContext
 
 from app.repositories.base import BaseRepository
-from app.models.user import AuthProvider, UserRole, UserStatus
+from app.models.user import AuthProvider, UserRole, UserStatus, SystemRole
 from app.models.organisation import OrganisationPlan, OrganisationType
 
 logger = logging.getLogger(__name__)
@@ -76,6 +76,7 @@ class UserRepository(BaseRepository):
             "auth_provider": auth_provider.value,
             "auth_provider_id": auth_provider_id,
             "status": UserStatus.ACTIVE.value,
+            "system_role": SystemRole.USER.value,  # Default: Regular user
             "personal_org_id": str(personal_org_id),
             "created_at": now,
             "updated_at": now,
@@ -254,6 +255,22 @@ class UserRepository(BaseRepository):
             f"USER#{str(user_id)}",
             "METADATA",
             {"status": status.value}
+        )
+
+    def update_system_role(self, user_id: UUID, system_role: SystemRole) -> Optional[dict]:
+        """Update user system role (SuperAdmin only).
+
+        Args:
+            user_id: User UUID
+            system_role: New system role
+
+        Returns:
+            Updated user item
+        """
+        return self._update_item(
+            f"USER#{str(user_id)}",
+            "METADATA",
+            {"system_role": system_role.value}
         )
 
     # ========================================================================
