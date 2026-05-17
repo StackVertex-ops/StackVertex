@@ -28,6 +28,8 @@ class OrganisationBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255, description="Organisation name")
     type: OrganisationType = Field(default=OrganisationType.TEAM)
 
+    model_config = ConfigDict()
+
 
 class OrganisationCreate(OrganisationBase):
     """Schema für Organisation Creation.

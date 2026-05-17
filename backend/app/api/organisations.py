@@ -120,6 +120,20 @@ async def check_org_permission(
     return org
 
 
+def map_org_type_field(org_dict: dict) -> dict:
+    """Map organisation_type field from DB to type field for API response.
+
+    Args:
+        org_dict: Organisation dict from repository
+
+    Returns:
+        Dict with organisation_type mapped to type
+    """
+    if "organisation_type" in org_dict:
+        org_dict["type"] = org_dict.pop("organisation_type")
+    return org_dict
+
+
 # ============================================================================
 # Organisation CRUD
 # ============================================================================
@@ -172,8 +186,12 @@ async def create_organisation(
         monitoring_level=get_quota(plan, "monitoring_level"),
     )
 
-    # Remove quota dict from org before spreading (to avoid duplicate keyword arg)
+    # Remove quota dict and map organisation_type to type
     org_without_quota = {k: v for k, v in org.items() if k != "quota"}
+    # Map organisation_type -> type for response schema
+    if "organisation_type" in org_without_quota:
+        org_without_quota["type"] = org_without_quota.pop("organisation_type")
+
     return OrganisationResponse(**org_without_quota, quota=quota_response)
 
 
@@ -215,6 +233,7 @@ async def list_organisations(
         )
 
         org_without_quota = {k: v for k, v in org.items() if k != "quota"}
+        org_without_quota = map_org_type_field(org_without_quota)
         org_responses.append(OrganisationResponse(**org_without_quota, quota=quota_response))
 
     return OrganisationListResponse(
@@ -266,6 +285,7 @@ async def get_organisation(
     )
 
     org_without_quota = {k: v for k, v in org.items() if k != "quota"}
+    org_without_quota = map_org_type_field(org_without_quota)
     return OrganisationDetailResponse(
         **org_without_quota,
         quota=quota_response,
@@ -314,6 +334,7 @@ async def update_organisation(
     )
 
     org_without_quota = {k: v for k, v in updated_org.items() if k != "quota"}
+    org_without_quota = map_org_type_field(org_without_quota)
     return OrganisationResponse(**org_without_quota, quota=quota_response)
 
 
@@ -545,11 +566,11 @@ async def connect_aws_account(
 ):
     """Connect AWS account via IAM Role.
 
-    Requires: ADMIN role
+    Requires: OWNER role (security-critical operation)
 
     User provides IAM Role ARN with Trust Policy to OverCloud Platform.
     """
-    await check_org_permission(org_id, current_user, UserRole.ADMIN, org_repo)
+    await check_org_permission(org_id, current_user, UserRole.OWNER, org_repo)
 
     # Extract AWS Account ID from ARN
     # Format: arn:aws:iam::123456789012:role/RoleName
@@ -709,4 +730,5 @@ async def upgrade_plan(
     )
 
     org_without_quota = {k: v for k, v in updated_org.items() if k != "quota"}
+    org_without_quota = map_org_type_field(org_without_quota)
     return OrganisationResponse(**org_without_quota, quota=quota_response)

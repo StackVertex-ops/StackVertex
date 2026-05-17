@@ -127,11 +127,21 @@ See [.claude/CLAUDE.md](./.claude/CLAUDE.md) for complete development guidelines
 - [x] JSON Schema v1.0.0 definition
 - [x] Architectural Decision Records (ADRs)
 - [x] Task management setup (GSD)
+- [x] Backend authentication & authorization (JWT, RBAC)
+- [x] Infrastructure Designer (Visual Canvas + Terraform Generation)
+- [x] Live Cost Calculation
+- [x] CIDR Calculator
+- [x] Admin System (SuperAdmin, Auditor, Support roles)
+- [x] Hybrid Pricing Model (Base Fee + AWS Markup %)
+- [x] Voucher/Gutscheinsystem (10%-100% Rabatt)
+- [x] Pricing-Page mit Kostenrechner
+- [x] Billing System mit Invoice Generation
+- [x] 161 Unit Tests (100% bestanden)
 
 ### 🔄 In Progress
-- [ ] Claude Code tooling setup (Superpowers, GSD, Agent Swarm)
-- [ ] Agent team definitions
-- [ ] Custom slash commands
+- [ ] Stripe Payment Integration
+- [ ] Multi-Cloud Support (Azure, GCP)
+- [ ] Real-time Collaboration (WebSockets)
 
 ### 📋 Next Steps
 - [ ] Technical specification for MVP
@@ -191,10 +201,19 @@ See [.claude/CLAUDE.md](./.claude/CLAUDE.md) for complete development guidelines
 
 ## Documentation
 
+### Development & Guidelines
 - **[CLAUDE.md](./.claude/CLAUDE.md)** - Development rules & guidelines
 - **[tasks/todo.md](./tasks/todo.md)** - Current tasks
 - **[tasks/decisions.md](./tasks/decisions.md)** - Architectural decisions
-- **[docs/json-schemas/](./docs/json-schemas/)** - JSON Schema definitions
+
+### Testing
+- **[Testing Best Practices](./docs/TESTING_BEST_PRACTICES.md)** - Comprehensive testing guide (10 chapters)
+- **[Session Summary: Test Fixes](./docs/SESSION_2026-05-17_TEST_FIXES.md)** - Complete test suite fix documentation
+
+### Technical Documentation
+- **[CHANGELOG.md](./CHANGELOG.md)** - All changes, bugfixes, and features
+- **[Developer's Encyclopedia](./docs/encyclopedia/)** - Complete technical documentation (3 parts, 250+ pages)
+- **[JSON Schemas](./docs/json-schemas/)** - JSON Schema definitions
 
 ---
 
@@ -216,4 +235,4 @@ TBD
 
 ---
 
-**Last Updated:** 2026-03-22
+**Last Updated:** 2026-05-17
