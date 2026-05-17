@@ -130,6 +130,88 @@ export default defineConfig({
 
 ---
 
+## 2026-05-17: Test Suite Complete Fix - 12 Fehler behoben
+
+### Testing Phase nach Rechnerabsturz
+**Context:** Nach Rechnerabsturz 12 FAILED Tests gefunden, alle mussten gefixt werden
+
+**What we learned:**
+
+1. **Pydantic Field Aliasing ist komplex in FastAPI**
+   - Problem: `type` Feld mit `alias="organisation_type"` führt zu KeyError
+   - Root Cause: FastAPI serialisiert mit `by_alias=True` → nutzt Alias statt Feldname
+   - Lösung: Explizites Mapping besser als Alias-Magic
+   - Regel: Bei DB/API Field-Unterschieden → explizite Mapping-Funktion
+
+2. **JWT Token Uniqueness braucht mehr als Timestamps**
+   - Problem: Identische Tokens bei schnellen Requests (gleiche Sekunde)
+   - Root Cause: Timestamps haben nur Sekunden-Präzision
+   - Lösung: `jti` (JWT ID mit UUID) + `iat` (issued at) hinzufügen
+   - Bonus: Token-Revocation jetzt möglich
+   - Regel: Immer `jti` für Token-Uniqueness verwenden
+
+3. **DynamoDB unterstützt kein Python float - nur Decimal**
+   - Problem: `TypeError: float * Decimal` nicht unterstützt
+   - Root Cause: Tests übergeben float, aber DynamoDB braucht Decimal
+   - Lösung: Defensive Konvertierung am Funktions-Eingang
+   - Regel: Alle Geld/Preis-Berechnungen immer mit Decimal, Auto-Convert bei Input
+
+4. **pytest.approx() ist nicht Decimal-kompatibel**
+   - Problem: `pytest.approx()` erwartet float, bekommt aber Decimal
+   - Lösung: `float(result["tax"]) == pytest.approx(13.30, rel=0.01)`
+   - Regel: Decimal-Werte in Tests explizit zu float konvertieren
+
+5. **Repository Method Signatures beachten**
+   - Problem: `update(user_id, status="inactive")` schlägt fehl
+   - Root Cause: Repository erwartet `update(id, updates_dict)`
+   - Lösung: `update(user_id, {"status": "inactive"})`
+   - Regel: Repository-Pattern → immer dict für updates
+
+6. **TestClient Cookie Persistence zwischen Tests**
+   - Problem: Cookies bleiben zwischen Tests bestehen
+   - Lösung: `client.cookies.clear()` vor Security-Tests
+   - Regel: Bei Test-Isolation explizit State clearen, nicht implicit verlassen
+
+7. **Pydantic Schema Validation - 422 Errors**
+   - Problem: `auth_provider` Feld existiert nicht im Register-Schema
+   - Root Cause: Veraltete Fixtures mit nicht-existierenden Feldern
+   - Lösung: Schema mit Code abgleichen, nur valide Felder verwenden
+   - Regel: Bei 422 Errors → Schema-Definition checken
+
+8. **Pytest Fixture Parameters müssen explizit sein**
+   - Problem: `NameError: name 'client' is not defined` in Tests
+   - Root Cause: Tests nutzten globales `client` statt Fixture-Parameter
+   - Lösung: `client` zu allen Test-Methoden als Parameter hinzufügen
+   - Regel: Nie globale Variablen in Tests → immer Fixtures verwenden
+
+**Action taken:**
+- 8 Dateien geändert, ~200 Zeilen Code
+- 3 umfassende Dokumentationen erstellt (40+ Seiten)
+- CHANGELOG und README aktualisiert
+- Alle 12 Tests gefixed → 643 PASSED, 0 FAILED ✅
+
+**Preventive rules:**
+- **Pydantic:** Explizites Mapping > Alias-Magic (weniger Überraschungen)
+- **JWT:** Immer `jti` (UUID) für Token-Uniqueness
+- **DynamoDB:** Defensive Decimal-Konvertierung bei allen numerischen Inputs
+- **Tests:** Decimal → float für pytest.approx()
+- **Repositories:** Dict für updates, nicht keyword args
+- **Test-Isolation:** Explizit clearen (cookies, cache, state)
+- **Fixtures:** Parameter-basiert, nicht global
+- **Schema-Validierung:** Bei 422 → Schema-Definition checken
+
+**Documentation created:**
+- `docs/TESTING_BEST_PRACTICES.md` (25 Seiten, 10 Kapitel)
+- `docs/SESSION_2026-05-17_TEST_FIXES.md` (15 Seiten Details)
+- `docs/EXECUTIVE_SUMMARY_2026-05-17.md` (Executive Summary)
+
+**Impact:**
+- 100% Test-Pass-Rate erreicht
+- Production Ready Status
+- Umfassende Testing-Guidelines für Team
+
+---
+
 ## Template for Future Entries
 
 ### [Date]: [Topic/Feature]
