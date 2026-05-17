@@ -1,477 +1,479 @@
-# Uptime Monitoring - Setup Guide
+# Uptime Monitoring Setup - UptimeRobot
 
-> **Zeit:** 30 Minuten  
-> **Tool:** UptimeRobot (kostenlos)  
-> **Zweck:** Benachrichtigung wenn API down ist
-
----
-
-## Was ist Uptime Monitoring?
-
-Uptime Monitoring prüft regelmäßig ob deine API erreichbar ist und benachrichtigt dich sofort bei Ausfällen.
-
-**Ohne Uptime Monitoring:**
-- Du merkst erst von Ausfällen wenn Kunden sich beschweren
-- Keine Transparenz über Verfügbarkeit
-- Kein Nachweis für SLA (99.9% Uptime)
-
-**Mit Uptime Monitoring:**
-- Benachrichtigung innerhalb 1-5 Minuten bei Ausfall
-- Uptime-Statistiken (99.95%, 99.99%, etc.)
-- Public Status Page für Kunden
-- Incident History
+**Zweck:** 24/7 Verfügbarkeitsüberwachung für Production  
+**Tool:** UptimeRobot (Free Tier ausreichend)  
+**Zeit:** ~30 Minuten  
+**Kosten:** Kostenlos (bis 50 Monitors)
 
 ---
 
-## Tool-Vergleich
+## 🎯 Ziel
 
-| Tool | Kosten (Free) | Kosten (Paid) | Empfehlung |
-|------|--------------|---------------|------------|
-| **UptimeRobot** | 50 Monitore, 5min Interval | $7/Monat (1min Interval) | ⭐ MVP |
-| **Better Uptime** | 10 Monitore, 3min Interval | $20/Monat | Später |
-| **Pingdom** | 1 Monitor | $10/Monat | Zu teuer |
-| **AWS CloudWatch** | Pay-per-use | ~$1-5/Monat | Komplex |
-
-**Empfehlung:** Start mit **UptimeRobot Free**, später upgrade zu Better Uptime.
+Automatische Benachrichtigung bei Production Downtime innerhalb von 5 Minuten.
 
 ---
 
-## Setup: UptimeRobot (30 Minuten)
+## 📋 Quick Start (30 Minuten)
 
-### 1. Account erstellen
+### 1. UptimeRobot Account erstellen (5 Min)
 
-1. Gehe zu: https://uptimerobot.com/signUp
-2. Registriere dich (Email + Passwort)
-3. Email bestätigen
-4. Login: https://uptimerobot.com/dashboard
+1. Gehe zu: **[uptimerobot.com](https://uptimerobot.com)**
+2. Klicke **"Sign Up Free"**
+3. Registriere dich mit:
+   - Email: `schwarz23andy@gmail.com`
+   - Oder: Login via Google
+4. Email bestätigen
 
-### 2. API Health Check Monitor erstellen
-
-**Monitor Settings:**
-```
-Monitor Type:     HTTPS
-Friendly Name:    OverCloud API Production
-URL:              https://api.overcloud.io/health
-Monitoring Interval: 5 minutes (Free) oder 1 minute (Paid)
-Monitor Timeout:  30 seconds
-
-Alert Contacts:   deine@email.de
-Alert When:       Down
-```
-
-**Klick auf "Create Monitor"**
-
-### 3. Weitere Monitore erstellen (optional)
-
-#### Staging Environment
-```
-Friendly Name:    OverCloud API Staging
-URL:              https://api-staging.overcloud.io/health
-Monitoring Interval: 5 minutes
-```
-
-#### Frontend
-```
-Friendly Name:    OverCloud Frontend
-URL:              https://overcloud.io
-Monitoring Interval: 5 minutes
-```
-
-#### Specific Endpoints (kritische Features)
-```
-Friendly Name:    OverCloud API - Auth
-URL:              https://api.overcloud.io/api/v1/auth/health
-Monitoring Interval: 5 minutes
-```
-
-### 4. Alert Channels konfigurieren
-
-**Email Alerts (Standard):**
-- Automatisch aktiviert bei Account-Erstellung
-- Bekommt Alerts bei Down/Up Events
-
-**Slack Integration (empfohlen):**
-1. UptimeRobot → My Settings → Alert Contacts
-2. Add Alert Contact → Slack
-3. Autorisiere Slack Workspace
-4. Wähle Channel: `#overcloud-alerts`
-5. Speichern
-
-**SMS Alerts (optional, $9/Monat):**
-- Nur für kritische Production Alerts
-- Wenn Email nicht schnell genug
-
-**Webhook (für Custom Integration):**
-```
-Webhook URL: https://api.overcloud.io/webhooks/uptime
-Method: POST
-Custom HTTP Headers:
-  Authorization: Bearer YOUR_WEBHOOK_SECRET
-```
-
-### 5. Public Status Page erstellen
-
-**Warum?**
-- Kunden können selbst sehen ob alles läuft
-- Transparenz bei Incidents
-- Reduces Support-Anfragen ("Ist die API down?")
-
-**Setup:**
-1. UptimeRobot → Status Pages
-2. Create Status Page
-3. Settings:
-   ```
-   Status Page Name: OverCloud Status
-   Monitors: Wähle alle Production Monitors
-   Custom Domain: status.overcloud.io (optional)
-   Show Response Times: Yes
-   Show Uptime: Yes (Last 30 days)
-   ```
-4. Customize Design:
-   - Logo hochladen
-   - Farben anpassen (Purple Gradient wie Landing Page)
-   - Custom CSS (optional)
-
-**Fertig!** Status Page URL: `https://stats.uptimerobot.com/abc123`
-
-**Einbinden auf Website:**
-```html
-<!-- In frontend/src/index.html Footer -->
-<a href="https://stats.uptimerobot.com/abc123" target="_blank">
-  System Status
-</a>
-```
-
-### 6. Maintenance Windows konfigurieren
-
-**Warum?**
-- Geplante Wartungen sollen keine Alerts triggern
-- Verhindert False-Positives
-
-**Setup:**
-1. UptimeRobot → Maintenance Windows
-2. Create Maintenance Window
-3. Settings:
-   ```
-   Type: One-Time (für geplantes Deployment)
-   Start: 2026-05-20 02:00 UTC
-   Duration: 1 hour
-   Affected Monitors: All Production Monitors
-   Reason: "Planned deployment of v1.2.0"
-   ```
+**Free Tier beinhaltet:**
+- ✅ 50 Monitors
+- ✅ 5-Minuten Check-Intervall
+- ✅ Email + SMS Alerts
+- ✅ Public Status Page
+- ✅ Unbegrenzte Alert-Kontakte
 
 ---
 
-## Alert-Strategie
+### 2. Ersten Monitor erstellen (10 Min)
 
-### Production (Critical)
-```
-Monitor Interval: 1 minute (Paid)
-Alert After: 1 failed check (sofort)
-Alert Channels: Email + Slack + SMS (Critical)
-```
+#### Health Endpoint Monitor
 
-### Staging (Important)
-```
-Monitor Interval: 5 minutes
-Alert After: 2 failed checks (10 Min)
-Alert Channels: Email + Slack
-```
+1. **Dashboard → Add New Monitor**
 
-### Development (Informational)
-```
-Monitor Interval: 15 minutes
-Alert After: 3 failed checks (45 Min)
-Alert Channels: Email only
-```
+2. **Monitor Type:** HTTP(s)
 
----
+3. **Friendly Name:** `OverCloud API - Health`
 
-## Health Check Endpoint verbessern
+4. **URL:** `https://api.overcloud.io/health`
+   - Development: `http://localhost:8000/health` (nur für lokale Tests)
+   - Staging: `https://api-staging.overcloud.io/health`
+   - Production: `https://api.overcloud.io/health`
 
-**Aktuell (`backend/app/main.py`):**
-```python
-@app.get("/health")
-async def health_check():
-    """Health check endpoint."""
-    return {
-        "status": "healthy",
-        "version": "0.1.0",
-    }
-```
+5. **Monitoring Interval:** 5 minutes (Free Tier)
+   - Upgrade: 1 minute (Pro Plan)
 
-**Besser (detailliert):**
-```python
-@app.get("/health")
-async def health_check():
-    """Detailed health check with dependencies."""
-    try:
-        # Check DynamoDB connection
-        from app.repositories.base import BaseRepository
-        # Quick ping test (doesn't count against throughput)
-        
-        # Check S3 connection (optional)
-        # Check Redis connection (wenn implementiert)
-        
-        return {
-            "status": "healthy",
-            "version": "0.1.0",
-            "timestamp": datetime.utcnow().isoformat(),
-            "checks": {
-                "api": "ok",
-                "database": "ok",
-                "storage": "ok"
-            }
-        }
-    except Exception as e:
-        logger.error(f"Health check failed: {e}")
-        return JSONResponse(
-            status_code=503,
-            content={
-                "status": "unhealthy",
-                "error": "Service temporarily unavailable"
-            }
-        )
-```
+6. **Monitor Timeout:** 30 seconds
 
-**Vorteil:**
-- UptimeRobot erkennt `503 Service Unavailable` als Down
-- Detaillierte Logs warum Health Check fehlgeschlagen ist
+7. **HTTP Method:** GET
+
+8. **Expected Status Code:** 200
+
+9. **Keyword Monitoring (optional):**
+   - Keyword: `"status":"healthy"`
+   - Alert if keyword not found
+
+**Klicke "Create Monitor"**
 
 ---
 
-## Monitoring Best Practices
+### 3. Alert-Kontakte hinzufügen (5 Min)
 
-### ✅ Do:
-- Monitor kritische Endpoints (`/health`, `/api/v1/auth/login`)
-- Public Status Page für Transparenz
-- Alert Fatigue vermeiden (nicht jede Warnung = Critical)
-- Maintenance Windows nutzen für geplante Deployments
-- Response Times tracken (SLA-relevant)
+1. **My Settings → Alert Contacts**
 
-### ❌ Don't:
-- Zu viele Monitore (nur kritische Pfade)
-- Zu kurze Intervalle (1min reicht für die meisten Cases)
-- Alle Alerts als Critical markieren
-- Status Page ignorieren (Kunden nutzen das!)
+2. **Add Alert Contact:**
+   - Type: **Email**
+   - Email: `schwarz23andy@gmail.com`
+   - Name: `Andy Schwarz - Primary`
 
----
+3. **Optional: Weitere Kontakte:**
+   - Type: **SMS** (Telefonnummer)
+   - Type: **Slack** (Webhook URL)
+   - Type: **Webhook** (für eigene Integration)
 
-## SLA-Reporting
-
-### Uptime berechnen
-
-**UptimeRobot zeigt automatisch:**
-- **Last 24h:** 100.00%
-- **Last 7 days:** 99.95%
-- **Last 30 days:** 99.98%
-- **Last 90 days:** 99.96%
-
-**Für Kunden-SLA:**
-```
-Uptime Guarantee: 99.9% (monatlich)
-
-Downtime Budget pro Monat:
-- 99.9%  = 43 Minuten
-- 99.95% = 22 Minuten
-- 99.99% = 4.3 Minuten
-
-Incident Report:
-- Datum: 2026-05-15
-- Dauer: 12 Minuten
-- Ursache: Database Connection Issue
-- Lösung: Connection Pool erhöht
-- Prevention: Connection Pool Monitoring aktiviert
-```
-
-### Monatlicher Report
-
-**Automatisch generieren lassen:**
-1. UptimeRobot → Reports
-2. Create Report
-3. Schedule: Monthly (1st of month)
-4. Recipients: team@overcloud.io
-5. Include: Uptime, Response Times, Incidents
+4. **Threshold einstellen:**
+   - Alert wenn: Monitor ist down (Default)
+   - Alert nach: 1 fehlgeschlagenem Check (sofort)
+   - Recovery Alert: Ja (wenn wieder online)
 
 ---
 
-## Incident Response Workflow
+### 4. Weitere Monitors erstellen (10 Min)
 
-### 1. Alert empfangen (Email/Slack/SMS)
-
+#### Monitor #2: Root Endpoint
 ```
-🚨 OverCloud API Production is DOWN
+Name:     OverCloud API - Root
+URL:      https://api.overcloud.io/
+Expected: 200
+Keyword:  "OverCloud API"
+```
+
+#### Monitor #3: Frontend
+```
+Name:     OverCloud Frontend
+URL:      https://overcloud.io/
+Expected: 200
+Keyword:  "OverCloud"
+```
+
+#### Monitor #4: Auth API
+```
+Name:     OverCloud API - Auth Health
+URL:      https://api.overcloud.io/api/v1/auth/health
+Expected: 200 (oder 404 wenn Endpoint nicht existiert)
+```
+
+#### Monitor #5: Database Connection (indirect)
+```
+Name:     OverCloud API - Architectures List
+URL:      https://api.overcloud.io/api/v1/architectures
+Expected: 401 (Unauthorized - bedeutet API läuft, nur Auth fehlt)
+```
+
+**Tipp:** Bei Endpoints die Auth brauchen:
+- Expected Status: 401 ist OK (API läuft)
+- 500/502/503 = ALERT (Backend Problem)
+
+---
+
+### 5. Public Status Page erstellen (Optional, 5 Min)
+
+1. **Dashboard → Add New Status Page**
+
+2. **Type:** Public Status Page (kostenlos)
+
+3. **Custom Domain:** `status.overcloud.io` (DNS konfigurieren)
+   - Oder: Standard `overcloud.betteruptime.com`
+
+4. **Select Monitors:**
+   - [x] OverCloud API - Health
+   - [x] OverCloud Frontend
+   - [x] OverCloud API - Root
+
+5. **Customization:**
+   - Logo: OverCloud Logo
+   - Color: #a18072 (Primary Color)
+   - Custom Message: "Real-time status of OverCloud services"
+
+6. **Klicke "Create Status Page"**
+
+**Share URL mit Team:** `https://status.overcloud.io`
+
+---
+
+## 🔔 Alert-Konfiguration
+
+### Email Alert Template
+
+UptimeRobot sendet automatisch Emails bei Downtime:
+
+**Subject:**
+```
+[DOWN] OverCloud API - Health is down
+```
+
+**Body:**
+```
+Monitor Name: OverCloud API - Health
 URL: https://api.overcloud.io/health
-Status Code: 503
-Time: 2026-05-15 14:32 UTC
+Status: Down
+Started: 2026-05-17 23:45 UTC
+Duration: 5 minutes
+
+Reason: Connection timeout
+
+View Details: [Link to Dashboard]
 ```
 
-### 2. Sofort checken
+### Alert-Frequenz
 
-```bash
-# Manual Check
-curl -I https://api.overcloud.io/health
+**Default:**
+- Sofort bei erstem Failed Check (nach 5 Min)
+- Re-Alert alle 30 Minuten (solange down)
+- Recovery Alert wenn wieder online
 
-# Check Backend Logs (CloudWatch)
-aws logs tail /aws/ecs/overcloud-backend --follow
-
-# Check ECS Tasks
-aws ecs describe-services --cluster overcloud-prod --services backend
-```
-
-### 3. Incident Response Plan befolgen
-
-→ Siehe `docs/operations/INCIDENT_RESPONSE_PLAN.md`
-
-### 4. Status Page updaten
-
-**Während Incident:**
-1. UptimeRobot → Status Pages → Post Update
-2. Message: "Wir untersuchen aktuell API-Probleme. Updates folgen."
-3. Status: Investigating
-
-**Nach Fix:**
-1. Status Page → Post Update
-2. Message: "Problem behoben. API läuft wieder normal."
-3. Status: Resolved
-
-### 5. Post-Mortem schreiben
-
-→ Siehe Template in `INCIDENT_RESPONSE_PLAN.md`
+**Empfehlung:**
+- Production: Re-Alert alle 15 Min
+- Staging: Re-Alert alle 60 Min
 
 ---
 
-## Kosten
+## 📊 Dashboard Overview
 
-### UptimeRobot Free
-- **50 Monitore:** Mehr als genug für MVP
-- **5 Min Interval:** Akzeptabel (max 5min Downtime bis Alert)
+### Uptime Percentage
+
+UptimeRobot zeigt:
+- **Last 24 hours:** 99.8% Uptime
+- **Last 7 days:** 99.5% Uptime
+- **Last 30 days:** 99.9% Uptime
+
+**SLA Target:** 99.9% (< 43 Min Downtime/Monat)
+
+### Response Time Graph
+
+- Average: <500ms
+- Peak: <2000ms
+- Baseline: ~200ms
+
+**Alerts bei:**
+- Response Time > 3000ms (3s)
+- Häufige Timeouts
+
+---
+
+## 🔧 Advanced Configuration
+
+### Custom HTTP Headers
+
+Für Endpoints mit spezifischen Requirements:
+
+```
+Monitor Settings → Advanced
+→ Custom HTTP Headers
+→ Add Header:
+   Key:   Authorization
+   Value: Bearer test-token-für-monitoring
+```
+
+**Sicherheit:**
+- Niemals echte User-Credentials verwenden
+- Separater "Monitoring API Key" erstellen
+- Read-Only Permissions
+
+### POST Requests Monitoring
+
+Für API Health Checks die POST brauchen:
+
+```
+Monitor Type: HTTP(s)
+Method:       POST
+Post Type:    JSON
+Post Value:   {"action": "health_check"}
+Expected:     200
+```
+
+### SSL Certificate Monitoring
+
+UptimeRobot prüft automatisch:
+- ✅ SSL Certificate Validity
+- ✅ Expiration Date
+- ✅ Certificate Chain
+
+**Alert:** 30 Tage vor Ablauf
+
+---
+
+## 📱 Mobile App (Optional)
+
+**UptimeRobot App:**
+- iOS: App Store
+- Android: Play Store
+
+**Features:**
+- Push Notifications (schneller als Email)
+- Dashboard on-the-go
+- Acknowledge Incidents
+- View History
+
+---
+
+## 🚨 Integration mit anderen Tools
+
+### Slack Integration
+
+1. **Slack → Apps → Incoming Webhooks**
+2. **Create Webhook für #overcloud-alerts**
+3. **UptimeRobot → Alert Contacts → Add Webhook**
+   ```
+   Webhook URL: https://hooks.slack.com/services/XXX/YYY/ZZZ
+   POST Value:  {"text": "*MONITOR_NAME* is *MONITOR_STATUS*"}
+   ```
+
+### PagerDuty Integration (für On-Call)
+
+1. **PagerDuty → Services → Create Service**
+2. **Integration:** UptimeRobot
+3. **Copy Integration Key**
+4. **UptimeRobot → Alert Contacts → Add PagerDuty**
+
+### Custom Webhook (für eigene Automation)
+
+```bash
+# Webhook Endpoint erstellen (optional)
+POST https://api.overcloud.io/webhooks/uptime-alert
+
+Body:
+{
+  "monitor_id": "123456",
+  "monitor_name": "OverCloud API - Health",
+  "monitor_url": "https://api.overcloud.io/health",
+  "status": "down",
+  "alert_datetime": "2026-05-17 23:45:00",
+  "alert_type": "down"
+}
+```
+
+---
+
+## 📈 Reporting
+
+### Uptime Reports (monatlich)
+
+UptimeRobot generiert automatisch:
+- PDF Report (Email)
+- Uptime % pro Monitor
+- Downtime Incidents
+- Average Response Time
+
+**Konfiguration:**
+```
+My Settings → Reports
+→ Enable Monthly Report
+→ Email: schwarz23andy@gmail.com
+→ Send on: 1st of each month
+```
+
+### SLA Reporting
+
+Für Kunden/Stakeholder:
+
+```
+Dashboard → Monitor → Stats
+→ Export CSV (30/90 days)
+→ Share via Public Status Page
+```
+
+---
+
+## 🔒 Sicherheit
+
+### Was UptimeRobot sieht:
+- ✅ Response Status Codes (200, 500, etc.)
+- ✅ Response Times
+- ✅ Response Body (nur Keywords)
+- ✅ SSL Certificate Info
+
+### Was UptimeRobot NICHT sehen sollte:
+- ❌ Sensitive User Data
+- ❌ API Keys in Response
+- ❌ Database Credentials
+
+**Best Practice:**
+- Separate `/health` Endpoint ohne sensitive Data
+- Kein PII (Personal Identifiable Information)
+- Rate Limiting für Health Endpoint ausschalten (Monitoring-Traffic)
+
+---
+
+## 💰 Kosten
+
+### Free Plan (aktuell)
+- **50 Monitors:** Kostenlos
+- **5 Min Interval:** Kostenlos
+- **Public Status Page:** Kostenlos
 - **Email Alerts:** Unbegrenzt
-- **Public Status Page:** 1x kostenlos
-- **Retention:** 6 Monate
+- **SMS Alerts:** 50/Monat kostenlos
 
-**Kosten:** €0/Monat
+**Ausreichend für:** MVP, kleine Teams
 
-### UptimeRobot Pro ($7/Monat)
-- **1 Min Interval:** Schnellere Detection
-- **SMS Alerts:** Inklusive
-- **Advanced Alerts:** Multi-channel
-- **Retention:** Unbegrenzt
-- **Custom Status Page Domain:** status.overcloud.io
+### Pro Plan ($7/Monat)
+- **1 Min Interval** (schnellere Detection)
+- Advanced Status Pages
+- Custom Domains
+- API Access
+- Priority Support
 
-**Upgrade wenn:** Paying Customers vorhanden
-
-### Better Uptime ($20/Monat)
-- **Schönere UI**
-- **Bessere Incident Management**
-- **Phone Call Alerts**
-- **Team On-Call Rotation**
-
-**Upgrade wenn:** Team > 3 Personen
+**Upgrade wenn:**
+- Kritische Production App
+- SLA < 5 Min Detection nötig
+- Custom Branding wichtig
 
 ---
 
-## Integration mit anderen Tools
+## ✅ Verification Checklist
 
-### Sentry Integration
+Nach Setup:
 
-**Warum?**
-- Uptime Alert → Check Sentry für Error Details
-
-**Wie?**
-- Im Alert Runbook: "Check Sentry Dashboard for errors during downtime"
-
-### CloudWatch Integration
-
-**Custom Metric zu CloudWatch senden:**
-```python
-# In health check endpoint
-import boto3
-cloudwatch = boto3.client('cloudwatch')
-
-cloudwatch.put_metric_data(
-    Namespace='OverCloud',
-    MetricData=[
-        {
-            'MetricName': 'HealthCheckStatus',
-            'Value': 1,  # 1 = healthy, 0 = unhealthy
-            'Unit': 'Count',
-        }
-    ]
-)
-```
-
-**CloudWatch Alarm basierend auf Metric:**
-→ Redundanz zu UptimeRobot (falls UptimeRobot down ist)
-
----
-
-## Testing
-
-### Manueller Test
-
-```bash
-# 1. Backend stoppen
-docker-compose stop backend
-
-# 2. Warten auf Alert (max 5 Min)
-
-# 3. Alert empfangen? ✅
-
-# 4. Backend starten
-docker-compose start backend
-
-# 5. Warten auf "Up" Alert (max 5 Min)
-
-# 6. "Up" Alert empfangen? ✅
-```
-
-### Status Page testen
-
-1. Öffne Status Page URL
-2. Siehst du Uptime-Statistiken? ✅
-3. Sind alle Monitore "Up"? ✅
-4. Response Times sichtbar? ✅
-
----
-
-## Checkliste
-
-**Setup (30 Min):**
 - [ ] UptimeRobot Account erstellt
-- [ ] Monitor: Production API (`/health`)
-- [ ] Monitor: Staging API (optional)
-- [ ] Monitor: Frontend (optional)
-- [ ] Alert Contact: Email konfiguriert
-- [ ] Alert Contact: Slack konfiguriert (optional)
-- [ ] Public Status Page erstellt
-- [ ] Status Page auf Website verlinkt
-- [ ] Maintenance Window Template erstellt
-- [ ] Test: Backend stoppen → Alert empfangen
+- [ ] Monitor für `/health` Endpoint angelegt
+- [ ] Alert-Kontakt (Email) hinzugefügt
+- [ ] Test-Alert getriggert (Stop Backend kurz)
+- [ ] Email-Benachrichtigung erhalten
+- [ ] Optional: Public Status Page erstellt
+- [ ] Optional: Weitere Monitors angelegt
+- [ ] Optional: Slack Integration konfiguriert
 
-**Dokumentation:**
-- [ ] Status Page URL in README.md
-- [ ] Incident Response Plan verlinkt
-- [ ] Team informiert (wo Alerts ankommen)
+**Status:** 🟢 Uptime Monitoring aktiv!
 
 ---
 
-## Summary
+## 🧪 Testing
 
-**UptimeRobot Free reicht für:**
-- MVP mit < 100 Usern
-- Downtime-Detection innerhalb 5 Minuten
-- Public Status Page
+### Test-Alert triggern
 
-**Upgrade zu Pro wenn:**
-- Paying Customers vorhanden
-- SLA vertraglich zugesagt (99.9%)
-- 1-Minute Detection nötig
+**Option 1: Backend stoppen**
+```bash
+# Stoppe Backend für 2 Minuten
+cd backend
+# Strg+C (Uvicorn beenden)
+# Warte 5-10 Min
+# → UptimeRobot sendet Alert
 
-**Zeit:** 30 Minuten Setup  
-**Kosten:** €0 (Free Tier)  
-**Nutzen:** ⭐⭐⭐⭐⭐ (kritisch für Production)
+# Starte Backend wieder
+poetry run uvicorn app.main:app --reload
+# Warte 5 Min
+# → UptimeRobot sendet Recovery Alert
+```
+
+**Option 2: Falsche URL**
+```bash
+# Temporär Monitor auf nicht-existierende URL ändern
+Dashboard → Monitor → Edit
+URL: https://api.overcloud.io/does-not-exist
+→ Save
+→ Warte 5 Min → Alert
+→ URL wieder auf /health ändern
+```
 
 ---
 
-**Nächster Schritt:** [Backup Restore Testing](../scripts/test-backup-restore.sh)
+## 🐛 Troubleshooting
+
+### "Monitor is UP but I can't access the URL"
+
+**Mögliche Ursachen:**
+1. Firewall blockiert deinen Client, nicht UptimeRobot
+2. VPN/Proxy Problem
+3. DNS Cache (flush: `sudo dscacheutil -flushcache`)
+
+### "Too many false alerts"
+
+**Lösungen:**
+1. Timeout erhöhen (30s → 60s)
+2. Retry: 2-3 mal bevor Alert
+3. Keyword Monitoring deaktivieren (falls Response variiert)
+
+### "Alert kommt zu spät"
+
+**Limits:**
+- Free Tier: 5 Min Check-Intervall
+- Lösung: Upgrade auf Pro ($7/Monat) für 1 Min Checks
+
+---
+
+## 📚 Ressourcen
+
+- **UptimeRobot Docs:** [uptimerobot.com/help](https://uptimerobot.com/help/)
+- **API Docs:** [uptimerobot.com/api](https://uptimerobot.com/api/)
+- **Status:** [status.uptimerobot.com](https://status.uptimerobot.com/)
+
+---
+
+## 📋 Monitor-Übersicht (Empfohlen)
+
+| Monitor | URL | Interval | Alert Threshold |
+|---------|-----|----------|-----------------|
+| API Health | /health | 5 Min | 1 failed check |
+| API Root | / | 5 Min | 1 failed check |
+| Frontend | overcloud.io | 5 Min | 1 failed check |
+| Auth | /api/v1/auth/... | 5 Min | 2 failed checks |
+
+**Total:** 4 Monitors (von 50 verfügbar)
+
+---
+
+**Geschätzte Setup-Zeit:** 30 Minuten  
+**Benefit:** 24/7 Monitoring + Sofortige Downtime-Alerts  
+**Kosten:** Kostenlos (Free Tier)  
+**Status:** ✅ Setup-Anleitung komplett
+
+**Erstellt:** 2026-05-17  
+**Autor:** Claude Sonnet 4.5
