@@ -1,7 +1,7 @@
 # OverCloud - Aktuelle Aufgaben
 
-> **Letztes Update:** 2026-05-17 23:15  
-> **Status:** Backend ✅ 100% Ready | Infrastructure ✅ 85% Ready | Operations ⏳ 60% Ready | **Tests ✅ 100% PASSED**
+> **Letztes Update:** 2026-05-17 23:45  
+> **Status:** Backend ✅ 100% Ready | Infrastructure ✅ 90% Ready | Operations ✅ 85% Ready | **Tests ✅ 100% PASSED**
 
 ---
 
@@ -207,18 +207,19 @@ infrastructure/terraform/scripts/test-backup-restore.sh
 
 ## 📋 Production-Ready Checkliste
 
-### ✅ **Infrastructure (85% Ready)**
+### ✅ **Infrastructure (90% Ready)** 🚀
 - ✅ 3 Environments (dev, staging, prod)
 - ✅ WAF & DDoS Protection (AWS Managed Rules + Rate Limiting)
 - ✅ Backup Module (daily/weekly/monthly + Cross-Region DR)
+- ✅ **Backup Restore Test Script** (automatisiert, ready to run)
 - ✅ Monitoring Module (CloudWatch Dashboards & Alarms)
 - ✅ Networking (VPC, Subnets, Security Groups)
 - ✅ Database (DynamoDB + Aurora optional)
 - ✅ Storage (S3 mit Versioning)
-- ⏳ Backup Restore Test (einmal durchführen)
-- ⏳ Terraform deployed auf staging/prod
+- ⏳ Terraform deployed auf staging/prod (erste Deployment)
+- ⏳ Backup Test einmal ausführen (10-15 Min)
 
-**→ Fehlende Zeit: 2-3 Stunden**
+**→ Fehlende Zeit: 1-2 Stunden (erstes Deployment)**
 
 ---
 
@@ -239,15 +240,17 @@ infrastructure/terraform/scripts/test-backup-restore.sh
 
 ---
 
-### ⏳ **Operations (60% Ready)**
+### ✅ **Operations (85% Ready)** 🎉
 - ✅ Incident Response Plan (komplett)
 - ✅ Business Continuity Plan (DR-Prozeduren)
 - ✅ Monitoring dokumentiert
-- ⏳ Uptime Monitoring Setup (30 Min)
-- ⏳ Backup Restore Test (2 Std)
-- ⏳ Rollback Runbook (1 Tag)
+- ✅ **Rollback Runbook** (FERTIG - docs/operations/RUNBOOK_ROLLBACK.md)
+- ✅ **Backup Restore Test Script** (FERTIG - infrastructure/terraform/scripts/test-backup-restore.sh)
+- ✅ **Sentry Setup Guide** (FERTIG - docs/operations/SENTRY_SETUP.md)
+- ⏳ Uptime Monitoring Setup (30 Min - manuell via UptimeRobot)
+- ⏳ Sentry DSN setzen (10 Min - Account erstellen + .env)
 
-**→ Fehlende Zeit: 1-2 Tage**
+**→ Fehlende Zeit: 40 Minuten (nur manuelle Setups)**
 
 ---
 
