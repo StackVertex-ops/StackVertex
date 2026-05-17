@@ -1,547 +1,522 @@
 # Runbook: Deployment Rollback
 
-> **When:** Nach fehlerhaftem Deployment  
-> **Severity:** P1 (Critical) - P3 (Minor)  
-> **RTO:** 15 Minuten  
-> **Owner:** DevOps / On-Call Engineer
+**Version:** 1.0.0  
+**Datum:** 2026-05-17  
+**Owner:** DevOps Team  
+**Review:** Monatlich
 
 ---
 
-## Wann dieses Runbook verwenden?
+## 📋 Übersicht
 
-**Symptome eines fehlerhaften Deployments:**
-- ✗ API gibt 500 Errors zurück
-- ✗ Uptime Monitor zeigt "Down"
-- ✗ Sentry zeigt plötzlich viele neue Errors
-- ✗ CloudWatch Alarms triggern
-- ✗ Kunden melden Probleme
-- ✗ Health Check schlägt fehl
+Dieses Runbook beschreibt wie ein fehlerhaftes Deployment zurückgerollt wird.
 
-**Entscheidung: Rollback oder Forward-Fix?**
+**Wann verwenden:**
+- Nach fehlerhaftem Deployment
+- Production Errors steigen dramatisch
+- Critical Bugs entdeckt
+- Performance-Degradation
+- Security-Incident
 
-| Rollback wenn: | Forward-Fix wenn: |
-|----------------|-------------------|
-| Production ist down | Nur kleine Bugs (UI, Text, etc.) |
-| Kritische Features broken | Fix dauert < 10 Minuten |
-| Keine schnelle Lösung in Sicht | Root-Cause klar & einfach fixbar |
-| Mehrere User betroffen | Nur 1-2 User betroffen |
-
-**Faustregel:** Bei Zweifel → Rollback! Stabilität geht vor.
+**Ziel:** System in letzten stabilen Zustand zurückversetzen (<15 Min)
 
 ---
 
-## Schnell-Übersicht (TL;DR)
+## ⚡ Quick Reference
+
+### Schnell-Rollback (< 5 Min)
 
 ```bash
-# 1. GitHub → Actions → Neuestes Working Deployment → Re-run
-# ODER
-# 2. Git Revert + Push:
-git revert HEAD --no-edit
+# Option 1: GitHub Actions Re-run (empfohlen)
+1. GitHub → Actions → Workflows
+2. Finde letztes erfolgreiches Deployment
+3. "Re-run all jobs"
+
+# Option 2: Git Revert
+git revert HEAD
 git push origin main
 
-# 3. Verify:
-curl https://api.overcloud.io/health
-
-# 4. Monitor:
-# - Check Sentry (errors stopped?)
-# - Check Uptime (back to "Up"?)
-# - Manual smoke test
-
-# 5. Post-Mortem (wenn P1/P2)
+# Option 3: Manual Rollback (falls CI/CD down)
+cd infrastructure/terraform/environments/production
+git checkout <last-good-commit>
+terraform apply
 ```
 
 ---
 
-## Detailed Rollback Procedure
+## 🔍 Severity Levels
 
-### Phase 1: Verify Problem (2 Min)
+### P1 - Critical (Sofortiger Rollback)
+- Production komplett down
+- Data Loss möglich
+- Security Breach
+- **SLA:** Rollback innerhalb 15 Min
 
-#### 1.1 Check Current Deployment
+### P2 - High (Rollback innerhalb 1h)
+- Major Feature broken
+- Performance-Degradation >50%
+- Viele User betroffen (>50%)
+- **SLA:** Rollback innerhalb 1 Stunde
 
+### P3 - Medium (Rollback optional)
+- Minor Feature broken
+- Wenige User betroffen (<10%)
+- Workaround verfügbar
+- **Entscheidung:** Product Owner
+
+### P4 - Low (Forward Fix)
+- UI Bug
+- Typo
+- Non-critical Issue
+- **Empfehlung:** Forward Fix statt Rollback
+
+---
+
+## 📝 Rollback Procedure
+
+### Phase 1: Incident Detection (0-5 Min)
+
+#### 1.1 Verify Incident
+
+**Checks:**
+- [ ] Sentry: Sudden spike in errors?
+- [ ] CloudWatch: Metrics abnormal?
+- [ ] UptimeRobot: Downtime alert?
+- [ ] User Reports: Support-Tickets?
+
+**Command:**
 ```bash
-# What's deployed?
-git log -1 --oneline
+# Check Sentry
+open https://sentry.io/organizations/overcloud/issues/
 
-# When was it deployed?
-gh run list --limit 1
-
-# Check commit that broke it
-git diff HEAD~1 HEAD
-```
-
-#### 1.2 Check Symptoms
-
-**API Health:**
-```bash
-curl -I https://api.overcloud.io/health
-# Expected: 200 OK
-# Actual: 503 Service Unavailable → PROBLEM!
-```
-
-**Sentry Errors:**
-```bash
-# Open Sentry Dashboard
-open https://sentry.io/organizations/overcloud/projects/overcloud-backend/
-
-# New errors after deployment time?
-# Filter: timesSeen:1 (new errors)
-```
-
-**CloudWatch Metrics:**
-```bash
-# Check error rate
+# Check CloudWatch
 aws cloudwatch get-metric-statistics \
-  --namespace AWS/ApiGateway \
-  --metric-name 5XXError \
-  --dimensions Name=ApiName,Value=overcloud-api \
-  --start-time $(date -u -d '30 minutes ago' +%Y-%m-%dT%H:%M:%S) \
-  --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
-  --period 300 \
-  --statistics Sum
+    --namespace AWS/ECS \
+    --metric-name CPUUtilization \
+    --start-time $(date -u -d '30 minutes ago' +%Y-%m-%dT%H:%M:%S) \
+    --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
+    --period 300 \
+    --statistics Average
+
+# Check health endpoint
+curl -i https://api.overcloud.io/health
 ```
 
-#### 1.3 Inform Team
+#### 1.2 Determine Severity
+
+**Fragen:**
+1. Wie viele User betroffen? (1, 10, 100, alle?)
+2. Welche Funktionalität? (Core, Nice-to-Have?)
+3. Data Loss möglich? (Ja/Nein)
+4. Workaround verfügbar? (Ja/Nein)
+
+**Entscheidung:**
+- **P1/P2:** Sofort rollback
+- **P3:** Product Owner fragen
+- **P4:** Forward fix planen
+
+### Phase 2: Rollback Execution (5-15 Min)
+
+#### 2.1 Notify Team
 
 ```bash
-# Post in Slack #overcloud-incidents
-🚨 INCIDENT: Production API down after deployment
-Commit: abc123 "Add feature X"
-Symptoms: 500 errors, Uptime down
-Action: Initiating rollback
+# Slack Nachricht (anpassen an euer Setup)
+# Channel: #overcloud-incidents
+
+**INCIDENT: Production Rollback**
+Severity: P1
+Reason: [kurze Beschreibung]
+Action: Rolling back to last good deployment
 ETA: 15 minutes
+Owner: [dein Name]
 ```
 
----
+#### 2.2 Execute Rollback
 
-### Phase 2: Rollback (5-10 Min)
+**Option A: GitHub Actions Re-run (empfohlen)**
 
-#### Option A: GitHub Actions Re-run (empfohlen)
-
-**Vorteile:**
-- ✅ Schnell (keine neuen Commits)
-- ✅ Gleicher Workflow wie ursprüngliches Deployment
-- ✅ Audit Trail in GitHub Actions
-
-**Steps:**
-
-1. **Öffne GitHub Actions:**
-   ```
-   https://github.com/AndySchw/OverCloud/actions
-   ```
-
-2. **Finde letztes ERFOLGREICHES Deployment:**
-   - Filter: Workflow "Deploy to Production"
+1. **Gehe zu GitHub Actions:**
+   - https://github.com/andyschwarz/overcloud/actions
+   
+2. **Finde letztes erfolgreiches Deployment:**
+   - Filter: Workflows → "Deploy to Production"
    - Status: ✅ Success
-   - Zeitpunkt: VOR dem fehlerhaften Deployment
+   - Timestamp: Vor dem Problem
 
 3. **Re-run Workflow:**
-   - Klick auf das Working Deployment
-   - Oben rechts: "Re-run all jobs"
-   - Bestätige: "Re-run jobs"
+   - Click auf Workflow
+   - Button: "Re-run all jobs"
+   - Warten (~5-10 Min)
 
 4. **Monitor Deployment:**
    ```bash
-   # Watch logs
+   # Watch GitHub Actions
    gh run watch
+   
+   # Watch ECS Service
+   watch -n 5 'aws ecs describe-services \
+       --cluster overcloud-production \
+       --services overcloud-backend \
+       --query "services[0].deployments"'
    ```
 
-5. **Warte auf Completion** (~5-10 Min)
-
-#### Option B: Git Revert + Push
-
-**Vorteile:**
-- ✅ Sauberer Git-History
-- ✅ Kann lokal getestet werden
-- ✅ Funktioniert immer (auch wenn Actions down)
-
-**Steps:**
-
-1. **Identify Bad Commit:**
-   ```bash
-   git log --oneline -5
-   # abc123 [BREAKING] Add feature X  ← Das ist das Problem
-   # def456 Update config
-   # ghi789 Fix bug Y
-   ```
-
-2. **Revert Commit:**
-   ```bash
-   # Single commit revert
-   git revert abc123 --no-edit
-
-   # Multiple commits revert (wenn mehrere broken)
-   git revert abc123 def456 --no-edit
-   ```
-
-3. **Verify Locally (optional, wenn Zeit):**
-   ```bash
-   # Start backend locally
-   poetry run uvicorn app.main:app --reload
-
-   # Test endpoint
-   curl http://localhost:8000/health
-   ```
-
-4. **Push Revert:**
-   ```bash
-   git push origin main
-   ```
-
-5. **Monitor CI/CD:**
-   ```bash
-   # Watch deployment
-   gh run watch
-
-   # Or open in browser
-   gh run view --web
-   ```
-
-#### Option C: Force Deploy Previous Version (Emergency)
-
-**Nur wenn Option A/B nicht funktionieren!**
+**Option B: Git Revert (bei CI/CD Problemen)**
 
 ```bash
-# 1. Checkout previous working commit
-git checkout def456  # Previous working commit
+# 1. Identifiziere bad commit
+git log --oneline -10
 
-# 2. Force push (DANGEROUS!)
-git push origin HEAD:main --force
+# 2. Revert commit
+git revert <bad-commit-sha>
 
-# 3. Trigger deployment manually
-gh workflow run deploy.yml
+# 3. Push to main (triggert CI/CD)
+git push origin main
+
+# 4. Monitor deployment (siehe oben)
 ```
 
-**⚠️ Warning:** Force push kann zu Problemen führen. Nur in echten Notfällen!
-
----
-
-### Phase 3: Verify Rollback (5 Min)
-
-#### 3.1 Health Check
+**Option C: Manual Terraform (falls CI/CD down)**
 
 ```bash
-# Wait 2-3 minutes for deployment to complete
+# 1. Checkout last good commit
+cd infrastructure/terraform/environments/production
+git log --oneline -10
+git checkout <last-good-commit>
 
-# Then check health
-curl -I https://api.overcloud.io/health
+# 2. Plan rollback
+terraform plan -out=rollback.tfplan
 
+# 3. Review plan (WICHTIG!)
+less rollback.tfplan
+
+# 4. Apply rollback
+terraform apply rollback.tfplan
+
+# 5. Verify
+curl https://api.overcloud.io/health
+```
+
+#### 2.3 Verify Rollback
+
+**Health Checks:**
+```bash
+# 1. Health Endpoint
+curl -i https://api.overcloud.io/health
 # Expected: 200 OK
-HTTP/2 200
-content-type: application/json
+
+# 2. Check Sentry (neue Errors?)
+# Expected: Error rate zurück auf normal
+
+# 3. Check Deployment Status
+aws ecs describe-services \
+    --cluster overcloud-production \
+    --services overcloud-backend \
+    --query 'services[0].deployments[0].status'
+# Expected: PRIMARY
+
+# 4. Smoke Tests
+curl https://api.overcloud.io/api/v1/auth/health
+curl https://api.overcloud.io/api/v1/architectures
 ```
 
-#### 3.2 Smoke Test (Critical Paths)
+**Success Criteria:**
+- [ ] Health endpoint returns 200
+- [ ] Error rate < 1% (normal baseline)
+- [ ] Response times < 500ms (p95)
+- [ ] No new Sentry alerts (15 Min window)
 
-```bash
-# Test Authentication
-curl -X POST https://api.overcloud.io/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"test123"}'
+### Phase 3: Post-Rollback (15-30 Min)
 
-# Test Architecture List
-curl https://api.overcloud.io/api/v1/architectures \
-  -H "Authorization: Bearer $TOKEN"
-
-# Test Deployment Create (Mock)
-curl -X POST https://api.overcloud.io/api/v1/deployments \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"architecture_id":"test-123","action":"plan"}'
-```
-
-#### 3.3 Monitor Errors
-
-**Sentry:**
-```bash
-# Open Sentry
-open https://sentry.io/organizations/overcloud/projects/overcloud-backend/
-
-# Filter: Last 15 minutes
-# New errors should stop appearing
-```
-
-**CloudWatch:**
-```bash
-# Check 5XX error rate
-aws cloudwatch get-metric-statistics \
-  --namespace AWS/ApiGateway \
-  --metric-name 5XXError \
-  --dimensions Name=ApiName,Value=overcloud-api \
-  --start-time $(date -u -d '15 minutes ago' +%Y-%m-%dT%H:%M:%S) \
-  --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
-  --period 300 \
-  --statistics Sum
-
-# Should be near 0
-```
-
-**Uptime Monitor:**
-```bash
-# Check UptimeRobot
-open https://uptimerobot.com/dashboard
-
-# Status should be "Up"
-```
-
----
-
-### Phase 4: Communication (3 Min)
-
-#### 4.1 Update Incident Channel
-
-```bash
-# Post in Slack #overcloud-incidents
-✅ RESOLVED: Rollback successful
-Commit: Reverted to def456
-Health: API is UP
-Errors: Stopped
-Uptime: 99.98%
-Duration: 12 minutes downtime
-Next: Post-mortem scheduled for tomorrow
-```
-
-#### 4.2 Update Status Page (wenn vorhanden)
+#### 3.1 Update Status Page
 
 ```
-UptimeRobot → Status Page → Post Update
-
 Title: Service Restored
-Message: "Das Problem wurde behoben. Alle Services laufen wieder normal."
 Status: Resolved
+Message: "The issue has been resolved by rolling back 
+         to a previous stable version. Service is 
+         operating normally. We will investigate 
+         the root cause and communicate findings."
 ```
 
-#### 4.3 Inform Customers (wenn nötig)
+#### 3.2 Notify Stakeholders
 
-**Wenn Downtime > 5 Minuten:**
-
+**Email Template:**
 ```
-Email Template:
+Subject: [RESOLVED] Production Incident - Rollback Completed
 
-Subject: [Resolved] Kurze Service-Unterbrechung
+Hi Team,
 
-Liebe OverCloud-Nutzer,
+The production incident has been resolved.
 
-heute zwischen 14:32 und 14:44 UTC (12 Minuten) kam es zu einer kurzen 
-Service-Unterbrechung. Das Problem wurde identifiziert und behoben.
+What happened:
+- Time: [HH:MM - HH:MM UTC]
+- Issue: [Beschreibung]
+- Impact: [Anzahl User, Features]
 
-Was ist passiert?
-- Ein fehlerhaftes Deployment verursachte API-Fehler
-- Unser Monitoring hat das Problem sofort erkannt
-- Wir haben innerhalb von 15 Minuten auf die vorherige Version zurückgerollt
+Resolution:
+- Rolled back to previous stable deployment
+- Service restored at [HH:MM UTC]
+- Total downtime: [X] minutes
 
-Was tun wir dagegen?
-- Verbesserte Pre-Deployment Tests
-- Automatische Rollback-Mechanismen
-- Detaillierter Post-Mortem Report
+Next steps:
+- Root cause analysis (due: [Date])
+- Fix will be deployed after thorough testing
+- Post-mortem meeting: [Date, Time]
 
-Danke für eure Geduld!
+Questions? Reply to this email or ping in #overcloud-incidents
 
-Das OverCloud Team
+[Dein Name]
+DevOps Team
 ```
 
----
+#### 3.3 Create Post-Mortem Task
 
-### Phase 5: Post-Mortem (1 Tag später)
+```bash
+# Create GitHub Issue für Post-Mortem
+gh issue create \
+    --title "Post-Mortem: Production Rollback [DATE]" \
+    --body "
+**Incident Summary**
+- Date: $(date)
+- Severity: P1
+- Duration: X minutes
+- Root Cause: TBD
 
-**Nur für P1/P2 Incidents! P3/P4 → Optional**
+**Action Items**
+- [ ] Root cause analysis
+- [ ] Fix implementation
+- [ ] Additional tests
+- [ ] Prevention measures
+- [ ] Documentation update
 
-#### 5.1 Post-Mortem Template
+**Timeline**
+- HH:MM - Incident detected
+- HH:MM - Rollback initiated
+- HH:MM - Service restored
 
-**Datei:** `docs/incidents/YYYY-MM-DD-deployment-rollback.md`
-
-```markdown
-# Incident Post-Mortem: Deployment Rollback
-
-**Date:** 2026-05-15
-**Duration:** 12 minutes (14:32 - 14:44 UTC)
-**Severity:** P1 (Critical)
-**Affected Services:** API (100%), Frontend (partial)
-**User Impact:** ~50 users unable to login
-
----
-
-## Timeline
-
-| Time (UTC) | Event |
-|------------|-------|
-| 14:30 | Deployment of commit abc123 started |
-| 14:32 | Deployment completed, API started returning 500 errors |
-| 14:33 | Uptime Monitor alert received |
-| 14:34 | On-call engineer investigated |
-| 14:36 | Decision: Rollback (no quick fix available) |
-| 14:37 | Rollback initiated (git revert + push) |
-| 14:42 | Rollback deployment completed |
-| 14:44 | Health check passed, errors stopped |
-| 14:45 | Incident resolved |
-
----
-
-## Root Cause
-
-**What went wrong?**
-- Feature X introduced a database query that caused deadlocks under load
-- Query timeout was set to 30s instead of 3s
-- Pre-deployment tests didn't catch this (no load testing)
-
-**Why wasn't it caught?**
-- Unit tests passed (mocked database)
-- Staging environment has only test data (no load)
-- No integration tests for this specific code path
-
----
-
-## What Went Well
-
-✅ Monitoring detected issue within 1 minute
-✅ On-call engineer responded within 2 minutes
-✅ Rollback completed in 10 minutes (under 15min RTO)
-✅ Clear runbook available (this document)
-✅ Team communication was fast and clear
-
----
-
-## What Went Wrong
-
-❌ Deployment had critical bug
-❌ Pre-deployment tests insufficient
-❌ No automatic rollback on health check failure
-❌ Load testing not part of CI/CD
-
----
-
-## Action Items
-
-| Action | Owner | Due Date | Status |
-|--------|-------|----------|--------|
-| Add load tests to CI/CD | DevOps | 2026-05-20 | Open |
-| Implement automatic health check rollback | Backend | 2026-05-22 | Open |
-| Review query timeouts in code | Backend | 2026-05-18 | Open |
-| Add integration test for auth flow | QA | 2026-05-25 | Open |
-| Document load testing best practices | DevOps | 2026-05-30 | Open |
-
----
-
-## Lessons Learned
-
-1. **Always load test:** Integration tests ≠ Production load
-2. **Fail fast:** Query timeouts should be < 5 seconds
-3. **Automate rollback:** Health check failures should trigger automatic rollback
-4. **Staging ≈ Production:** Use realistic data in staging
-
----
-
-## Conclusion
-
-This incident highlighted gaps in our pre-deployment testing. While our 
-monitoring and rollback procedures worked well, we need better testing 
-to prevent such issues from reaching production.
-
-**Estimated cost of incident:** €50 (12 min downtime × 50 users)
-**Estimated cost of prevention:** €200 (4h load testing setup)
-**ROI of prevention:** 4x
-
-**Next review:** 2026-06-15
+**Lessons Learned**
+(to be filled during post-mortem meeting)
+" \
+    --label "incident,post-mortem"
 ```
 
 ---
 
-## Rollback Decision Matrix
+## 🔧 Rollback Scenarios
 
-| Factor | Rollback | Forward-Fix |
-|--------|----------|-------------|
-| **Downtime** | > 5 minutes | < 5 minutes |
-| **Fix Complexity** | Unknown or complex | Simple & clear |
-| **User Impact** | High (many users) | Low (few users) |
-| **Risk of Fix** | Might break more | Confident fix |
-| **Time to Fix** | > 10 minutes | < 5 minutes |
+### Scenario 1: Database Migration Failed
 
-**Score:** 3+ Rollback factors → Rollback
+**Symptoms:**
+- 500 Errors on all endpoints
+- Logs: "DatabaseError: column X does not exist"
 
----
+**Rollback:**
+```bash
+# 1. Rollback code (siehe Phase 2)
+# 2. Rollback DB migration
+cd backend
+poetry run alembic downgrade -1
 
-## Automated Rollback (Future)
+# 3. Verify
+poetry run alembic current
+```
 
-**Ziel:** Automatisches Rollback bei Health Check Failure
+### Scenario 2: Broken API Endpoint
 
-**Implementierung in GitHub Actions:**
+**Symptoms:**
+- Specific endpoint returns 500
+- Sentry: "AttributeError in /api/v1/billing"
 
-```yaml
-# .github/workflows/deploy.yml
+**Rollback:**
+```bash
+# Option 1: Full rollback (empfohlen bei P1)
+# → Siehe Phase 2
 
-- name: Deploy to Production
-  run: terraform apply -auto-approve
+# Option 2: Feature Flag (wenn vorhanden)
+# Disable broken feature via admin panel oder env var
+ENABLE_NEW_BILLING=false
+```
 
-- name: Health Check
-  run: |
-    sleep 30  # Wait for deployment
-    HEALTH=$(curl -s -o /dev/null -w "%{http_code}" https://api.overcloud.io/health)
-    if [ "$HEALTH" != "200" ]; then
-      echo "Health check failed! Status: $HEALTH"
-      exit 1
-    fi
+### Scenario 3: Performance Degradation
 
-- name: Rollback on Failure
-  if: failure()
-  run: |
-    echo "Triggering automatic rollback..."
-    git revert HEAD --no-edit
-    git push origin main
-    # Notify team
-    curl -X POST $SLACK_WEBHOOK \
-      -d '{"text":"🚨 Auto-rollback triggered! Health check failed."}'
+**Symptoms:**
+- Response times >5s (normal: <500ms)
+- CloudWatch: CPU 90%+
+
+**Rollback:**
+```bash
+# 1. Identify cause
+# - Inefficient query?
+# - Memory leak?
+# - DDoS?
+
+# 2. If code-related: Full rollback
+# → Siehe Phase 2
+
+# 3. If infrastructure: Scale up (temporary)
+aws ecs update-service \
+    --cluster overcloud-production \
+    --service overcloud-backend \
+    --desired-count 10  # Double capacity
+
+# 4. Monitor
+watch -n 5 'aws cloudwatch get-metric-statistics ...'
+```
+
+### Scenario 4: Security Incident
+
+**Symptoms:**
+- Sentry: "Unauthorized access detected"
+- AWS GuardDuty Alert
+
+**Rollback:**
+```bash
+# 1. IMMEDIATELY rollback
+# → Siehe Phase 2 (Priority P1!)
+
+# 2. Rotate secrets
+aws secretsmanager update-secret \
+    --secret-id overcloud/production/jwt-secret \
+    --secret-string "$(openssl rand -base64 32)"
+
+# 3. Invalidate all sessions
+redis-cli FLUSHDB
+
+# 4. Security audit
+# → Separate runbook: RUNBOOK_SECURITY_INCIDENT.md
 ```
 
 ---
 
-## Contact & Escalation
+## 📊 Monitoring Post-Rollback
 
-**On-Call Engineer:**
-- Slack: @oncall-engineer
-- Phone: +49 XXX XXXXXXX
-- Email: oncall@overcloud.io
+### Metrics to Watch (30 Min)
 
-**Escalation Path:**
-1. **L1:** On-Call Engineer (response: 15 min)
-2. **L2:** DevOps Lead (response: 30 min)
-3. **L3:** CTO (response: 1 hour)
+```bash
+# 1. Error Rate
+# Sentry Dashboard → Last 30 minutes
+# Expected: < 1%
 
-**Escalate when:**
-- Rollback doesn't fix the issue
-- Infrastructure-level problem (AWS outage)
-- Multiple services affected
-- Customer data at risk
+# 2. Response Times
+# CloudWatch → ECS Metrics → ResponseTime
+# Expected: p95 < 500ms
+
+# 3. CPU/Memory
+# CloudWatch → ECS Metrics → CPU/Memory
+# Expected: CPU < 50%, Memory < 70%
+
+# 4. Request Count
+# CloudWatch → ALB Metrics → RequestCount
+# Expected: Back to normal traffic pattern
+```
 
 ---
 
-## Checkliste
+## 🚨 Escalation Path
 
-**Während Incident:**
-- [ ] Problem verifiziert (Sentry, Uptime, CloudWatch)
-- [ ] Team informiert (Slack #overcloud-incidents)
-- [ ] Rollback-Entscheidung getroffen
-- [ ] Rollback durchgeführt (GitHub Actions oder Git Revert)
-- [ ] Health Check bestanden
-- [ ] Smoke Tests durchgeführt
-- [ ] Errors gestoppt (Sentry)
-- [ ] Status Page updated
-- [ ] Customers informiert (wenn > 5min Downtime)
+### Level 1: On-Call Engineer (You)
+- Execute rollback
+- Monitor metrics
+- Update status page
 
-**Nach Incident:**
-- [ ] Post-Mortem geschrieben (P1/P2)
-- [ ] Action Items erstellt
+**Escalate wenn:**
+- Rollback schlägt fehl
+- Issue persistiert nach rollback
+- Unsicher über Severity
+
+### Level 2: Senior DevOps / Tech Lead
+- Alternative rollback strategies
+- Infrastructure debugging
+- Kommunikation mit Management
+
+**Contact:**
+- Slack: @tech-lead
+- Phone: [Number]
+
+### Level 3: CTO / Management
+- Business impact decisions
+- Customer communication
+- Post-mortem coordination
+
+**Contact:**
+- Email: cto@overcloud.io
+
+---
+
+## ✅ Rollback Checklist
+
+### Pre-Rollback
+- [ ] Incident verified (not false alarm)
+- [ ] Severity determined (P1-P4)
+- [ ] Team notified (#overcloud-incidents)
+- [ ] Last good commit identified
+
+### During Rollback
+- [ ] Rollback method chosen (GitHub/Git/Manual)
+- [ ] Rollback executed
+- [ ] Deployment monitored
+- [ ] Health checks passed
+
+### Post-Rollback
+- [ ] Metrics verified (30 Min window)
+- [ ] Status page updated
+- [ ] Stakeholders notified
+- [ ] Post-mortem issue created
 - [ ] Runbook updated (lessons learned)
-- [ ] Team Review Meeting (optional)
 
 ---
 
-## Related Documents
+## 📚 Related Runbooks
 
-- [Incident Response Plan](./INCIDENT_RESPONSE_PLAN.md)
-- [Business Continuity Plan](./BUSINESS_CONTINUITY_PLAN.md)
-- [Deployment Guide](../../DEPLOYMENT_GUIDE.md)
+- **RUNBOOK_DEPLOYMENT.md** - Standard deployment procedure
+- **RUNBOOK_SECURITY_INCIDENT.md** - Security-specific rollback
+- **RUNBOOK_DATABASE_RESTORE.md** - DB-specific recovery
+- **RUNBOOK_HOTFIX.md** - Emergency bug fix deployment
 
 ---
 
-**Last Updated:** 2026-05-15  
-**Next Review:** 2026-06-15  
-**Owner:** DevOps Team
+## 📖 Appendix
+
+### A. Common Error Codes
+
+| Code | Meaning | Action |
+|------|---------|--------|
+| 500 | Internal Server Error | Check Sentry, likely code bug |
+| 502 | Bad Gateway | Check ECS service health |
+| 503 | Service Unavailable | Check if deployment in progress |
+| 504 | Gateway Timeout | Check backend response times |
+
+### B. Useful Commands
+
+```bash
+# Check last 5 deployments
+gh run list --workflow=deploy-production --limit 5
+
+# Get ECS task logs
+aws logs tail /ecs/overcloud-production/backend --follow
+
+# Check Terraform state
+cd infrastructure/terraform/environments/production
+terraform show
+
+# Force new ECS deployment (without code change)
+aws ecs update-service \
+    --cluster overcloud-production \
+    --service overcloud-backend \
+    --force-new-deployment
+```
+
+### C. Contact List
+
+| Role | Name | Slack | Phone | Timezone |
+|------|------|-------|-------|----------|
+| On-Call | Rotating | @oncall | - | CET |
+| Tech Lead | Andy | @andy | - | CET |
+| CTO | - | @cto | - | CET |
+
+---
+
+**Version History:**
+- 1.0.0 (2026-05-17) - Initial version
+
+**Next Review:** 2026-06-17
