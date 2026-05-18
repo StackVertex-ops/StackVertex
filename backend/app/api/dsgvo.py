@@ -12,15 +12,17 @@ Implements EU GDPR requirements:
 
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, EmailStr
-from sqlalchemy.orm import Session
+from mypy_boto3_dynamodb.service_resource import Table
 
 from app.core.auth import get_current_user
-from app.core.database import get_db
-from app.models.user import User
+from app.db.dynamodb import get_dynamodb_table
+from app.repositories.dsgvo import DsgvoRepository
+from app.repositories.user import UserRepository
 from app.services.dsgvo_service import (
     export_user_data,
     delete_user_data,
@@ -29,9 +31,28 @@ from app.services.dsgvo_service import (
     update_user_consent,
     generate_data_export_json,
     schedule_user_deletion,
+    get_user_export,
+    cancel_scheduled_deletion,
+    update_user_field,
+    send_deletion_confirmation_email,
 )
 
 router = APIRouter(prefix="/api/v1/dsgvo", tags=["DSGVO"])
+
+
+# ===========================
+# Dependencies
+# ===========================
+
+
+def get_dsgvo_repository(table: Table = Depends(get_dynamodb_table)) -> DsgvoRepository:
+    """Get DSGVO Repository instance."""
+    return DsgvoRepository(table=table)
+
+
+def get_user_repository(table: Table = Depends(get_dynamodb_table)) -> UserRepository:
+    """Get User Repository instance."""
+    return UserRepository(table=table)
 
 
 # ===========================
@@ -111,8 +132,8 @@ class ConsentResponse(BaseModel):
 async def request_data_export(
     format: str = "json",
     include_metadata: bool = True,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+    dsgvo_repo: DsgvoRepository = Depends(get_dsgvo_repository),
     background_tasks: BackgroundTasks = None,
 ):
     """
@@ -138,39 +159,41 @@ async def request_data_export(
     - Export wird nach 7 Tagen automatisch gelöscht
     """
     try:
+        user_id = UUID(current_user["id"])
+
         # Create export request
         export_data = await export_user_data(
-            user_id=current_user.id,
+            user_id=user_id,
             format=format,
             include_metadata=include_metadata,
-            db=db,
+            dsgvo_repo=dsgvo_repo,
         )
 
         # Schedule background task for large exports
         if background_tasks:
             background_tasks.add_task(
-                generate_data_export_json, current_user.id, export_data["export_id"]
+                generate_data_export_json, user_id, export_data["export_id"]
             )
 
         return DataExportResponse(
             export_id=export_data["export_id"],
             status="pending",  # Will be "ready" when background task completes
             download_url=export_data.get("download_url"),
-            expires_at=export_data["expires_at"],
+            expires_at=datetime.fromisoformat(export_data["expires_at"]),
             created_at=datetime.utcnow(),
         )
 
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Failed to create data export: {str(e)}"
-        )
+            status_code=500, detail=f"Failed to create data export: {str(e)}" 
+        ) from e
 
 
 @router.get("/data-export/{export_id}/download")
 async def download_data_export(
     export_id: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+    dsgvo_repo: DsgvoRepository = Depends(get_dsgvo_repository),
 ):
     """
     Download data export file
@@ -181,8 +204,10 @@ async def download_data_export(
     - Nach Download wird Export als "accessed" markiert
     """
     try:
+        user_id = UUID(current_user["id"])
+
         # Verify export belongs to current user
-        export_data = await get_user_export(export_id, current_user.id, db)
+        export_data = await get_user_export(export_id, user_id, dsgvo_repo)
 
         if not export_data:
             raise HTTPException(status_code=404, detail="Export not found")
@@ -193,12 +218,23 @@ async def download_data_export(
             )
 
         # Check expiration
-        if datetime.utcnow() > export_data["expires_at"]:
+        expires_at = datetime.fromisoformat(export_data["expires_at"])
+        if datetime.utcnow() > expires_at:
             raise HTTPException(status_code=410, detail="Export has expired")
 
-        # Stream file
+        # Get file from S3
+        s3_key = export_data.get("s3_key")
+        if not s3_key:
+            raise HTTPException(status_code=404, detail="Export file not found")
+
+        from app.db.s3_storage import S3Storage
+        s3_storage = S3Storage()
+
+        # Stream file from S3
+        file_content = s3_storage.download(s3_key)
+
         return StreamingResponse(
-            export_data["file_stream"],
+            iter([file_content]),
             media_type="application/json",
             headers={
                 "Content-Disposition": f'attachment; filename="overcloud_data_export_{export_id}.json"'
@@ -209,15 +245,15 @@ async def download_data_export(
         raise
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Failed to download export: {str(e)}"
-        )
+            status_code=500, detail=f"Failed to download export: {str(e)}" 
+        ) from e
 
 
 @router.post("/data-deletion", response_model=DataDeletionResponse)
 async def request_data_deletion(
     request: DataDeletionRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+    dsgvo_repo: DsgvoRepository = Depends(get_dsgvo_repository),
     background_tasks: BackgroundTasks = None,
 ):
     """
@@ -252,41 +288,43 @@ async def request_data_deletion(
         )
 
     try:
+        user_id = UUID(current_user["id"])
+
         # Schedule deletion (with 7-day grace period)
         deletion_data = await schedule_user_deletion(
-            user_id=current_user.id,
+            user_id=user_id,
             reason=request.reason,
             delete_backups=request.delete_backups,
-            db=db,
+            dsgvo_repo=dsgvo_repo,
         )
 
         # Send confirmation email
         if background_tasks:
             background_tasks.add_task(
                 send_deletion_confirmation_email,
-                current_user.email,
+                current_user.get("email"),
                 deletion_data["deletion_id"],
             )
 
         return DataDeletionResponse(
             deletion_id=deletion_data["deletion_id"],
             status="scheduled",
-            scheduled_at=deletion_data["scheduled_at"],
-            estimated_completion=deletion_data["estimated_completion"],
+            scheduled_at=datetime.fromisoformat(deletion_data["scheduled_at"]),
+            estimated_completion=datetime.fromisoformat(deletion_data["estimated_completion"]),
             message="Your data will be deleted in 7 days. You will receive a confirmation email.",
         )
 
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Failed to schedule deletion: {str(e)}"
-        )
+            status_code=500, detail=f"Failed to schedule deletion: {str(e)}" 
+        ) from e
 
 
 @router.delete("/data-deletion/{deletion_id}/cancel")
 async def cancel_data_deletion(
     deletion_id: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+    dsgvo_repo: DsgvoRepository = Depends(get_dsgvo_repository),
 ):
     """
     Cancel scheduled data deletion (within 7-day grace period)
@@ -295,7 +333,8 @@ async def cancel_data_deletion(
     Nach Start der Löschung (Status "in_progress") ist kein Widerruf mehr möglich.
     """
     try:
-        result = await cancel_scheduled_deletion(deletion_id, current_user.id, db)
+        user_id = UUID(current_user["id"])
+        result = await cancel_scheduled_deletion(deletion_id, user_id, dsgvo_repo)
 
         if not result:
             raise HTTPException(
@@ -308,15 +347,15 @@ async def cancel_data_deletion(
         raise
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Failed to cancel deletion: {str(e)}"
-        )
+            status_code=500, detail=f"Failed to cancel deletion: {str(e)}" 
+        ) from e
 
 
 @router.patch("/data-rectification")
 async def request_data_rectification(
     request: DataRectificationRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+    user_repo: UserRepository = Depends(get_user_repository),
 ):
     """
     Art. 16 DSGVO: Right to Rectification (Recht auf Berichtigung)
@@ -343,14 +382,16 @@ async def request_data_rectification(
         )
 
     try:
+        user_id = UUID(current_user["id"])
+
         # Update field
         updated_user = await update_user_field(
-            user_id=current_user.id,
+            user_id=user_id,
             field=request.field,
             old_value=request.old_value,
             new_value=request.new_value,
             reason=request.reason,
-            db=db,
+            user_repo=user_repo,
         )
 
         return {
@@ -361,17 +402,17 @@ async def request_data_rectification(
         }
 
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Failed to update field: {str(e)}"
-        )
+            status_code=500, detail=f"Failed to update field: {str(e)}" 
+        ) from e
 
 
 @router.get("/consents", response_model=list[ConsentResponse])
 async def get_consents(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+    dsgvo_repo: DsgvoRepository = Depends(get_dsgvo_repository),
 ):
     """
     Get all user consents (Art. 7 DSGVO: Consent Management)
@@ -383,18 +424,19 @@ async def get_consents(
     - **third_party**: Datenübermittlung an Dritte (opt-in)
     """
     try:
-        consents = await get_user_consents(current_user.id, db)
+        user_id = UUID(current_user["id"])
+        consents = await get_user_consents(user_id, dsgvo_repo)
         return consents
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch consents: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch consents: {str(e)}") from e
 
 
 @router.post("/consents")
 async def update_consent(
     request: ConsentUpdateRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+    dsgvo_repo: DsgvoRepository = Depends(get_dsgvo_repository),
 ):
     """
     Update consent (Art. 7 DSGVO: Consent can be withdrawn at any time)
@@ -403,12 +445,14 @@ async def update_consent(
     Example: Revoking "analytics" consent stops all analytics tracking.
     """
     try:
+        user_id = UUID(current_user["id"])
+
         result = await update_user_consent(
-            user_id=current_user.id,
+            user_id=user_id,
             consent_type=request.consent_type,
             granted=request.granted,
             reason=request.reason,
-            db=db,
+            dsgvo_repo=dsgvo_repo,
         )
 
         action = "granted" if request.granted else "revoked"
@@ -420,14 +464,14 @@ async def update_consent(
         }
 
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to update consent: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to update consent: {str(e)}") from e
 
 
 @router.get("/processing-activities")
 async def get_processing_activities(
-    current_user: User = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
 ):
     """
     Art. 13/14 DSGVO: Information about data processing activities
@@ -467,34 +511,3 @@ async def get_processing_activities(
             },
         ]
     }
-
-
-# ===========================
-# Helper Functions (to be implemented in dsgvo_service.py)
-# ===========================
-
-
-async def get_user_export(export_id: str, user_id: str, db: Session):
-    """Retrieve export data by ID (to be implemented)"""
-    # TODO: Implement in dsgvo_service.py
-    pass
-
-
-async def cancel_scheduled_deletion(deletion_id: str, user_id: str, db: Session):
-    """Cancel scheduled deletion (to be implemented)"""
-    # TODO: Implement in dsgvo_service.py
-    pass
-
-
-async def update_user_field(
-    user_id: str, field: str, old_value: str, new_value: str, reason: str, db: Session
-):
-    """Update user field with audit trail (to be implemented)"""
-    # TODO: Implement in dsgvo_service.py
-    pass
-
-
-async def send_deletion_confirmation_email(email: str, deletion_id: str):
-    """Send deletion confirmation email (to be implemented)"""
-    # TODO: Implement email service
-    pass

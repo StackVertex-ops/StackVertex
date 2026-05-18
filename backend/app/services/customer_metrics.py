@@ -3,10 +3,10 @@
 Zeigt Kunden ihre Infrastructure Kosten und Performance Metriken.
 """
 
-import boto3
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
 from decimal import Decimal
+
+import boto3
 
 
 class CustomerMetricsService:
@@ -21,7 +21,7 @@ class CustomerMetricsService:
         deployment_id: str,
         customer_id: str,
         period_days: int = 30
-    ) -> Dict:
+    ) -> dict:
         """
         Holt Kosten für ein Customer Deployment.
 
@@ -72,11 +72,11 @@ class CustomerMetricsService:
                 'cost_breakdown': await self._get_cost_breakdown(deployment_id)
             }
 
-        except Exception as e:
+        except Exception:
             # Fallback: Schätze Kosten basierend auf Resources
             return await self._estimate_costs(deployment_id)
 
-    async def _get_cost_breakdown(self, deployment_id: str) -> Dict:
+    async def _get_cost_breakdown(self, deployment_id: str) -> dict:
         """Kosten-Breakdown nach Service."""
         end_date = datetime.utcnow().date()
         start_date = end_date - timedelta(days=30)
@@ -136,7 +136,7 @@ class CustomerMetricsService:
             # Kein Forecast verfügbar - nutze aktuellen Trend
             return 0.0
 
-    async def _estimate_costs(self, deployment_id: str) -> Dict:
+    async def _estimate_costs(self, deployment_id: str) -> dict:
         """
         Schätze Kosten wenn Cost Explorer nicht verfügbar.
 
@@ -159,7 +159,7 @@ class CustomerMetricsService:
         self,
         deployment_id: str,
         metric_period_hours: int = 24
-    ) -> Dict:
+    ) -> dict:
         """
         Holt Performance Metriken für Customer Deployment.
 
@@ -212,7 +212,7 @@ class CustomerMetricsService:
         deployment_id: str,
         start_time: datetime,
         end_time: datetime
-    ) -> Optional[Dict]:
+    ) -> dict | None:
         """EC2 CPU & Network Metrics."""
         try:
             # Get EC2 Instance IDs for this deployment
@@ -268,7 +268,7 @@ class CustomerMetricsService:
         deployment_id: str,
         start_time: datetime,
         end_time: datetime
-    ) -> Optional[Dict]:
+    ) -> dict | None:
         """RDS CPU, Connections, Storage Metrics."""
         try:
             # Get RDS Instance for deployment
@@ -332,7 +332,7 @@ class CustomerMetricsService:
         deployment_id: str,
         start_time: datetime,
         end_time: datetime
-    ) -> Optional[Dict]:
+    ) -> dict | None:
         """Application Load Balancer Metrics."""
         try:
             # Get ALB for deployment
@@ -373,7 +373,7 @@ class CustomerMetricsService:
         except Exception:
             return None
 
-    async def _get_s3_metrics(self, deployment_id: str) -> Optional[Dict]:
+    async def _get_s3_metrics(self, deployment_id: str) -> dict | None:
         """S3 Storage Metrics."""
         try:
             s3 = boto3.client('s3')
@@ -424,7 +424,7 @@ class CustomerMetricsService:
         except Exception:
             return None
 
-    async def get_deployment_uptime(self, deployment_id: str) -> Dict:
+    async def get_deployment_uptime(self, deployment_id: str) -> dict:
         """Calculate deployment uptime percentage."""
         # Check CloudWatch Alarms für dieses Deployment
         cloudwatch = boto3.client('cloudwatch')

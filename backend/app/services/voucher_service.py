@@ -4,13 +4,11 @@ Business Logic für Voucher-Validierung und Discount-Berechnung.
 """
 
 import logging
+from typing import Any
 from uuid import UUID
-from typing import Dict, Any, Optional
-from decimal import Decimal
 
-from app.repositories.voucher import VoucherRepository
 from app.repositories.subscription import SubscriptionRepository
-from app.models.billing import BillingTier, BillingPeriod
+from app.repositories.voucher import VoucherRepository
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +30,7 @@ class VoucherService:
         self.voucher_repo = voucher_repo
         self.subscription_repo = subscription_repo
 
-    def validate_voucher(self, code: str, user_id: UUID) -> Dict[str, Any]:
+    def validate_voucher(self, code: str, user_id: UUID) -> dict[str, Any]:
         """Validiert Voucher für User.
 
         Args:
@@ -64,9 +62,9 @@ class VoucherService:
         base_price: float,
         aws_costs: float,
         aws_percentage: float,
-        voucher_code: Optional[str] = None,
-        user_id: Optional[UUID] = None
-    ) -> Dict[str, Any]:
+        voucher_code: str | None = None,
+        user_id: UUID | None = None
+    ) -> dict[str, Any]:
         """Berechnet finale Kosten mit angewendetem Gutschein.
 
         Args:
@@ -154,7 +152,7 @@ class VoucherService:
         self,
         base_price: float,
         aws_markup: float,
-        voucher: Dict[str, Any]
+        voucher: dict[str, Any]
     ) -> float:
         """Berechnet Discount-Betrag basierend auf Voucher-Config.
 
@@ -193,7 +191,7 @@ class VoucherService:
         code: str,
         user_id: UUID,
         org_id: UUID
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Wendet Voucher auf Subscription an.
 
         Args:
@@ -253,7 +251,7 @@ class VoucherService:
     def remove_voucher_from_subscription(
         self,
         org_id: UUID
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Entfernt Voucher von Subscription.
 
         Note: Voucher wird NICHT als "ungenutzt" markiert - einmal verwendet = verwendet.
@@ -297,7 +295,7 @@ class VoucherService:
         self,
         org_id: UUID,
         aws_costs: float = 0.0
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Berechnet finale Subscription-Kosten inkl. Voucher (falls vorhanden).
 
         Args:

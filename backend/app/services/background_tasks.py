@@ -6,10 +6,11 @@ Future: Migrate to Celery for production.
 
 import logging
 import threading
-from concurrent.futures import ThreadPoolExecutor, Future
-from typing import Callable, Dict, Any, Optional
-from uuid import UUID
+from collections.abc import Callable
+from concurrent.futures import Future, ThreadPoolExecutor
 from datetime import datetime
+from typing import Any
+from uuid import UUID
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 class BackgroundTaskRunner:
     """Manages background task execution using thread pool."""
 
-    _instance: Optional['BackgroundTaskRunner'] = None
+    _instance: 'BackgroundTaskRunner' | None = None
     _lock = threading.Lock()
 
     def __new__(cls):
@@ -35,7 +36,7 @@ class BackgroundTaskRunner:
                 max_workers=5,  # Max concurrent deployments
                 thread_name_prefix="bg_task_"
             )
-            self.tasks: Dict[UUID, Future] = {}
+            self.tasks: dict[UUID, Future] = {}
             logger.info("BackgroundTaskRunner initialized with 5 workers")
 
     def submit_task(
@@ -103,7 +104,7 @@ class BackgroundTaskRunner:
             if task_id in self.tasks:
                 del self.tasks[task_id]
 
-    def get_task_status(self, task_id: UUID) -> Optional[str]:
+    def get_task_status(self, task_id: UUID) -> str | None:
         """Get task status.
 
         Args:

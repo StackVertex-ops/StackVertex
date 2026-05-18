@@ -5,9 +5,10 @@ Definiert die Basisklassen für alle OverCloud Blueprints.
 Blueprints sind vorkonfigurierte Architektur-Templates mit realistischen Use Cases.
 """
 
-from typing import Dict, List, Optional, Any, Union
-from pydantic import BaseModel, Field
 from enum import Enum
+from typing import Any
+
+from pydantic import BaseModel, Field
 
 
 class BlueprintCategory(str, Enum):
@@ -41,17 +42,17 @@ class SelectOption(BaseModel):
     """Option für Select-Felder"""
     value: str
     label: str
-    description: Optional[str] = None
-    price_factor: Optional[float] = None  # Preismultiplikator für diese Option
+    description: str | None = None
+    price_factor: float | None = None  # Preismultiplikator für diese Option
 
 
 class FieldValidation(BaseModel):
     """Validierungsregeln für Formularfelder"""
-    min: Optional[Union[int, float]] = None
-    max: Optional[Union[int, float]] = None
-    pattern: Optional[str] = None
-    options: Optional[List[SelectOption]] = None
-    required_if: Optional[Dict[str, Any]] = None  # Bedingungen für required
+    min: int | float | None = None
+    max: int | float | None = None
+    pattern: str | None = None
+    options: list[SelectOption] | None = None
+    required_if: dict[str, Any] | None = None  # Bedingungen für required
 
 
 class BlueprintFormField(BaseModel):
@@ -61,13 +62,13 @@ class BlueprintFormField(BaseModel):
     label: str = Field(..., description="Angezeigtes Label")
     description: str = Field(..., description="Hilfetext für den User")
     required: bool = Field(default=True, description="Pflichtfeld?")
-    default: Optional[Any] = None
-    validation: Optional[FieldValidation] = None
-    constraints: Optional[str] = Field(
+    default: Any | None = None
+    validation: FieldValidation | None = None
+    constraints: str | None = Field(
         None,
         description="AWS Constraint-Referenz (z.B. 'aws.rds.min_storage')"
     )
-    depends_on: Optional[str] = Field(
+    depends_on: str | None = Field(
         None,
         description="Feldname von dem dieses Feld abhängt"
     )
@@ -78,11 +79,11 @@ class CostEstimate(BaseModel):
     min_usd: float = Field(..., description="Minimale monatliche Kosten (USD)")
     typical_usd: float = Field(..., description="Typische monatliche Kosten (USD)")
     max_usd: float = Field(..., description="Maximale monatliche Kosten (USD)")
-    breakdown: Optional[Dict[str, float]] = Field(
+    breakdown: dict[str, float] | None = Field(
         None,
         description="Kostenaufschlüsselung nach Service"
     )
-    assumptions: Optional[List[str]] = Field(
+    assumptions: list[str] | None = Field(
         None,
         description="Annahmen für die Kostenberechnung"
     )
@@ -97,25 +98,25 @@ class BlueprintMetadata(BaseModel):
     difficulty: BlueprintDifficulty
     estimated_cost: CostEstimate
     setup_time_minutes: int = Field(..., description="Geschätzte Setup-Zeit in Minuten")
-    use_cases: List[str] = Field(..., description="Konkrete Use Cases")
-    features: List[str] = Field(default_factory=list, description="Feature-Liste")
-    limitations: List[str] = Field(default_factory=list, description="Bekannte Limitierungen")
-    icon: Optional[str] = Field(None, description="Icon-Name für UI")
+    use_cases: list[str] = Field(..., description="Konkrete Use Cases")
+    features: list[str] = Field(default_factory=list, description="Feature-Liste")
+    limitations: list[str] = Field(default_factory=list, description="Bekannte Limitierungen")
+    icon: str | None = Field(None, description="Icon-Name für UI")
 
 
 class Blueprint(BaseModel):
     """Vollständiger Blueprint"""
     metadata: BlueprintMetadata
-    form_schema: List[BlueprintFormField]
-    aws_resources: List[str] = Field(
+    form_schema: list[BlueprintFormField]
+    aws_resources: list[str] = Field(
         ...,
         description="Liste der verwendeten AWS Services (z.B. ['S3', 'CloudFront'])"
     )
-    terraform_templates: List[str] = Field(
+    terraform_templates: list[str] = Field(
         ...,
         description="Liste der Terraform Template-Pfade (relativ zu templates/terraform/)"
     )
-    deployment_guide: Optional[str] = Field(
+    deployment_guide: str | None = Field(
         None,
         description="Markdown-Guide für Deployment"
     )

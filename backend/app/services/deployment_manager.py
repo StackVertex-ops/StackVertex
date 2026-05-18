@@ -3,22 +3,22 @@
 Orchestriert Terraform Deployments.
 """
 
-import logging
 import json
+import logging
 import shutil
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any
 from uuid import UUID
 
-from app.models.deployment import DeploymentStatus
-from app.repositories.deployment import DeploymentRepository
-from app.repositories.architecture import ArchitectureRepository
-from app.schemas.deployment import DeploymentCreate
-from app.services.terraform_executor import TerraformExecutor
+from app.config import settings
 from app.core.terraform_generator import TerraformGenerator
+from app.models.deployment import DeploymentStatus
+from app.repositories.architecture import ArchitectureRepository
+from app.repositories.deployment import DeploymentRepository
+from app.schemas.deployment import DeploymentCreate
 from app.services.background_tasks import task_runner
 from app.services.deployment_progress import get_progress_info
-from app.config import settings
+from app.services.terraform_executor import TerraformExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +69,7 @@ class DeploymentManager:
         repo: DeploymentRepository,
         architecture_id: UUID,
         deployed_by: str,
-        aws_credentials: Optional[Dict[str, str]] = None
+        aws_credentials: dict[str, str] | None = None
     ) -> UUID:
         """Startet ein neues Deployment im Hintergrund.
 
@@ -117,8 +117,8 @@ class DeploymentManager:
     def _execute_deployment(
         self,
         deployment_id: UUID,
-        architecture_json: Dict[str, Any],
-        aws_credentials: Optional[Dict[str, str]] = None
+        architecture_json: dict[str, Any],
+        aws_credentials: dict[str, str] | None = None
     ) -> None:
         """Führt Deployment im Hintergrund aus.
 
@@ -264,7 +264,7 @@ class DeploymentManager:
         self,
         repo: DeploymentRepository,
         deployment_id: UUID,
-        aws_credentials: Optional[Dict[str, str]] = None
+        aws_credentials: dict[str, str] | None = None
     ) -> None:
         """Destroys Infrastructure von einem Deployment.
 
@@ -415,7 +415,7 @@ class DeploymentManager:
         self,
         repo: DeploymentRepository,
         deployment_id: UUID,
-        aws_credentials: Optional[Dict[str, str]] = None
+        aws_credentials: dict[str, str] | None = None
     ) -> UUID:
         """Wiederholt ein fehlgeschlagenes Deployment.
 

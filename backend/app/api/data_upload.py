@@ -104,7 +104,7 @@ async def upload_docker_image(
 
     except ClientError as e:
         logger.error(f"S3 Upload fehlgeschlagen: {e}")
-        raise HTTPException(500, detail=f"Upload fehlgeschlagen: {str(e)}")
+        raise HTTPException(500, detail=f"Upload fehlgeschlagen: {str(e)}") from e
 
 
 @router.post("/data-upload/files")
@@ -387,7 +387,7 @@ async def list_uploaded_files(
 
     except ClientError as e:
         logger.error(f"Fehler beim Auflisten der Files: {e}")
-        raise HTTPException(500, detail=str(e))
+        raise HTTPException(500, detail=str(e)) from e
 
 
 @router.delete("/data-upload/{deployment_id}")
@@ -450,4 +450,4 @@ async def delete_deployment_data(
 
     except ClientError as e:
         logger.error(f"Fehler beim Löschen: {e}")
-        raise HTTPException(500, detail=str(e))
+        raise HTTPException(500, detail=str(e)) from e

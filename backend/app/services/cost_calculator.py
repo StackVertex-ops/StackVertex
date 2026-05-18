@@ -5,17 +5,16 @@ Wird für Live-Cost-Estimation in Blueprint-Formularen verwendet.
 """
 
 from decimal import Decimal
-from typing import Dict, List, Any, Optional
+from typing import Any
+
 from pydantic import BaseModel
 
 from app.data.aws_constraints import (
     EC2_INSTANCE_TYPES,
     RDS_INSTANCE_CLASSES,
     RDS_STORAGE_TYPES,
-    S3_STORAGE_CLASSES,
-    CLOUDFRONT_PRICE_CLASSES,
     ROUTE53_PRICING,
-    LAMBDA_CONSTRAINTS,
+    S3_STORAGE_CLASSES,
     VPC_CONSTRAINTS,
 )
 
@@ -32,13 +31,13 @@ class CostItem(BaseModel):
 
 class CostBreakdown(BaseModel):
     """Complete cost breakdown für Blueprint"""
-    items: List[CostItem]
+    items: list[CostItem]
     subtotal: Decimal
     tax: Decimal = Decimal("0.0")  # VAT/Sales Tax (optional)
     total: Decimal
     currency: str = "USD"
     period: str = "monthly"
-    assumptions: List[str] = []
+    assumptions: list[str] = []
 
 
 def calculate_ec2_cost(
@@ -83,7 +82,7 @@ def calculate_rds_cost(
     storage_type: str = "gp3",
     multi_az: bool = False,
     backup_retention_days: int = 7
-) -> List[CostItem]:
+) -> list[CostItem]:
     """Berechnet RDS Kosten (Instance + Storage + Backups).
 
     Args:
@@ -161,7 +160,7 @@ def calculate_s3_cost(
     storage_class: str = "STANDARD",
     monthly_requests: int = 100000,
     data_transfer_gb: float = 100.0
-) -> List[CostItem]:
+) -> list[CostItem]:
     """Berechnet S3 Kosten (Storage + Requests + Transfer).
 
     Args:
@@ -222,7 +221,7 @@ def calculate_cloudfront_cost(
     data_transfer_gb: float,
     price_class: str = "PriceClass_100",
     monthly_requests: int = 1000000
-) -> List[CostItem]:
+) -> list[CostItem]:
     """Berechnet CloudFront Kosten.
 
     Args:
@@ -343,7 +342,7 @@ def calculate_alb_cost(
 
 def calculate_nat_gateway_cost(
     data_processed_gb: float = 1000.0
-) -> List[CostItem]:
+) -> list[CostItem]:
     """Berechnet NAT Gateway Kosten.
 
     Args:
@@ -386,7 +385,7 @@ def calculate_nat_gateway_cost(
 def calculate_route53_cost(
     hosted_zones: int = 1,
     monthly_queries: int = 1000000
-) -> List[CostItem]:
+) -> list[CostItem]:
     """Berechnet Route53 Kosten.
 
     Args:
@@ -428,7 +427,7 @@ def calculate_route53_cost(
     return items
 
 
-def calculate_blueprint_cost(blueprint_id: str, configuration: Dict[str, Any]) -> CostBreakdown:
+def calculate_blueprint_cost(blueprint_id: str, configuration: dict[str, Any]) -> CostBreakdown:
     """
     Berechnet Gesamtkosten für Blueprint-Konfiguration.
 
@@ -442,8 +441,8 @@ def calculate_blueprint_cost(blueprint_id: str, configuration: Dict[str, Any]) -
     Raises:
         ValueError: Bei ungültiger Konfiguration
     """
-    items: List[CostItem] = []
-    assumptions: List[str] = []
+    items: list[CostItem] = []
+    assumptions: list[str] = []
 
     # Blueprint-specific calculation logic
     if blueprint_id == "static-website":

@@ -4,7 +4,6 @@ Domain models für Multi-Tenant Organisation Management.
 """
 
 from enum import Enum
-from typing import Optional
 
 
 class OrganisationPlan(str, Enum):

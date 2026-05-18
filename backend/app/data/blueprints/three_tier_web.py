@@ -7,16 +7,15 @@ Perfekt für: Traditionelle Web Apps, CMS, E-Commerce, SaaS Backends
 
 from .base import (
     Blueprint,
-    BlueprintMetadata,
     BlueprintCategory,
     BlueprintDifficulty,
-    CostEstimate,
     BlueprintFormField,
+    BlueprintMetadata,
+    CostEstimate,
     FieldType,
     FieldValidation,
     SelectOption,
 )
-
 
 THREE_TIER_WEB = Blueprint(
     metadata=BlueprintMetadata(

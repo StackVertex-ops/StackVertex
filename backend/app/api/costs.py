@@ -77,7 +77,7 @@ async def estimate_cost_from_json(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error estimating costs: {str(e)}",
-        )
+        ) from e
 
 
 @router.get(
@@ -153,7 +153,7 @@ async def estimate_cost_for_architecture(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error estimating costs: {str(e)}",
-        )
+        ) from e
 
 
 @router.post(
@@ -244,11 +244,11 @@ async def calculate_live_cost(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid configuration: {str(e)}",
-        )
+        ) from e
 
     except Exception as e:
         logger.error(f"Error calculating live costs: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error calculating costs: {str(e)}",
-        )
+        ) from e

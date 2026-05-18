@@ -3,10 +3,11 @@
 Verwaltet Gutscheine/Voucher für Rabatte auf Subscriptions.
 """
 
-from uuid import UUID
 from datetime import datetime
-from typing import Optional, Dict, Any, List
-from boto3.dynamodb.conditions import Key, Attr
+from typing import Any
+from uuid import UUID
+
+from boto3.dynamodb.conditions import Key
 
 from app.repositories.base import BaseRepository
 
@@ -21,10 +22,10 @@ class VoucherRepository(BaseRepository):
         discount_value: float,
         applies_to: str,
         max_uses: int = 1,
-        valid_from: Optional[datetime] = None,
-        valid_until: Optional[datetime] = None,
-        created_by: Optional[UUID] = None
-    ) -> Dict[str, Any]:
+        valid_from: datetime | None = None,
+        valid_until: datetime | None = None,
+        created_by: UUID | None = None
+    ) -> dict[str, Any]:
         """Erstellt neuen Gutschein.
 
         Args:
@@ -91,7 +92,7 @@ class VoucherRepository(BaseRepository):
 
         return self._put_item(item)
 
-    def get_by_code(self, code: str) -> Optional[Dict[str, Any]]:
+    def get_by_code(self, code: str) -> dict[str, Any] | None:
         """Findet Voucher anhand Code (case-insensitive).
 
         Args:
@@ -103,7 +104,7 @@ class VoucherRepository(BaseRepository):
         code = code.upper()
         return self._get_item(f"VOUCHER#{code}", "METADATA")
 
-    def validate(self, code: str, user_id: UUID) -> Dict[str, Any]:
+    def validate(self, code: str, user_id: UUID) -> dict[str, Any]:
         """Validiert ob Voucher verwendet werden kann.
 
         Args:
@@ -160,7 +161,7 @@ class VoucherRepository(BaseRepository):
             "remaining_uses": max_uses - current_uses if max_uses != -1 else -1
         }
 
-    def redeem(self, code: str, user_id: UUID) -> Dict[str, Any]:
+    def redeem(self, code: str, user_id: UUID) -> dict[str, Any]:
         """Markiert Voucher als verwendet.
 
         Args:
@@ -201,7 +202,7 @@ class VoucherRepository(BaseRepository):
         skip: int = 0,
         limit: int = 100,
         include_inactive: bool = False
-    ) -> tuple[List[Dict[str, Any]], int]:
+    ) -> tuple[list[dict[str, Any]], int]:
         """Listet alle Vouchers (für Admin).
 
         Args:
@@ -228,7 +229,7 @@ class VoucherRepository(BaseRepository):
 
         return items, total
 
-    def deactivate(self, code: str) -> Dict[str, Any]:
+    def deactivate(self, code: str) -> dict[str, Any]:
         """Deaktiviert Voucher (soft delete).
 
         Args:
@@ -255,7 +256,7 @@ class VoucherRepository(BaseRepository):
             }
         )
 
-    def reactivate(self, code: str) -> Dict[str, Any]:
+    def reactivate(self, code: str) -> dict[str, Any]:
         """Reaktiviert deaktivierten Voucher.
 
         Args:
@@ -282,7 +283,7 @@ class VoucherRepository(BaseRepository):
             }
         )
 
-    def get_usage_stats(self, code: str) -> Dict[str, Any]:
+    def get_usage_stats(self, code: str) -> dict[str, Any]:
         """Gibt Nutzungsstatistiken für Voucher zurück.
 
         Args:

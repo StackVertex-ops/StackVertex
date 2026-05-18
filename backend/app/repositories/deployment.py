@@ -4,14 +4,15 @@ Handles CRUD operations for Deployment entities with automatic
 S3 offload for large outputs (terraform_state, plan/apply outputs).
 """
 
-from typing import Dict, List, Optional, Any
-from uuid import UUID, uuid4
 from datetime import datetime
-from boto3.dynamodb.conditions import Key, Attr
+from typing import Any
+from uuid import UUID, uuid4
 
+from boto3.dynamodb.conditions import Key
+
+from app.models.deployment import DeploymentStatus
 from app.repositories.base import BaseRepository
 from app.schemas.deployment import DeploymentCreate
-from app.models.deployment import DeploymentStatus
 
 
 class DeploymentRepository(BaseRepository):
@@ -34,7 +35,7 @@ class DeploymentRepository(BaseRepository):
             Attributes: deployment_id, status, created_at
     """
 
-    def create(self, deployment: DeploymentCreate) -> Dict[str, Any]:
+    def create(self, deployment: DeploymentCreate) -> dict[str, Any]:
         """Create new deployment.
 
         Args:
@@ -51,7 +52,7 @@ class DeploymentRepository(BaseRepository):
         now = datetime.utcnow().isoformat()
 
         # Main deployment item
-        item: Dict[str, Any] = {
+        item: dict[str, Any] = {
             "PK": f"DEPLOY#{deployment_id}",
             "SK": "METADATA",
             "id": deployment_id,
@@ -84,7 +85,7 @@ class DeploymentRepository(BaseRepository):
 
         return created
 
-    def get(self, deployment_id: UUID) -> Optional[Dict[str, Any]]:
+    def get(self, deployment_id: UUID) -> dict[str, Any] | None:
         """Get deployment by ID.
 
         Args:
@@ -117,9 +118,9 @@ class DeploymentRepository(BaseRepository):
         self,
         skip: int = 0,
         limit: int = 100,
-        architecture_id: Optional[UUID] = None,
-        status: Optional[DeploymentStatus] = None
-    ) -> tuple[List[Dict[str, Any]], int]:
+        architecture_id: UUID | None = None,
+        status: DeploymentStatus | None = None
+    ) -> tuple[list[dict[str, Any]], int]:
         """List deployments with pagination and filtering.
 
         Args:
@@ -172,8 +173,8 @@ class DeploymentRepository(BaseRepository):
         self,
         deployment_id: UUID,
         status: DeploymentStatus,
-        error_message: Optional[str] = None
-    ) -> Optional[Dict[str, Any]]:
+        error_message: str | None = None
+    ) -> dict[str, Any] | None:
         """Update deployment status.
 
         Args:
@@ -193,7 +194,7 @@ class DeploymentRepository(BaseRepository):
             return None
 
         # Prepare updates
-        updates: Dict[str, Any] = {
+        updates: dict[str, Any] = {
             "status": status.value,
             "GSI3PK": f"status#{status.value}",
         }
@@ -232,13 +233,13 @@ class DeploymentRepository(BaseRepository):
     def update_outputs(
         self,
         deployment_id: UUID,
-        plan_output: Optional[str] = None,
-        apply_output: Optional[str] = None,
-        terraform_outputs: Optional[Dict[str, Any]] = None,
-        generated_files: Optional[Dict[str, str]] = None,
-        terraform_state: Optional[str] = None,
-        terraform_version: Optional[str] = None
-    ) -> Optional[Dict[str, Any]]:
+        plan_output: str | None = None,
+        apply_output: str | None = None,
+        terraform_outputs: dict[str, Any] | None = None,
+        generated_files: dict[str, str] | None = None,
+        terraform_state: str | None = None,
+        terraform_version: str | None = None
+    ) -> dict[str, Any] | None:
         """Update deployment outputs (always stored in S3 for large items).
 
         Args:
@@ -256,7 +257,7 @@ class DeploymentRepository(BaseRepository):
         Raises:
             Exception: If update fails
         """
-        updates: Dict[str, Any] = {}
+        updates: dict[str, Any] = {}
 
         # Store plan_output in S3 (always)
         if plan_output is not None:

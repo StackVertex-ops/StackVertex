@@ -5,23 +5,19 @@ Handles Organisation CRUD, Member Management, Quota Tracking.
 
 import logging
 from datetime import datetime
-from typing import Optional, List, Tuple, Dict, Any
 from uuid import UUID, uuid4
 
-from boto3.dynamodb.conditions import Key, Attr
+from boto3.dynamodb.conditions import Key
 from mypy_boto3_dynamodb.service_resource import Table
 
-from app.repositories.base import BaseRepository
 from app.models.organisation import (
     OrganisationPlan,
     OrganisationStatus,
     OrganisationType,
-    MonitoringLevel,
-    PLAN_QUOTAS,
     get_quota,
-    can_exceed_quota,
 )
 from app.models.user import UserRole
+from app.repositories.base import BaseRepository
 
 logger = logging.getLogger(__name__)
 
@@ -128,7 +124,7 @@ class OrganisationRepository(BaseRepository):
     # Read
     # ========================================================================
 
-    def get(self, org_id: UUID) -> Optional[dict]:
+    def get(self, org_id: UUID) -> dict | None:
         """Get organisation by ID.
 
         Args:
@@ -139,7 +135,7 @@ class OrganisationRepository(BaseRepository):
         """
         return self._get_item(f"ORG#{str(org_id)}", "METADATA")
 
-    def get_members(self, org_id: UUID) -> List[dict]:
+    def get_members(self, org_id: UUID) -> list[dict]:
         """Get all members of organisation.
 
         Args:
@@ -154,7 +150,7 @@ class OrganisationRepository(BaseRepository):
 
         return items
 
-    def get_member(self, org_id: UUID, user_id: UUID) -> Optional[dict]:
+    def get_member(self, org_id: UUID, user_id: UUID) -> dict | None:
         """Get specific member.
 
         Args:
@@ -173,7 +169,7 @@ class OrganisationRepository(BaseRepository):
         self,
         skip: int = 0,
         limit: int = 100,
-    ) -> Tuple[List[dict], int]:
+    ) -> tuple[list[dict], int]:
         """List ALL organisations (Admin only).
 
         Args:
@@ -201,8 +197,8 @@ class OrganisationRepository(BaseRepository):
         self,
         skip: int = 0,
         limit: int = 100,
-        owner_user_id: Optional[UUID] = None,
-    ) -> Tuple[List[dict], int]:
+        owner_user_id: UUID | None = None,
+    ) -> tuple[list[dict], int]:
         """List organisations.
 
         Args:
@@ -238,7 +234,7 @@ class OrganisationRepository(BaseRepository):
     # Update
     # ========================================================================
 
-    def update(self, org_id: UUID, updates: dict) -> Optional[dict]:
+    def update(self, org_id: UUID, updates: dict) -> dict | None:
         """Update organisation.
 
         Args:
@@ -267,7 +263,7 @@ class OrganisationRepository(BaseRepository):
         self,
         org_id: UUID,
         new_plan: OrganisationPlan
-    ) -> Optional[dict]:
+    ) -> dict | None:
         """Upgrade/downgrade organisation plan.
 
         Args:
@@ -288,7 +284,7 @@ class OrganisationRepository(BaseRepository):
         org_id: UUID,
         aws_role_arn: str,
         aws_account_id: str
-    ) -> Optional[dict]:
+    ) -> dict | None:
         """Update AWS IAM Role credentials (ENCRYPTED).
 
         Args:
@@ -330,7 +326,7 @@ class OrganisationRepository(BaseRepository):
         else:
             # Fallback for tests/dev without SecretsManager
             logger.warning(
-                f"Storing AWS credentials in PLAINTEXT (SecretsManager not configured)",
+                "Storing AWS credentials in PLAINTEXT (SecretsManager not configured)",
                 extra={"org_id": str(org_id)}
             )
             updates["aws_role_arn"] = aws_role_arn  # ⚠️ PLAINTEXT fallback
@@ -341,7 +337,7 @@ class OrganisationRepository(BaseRepository):
             updates
         )
 
-    def get_aws_role_arn(self, org_id: UUID) -> Optional[str]:
+    def get_aws_role_arn(self, org_id: UUID) -> str | None:
         """Retrieve decrypted AWS Role ARN.
 
         Args:
@@ -473,7 +469,7 @@ class OrganisationRepository(BaseRepository):
         org_id: UUID,
         user_id: UUID,
         new_role: UserRole
-    ) -> Optional[dict]:
+    ) -> dict | None:
         """Update member role.
 
         Args:
@@ -504,7 +500,7 @@ class OrganisationRepository(BaseRepository):
     # Quota Management
     # ========================================================================
 
-    def get_quota(self, org_id: UUID) -> Dict[str, int]:
+    def get_quota(self, org_id: UUID) -> dict[str, int]:
         """Get current quota usage.
 
         Args:
@@ -524,7 +520,7 @@ class OrganisationRepository(BaseRepository):
         org_id: UUID,
         quota_key: str,
         increment: int = 1
-    ) -> Optional[dict]:
+    ) -> dict | None:
         """Increment quota counter.
 
         Args:
@@ -556,7 +552,7 @@ class OrganisationRepository(BaseRepository):
         self,
         org_id: UUID,
         quota_key: str
-    ) -> Tuple[bool, int, int]:
+    ) -> tuple[bool, int, int]:
         """Check if quota limit is exceeded.
 
         Args:

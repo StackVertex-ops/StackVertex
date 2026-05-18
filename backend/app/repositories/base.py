@@ -3,15 +3,16 @@
 Provides common DynamoDB operations with S3 offload for large items.
 """
 
-from typing import Any, Dict, List, Optional, TypeVar, Generic
 from datetime import datetime
 from decimal import Decimal
-from mypy_boto3_dynamodb.service_resource import Table
-from boto3.dynamodb.conditions import Key, Attr, ConditionBase
+from typing import Any, Generic, TypeVar
 
+from boto3.dynamodb.conditions import ConditionBase
+from mypy_boto3_dynamodb.service_resource import Table
+
+from app.config import settings
 from app.db.dynamodb import get_dynamodb_table
 from app.db.s3_storage import S3Storage
-from app.config import settings
 
 
 def convert_floats_to_decimal(obj: Any) -> Any:
@@ -48,8 +49,8 @@ class BaseRepository(Generic[T]):
 
     def __init__(
         self,
-        table: Optional[Table] = None,
-        s3_storage: Optional[S3Storage] = None
+        table: Table | None = None,
+        s3_storage: S3Storage | None = None
     ):
         """Initialize repository.
 
@@ -61,7 +62,7 @@ class BaseRepository(Generic[T]):
         self.s3_storage = s3_storage or S3Storage()
         self.large_item_threshold = settings.LARGE_ITEM_THRESHOLD
 
-    def _put_item(self, item: Dict[str, Any]) -> Dict[str, Any]:
+    def _put_item(self, item: dict[str, Any]) -> dict[str, Any]:
         """Put item in DynamoDB with automatic timestamps.
 
         Args:
@@ -87,7 +88,7 @@ class BaseRepository(Generic[T]):
 
         return item
 
-    def _get_item(self, pk: str, sk: str) -> Optional[Dict[str, Any]]:
+    def _get_item(self, pk: str, sk: str) -> dict[str, Any] | None:
         """Get single item by primary key.
 
         Args:
@@ -105,13 +106,13 @@ class BaseRepository(Generic[T]):
     def _query(
         self,
         key_condition: ConditionBase,
-        filter_condition: Optional[ConditionBase] = None,
-        index_name: Optional[str] = None,
-        limit: Optional[int] = None,
+        filter_condition: ConditionBase | None = None,
+        index_name: str | None = None,
+        limit: int | None = None,
         scan_index_forward: bool = True,
-        exclusive_start_key: Optional[Dict[str, Any]] = None,
-        projection_expression: Optional[str] = None
-    ) -> tuple[List[Dict[str, Any]], Optional[Dict[str, Any]]]:
+        exclusive_start_key: dict[str, Any] | None = None,
+        projection_expression: str | None = None
+    ) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
         """Query items with optional filtering and pagination.
 
         Args:
@@ -126,7 +127,7 @@ class BaseRepository(Generic[T]):
         Returns:
             Tuple of (items list, last_evaluated_key for pagination)
         """
-        kwargs: Dict[str, Any] = {
+        kwargs: dict[str, Any] = {
             "KeyConditionExpression": key_condition,
             "ScanIndexForward": scan_index_forward,
         }
@@ -147,10 +148,10 @@ class BaseRepository(Generic[T]):
 
     def _scan(
         self,
-        filter_condition: Optional[ConditionBase] = None,
-        limit: Optional[int] = None,
-        exclusive_start_key: Optional[Dict[str, Any]] = None
-    ) -> tuple[List[Dict[str, Any]], Optional[Dict[str, Any]]]:
+        filter_condition: ConditionBase | None = None,
+        limit: int | None = None,
+        exclusive_start_key: dict[str, Any] | None = None
+    ) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
         """Scan table (use sparingly - prefer query).
 
         Args:
@@ -161,7 +162,7 @@ class BaseRepository(Generic[T]):
         Returns:
             Tuple of (items list, last_evaluated_key for pagination)
         """
-        kwargs: Dict[str, Any] = {}
+        kwargs: dict[str, Any] = {}
 
         if filter_condition is not None:
             kwargs["FilterExpression"] = filter_condition
@@ -177,9 +178,9 @@ class BaseRepository(Generic[T]):
         self,
         pk: str,
         sk: str,
-        updates: Dict[str, Any],
-        condition_expression: Optional[ConditionBase] = None
-    ) -> Dict[str, Any]:
+        updates: dict[str, Any],
+        condition_expression: ConditionBase | None = None
+    ) -> dict[str, Any]:
         """Update item attributes.
 
         Args:
@@ -213,7 +214,7 @@ class BaseRepository(Generic[T]):
 
         update_expr = "SET " + ", ".join(update_parts)
 
-        kwargs: Dict[str, Any] = {
+        kwargs: dict[str, Any] = {
             "Key": {"PK": pk, "SK": sk},
             "UpdateExpression": update_expr,
             "ExpressionAttributeNames": expr_attr_names,
@@ -231,7 +232,7 @@ class BaseRepository(Generic[T]):
         self,
         pk: str,
         sk: str,
-        condition_expression: Optional[ConditionBase] = None
+        condition_expression: ConditionBase | None = None
     ) -> bool:
         """Delete item.
 
@@ -244,7 +245,7 @@ class BaseRepository(Generic[T]):
             True if deleted successfully
         """
         try:
-            kwargs: Dict[str, Any] = {
+            kwargs: dict[str, Any] = {
                 "Key": {"PK": pk, "SK": sk}
             }
 
@@ -258,8 +259,8 @@ class BaseRepository(Generic[T]):
 
     def _batch_get_items(
         self,
-        keys: List[Dict[str, str]]
-    ) -> List[Dict[str, Any]]:
+        keys: list[dict[str, str]]
+    ) -> list[dict[str, Any]]:
         """Get multiple items in a single batch request.
 
         Args:
@@ -283,8 +284,8 @@ class BaseRepository(Generic[T]):
 
     def _batch_write_items(
         self,
-        items: List[Dict[str, Any]],
-        delete_keys: Optional[List[Dict[str, str]]] = None
+        items: list[dict[str, Any]],
+        delete_keys: list[dict[str, str]] | None = None
     ) -> bool:
         """Batch write (put/delete) items.
 

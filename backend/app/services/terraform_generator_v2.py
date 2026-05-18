@@ -5,8 +5,9 @@ Im Gegensatz zu V1 (Blueprint-basiert) ist dieser Generator komponentenbasiert.
 """
 
 import logging
-from typing import Dict, List, Any, Optional, Tuple
 from pathlib import Path
+from typing import Any
+
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 
 logger = logging.getLogger(__name__)
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 class TerraformGeneratorV2:
     """Generate Terraform from Architecture JSON (component-based)."""
 
-    def __init__(self, template_dir: Optional[Path] = None):
+    def __init__(self, template_dir: Path | None = None):
         """Initialisiert Generator.
 
         Args:
@@ -48,7 +49,7 @@ class TerraformGeneratorV2:
             'route_table', 'alb', 'target_group', 'dynamodb', 'iam'
         }
 
-    def generate(self, architecture_json: Dict[str, Any]) -> Dict[str, str]:
+    def generate(self, architecture_json: dict[str, Any]) -> dict[str, str]:
         """Generiert Terraform files aus Architecture JSON.
 
         Args:
@@ -121,7 +122,7 @@ class TerraformGeneratorV2:
 
         return files
 
-    def _generate_main_tf(self, architecture: Dict[str, Any]) -> str:
+    def _generate_main_tf(self, architecture: dict[str, Any]) -> str:
         """Generiert main.tf mit provider und terraform block."""
         metadata = architecture.get('metadata', {})
 
@@ -138,7 +139,7 @@ class TerraformGeneratorV2:
             provider=metadata.get('provider', 'aws')
         )
 
-    def _generate_main_tf_fallback(self, architecture: Dict[str, Any]) -> str:
+    def _generate_main_tf_fallback(self, architecture: dict[str, Any]) -> str:
         """Fallback für main.tf wenn Template fehlt."""
         metadata = architecture.get('metadata', {})
         project_name = metadata.get('name', 'infrastructure')
@@ -173,7 +174,7 @@ provider "aws" {{
 }}
 """
 
-    def _generate_variables_tf(self, architecture: Dict[str, Any]) -> str:
+    def _generate_variables_tf(self, architecture: dict[str, Any]) -> str:
         """Generiert variables.tf."""
         variables = self._extract_variables(architecture)
 
@@ -184,7 +185,7 @@ provider "aws" {{
             logger.warning("Template components/variables.tf.j2 not found, using fallback")
             return self._generate_variables_tf_fallback(variables)
 
-    def _generate_variables_tf_fallback(self, variables: List[Dict]) -> str:
+    def _generate_variables_tf_fallback(self, variables: list[dict]) -> str:
         """Fallback für variables.tf."""
         lines = [
             "# ============================================================================",
@@ -218,10 +219,10 @@ provider "aws" {{
     def _generate_component_file(
         self,
         comp_type: str,
-        components: List[Tuple[str, Dict]],
-        all_components: Dict,
-        connections: List[Dict],
-        architecture: Dict
+        components: list[tuple[str, dict]],
+        all_components: dict,
+        connections: list[dict],
+        architecture: dict
     ) -> str:
         """Generiert .tf file für specific component type."""
         template_name = f'{comp_type}.tf.j2'
@@ -269,14 +270,14 @@ provider "aws" {{
     def _generate_generic_component_file(
         self,
         comp_type: str,
-        components: List[Tuple[str, Dict]],
-        all_components: Dict
+        components: list[tuple[str, dict]],
+        all_components: dict
     ) -> str:
         """Generiert generischen Terraform Code ohne Template."""
         lines = [
-            f"# ============================================================================",
+            "# ============================================================================",
             f"# {comp_type.upper()} Resources",
-            f"# ============================================================================",
+            "# ============================================================================",
             f"# WARNING: Generic template used - please create {comp_type}.tf.j2 template",
             ""
         ]
@@ -307,7 +308,7 @@ provider "aws" {{
 
         return "\n".join(lines)
 
-    def _generate_outputs_tf(self, components: Dict[str, Any]) -> str:
+    def _generate_outputs_tf(self, components: dict[str, Any]) -> str:
         """Generiert outputs.tf."""
         outputs = self._extract_outputs(components)
 
@@ -318,7 +319,7 @@ provider "aws" {{
             logger.warning("Template components/outputs.tf.j2 not found, using fallback")
             return self._generate_outputs_tf_fallback(outputs)
 
-    def _generate_outputs_tf_fallback(self, outputs: List[Dict]) -> str:
+    def _generate_outputs_tf_fallback(self, outputs: list[dict]) -> str:
         """Fallback für outputs.tf."""
         lines = [
             "# ============================================================================",
@@ -338,14 +339,14 @@ provider "aws" {{
 
     def _group_components_by_type(
         self,
-        components: Dict[str, Any]
-    ) -> Dict[str, List[Tuple[str, Dict]]]:
+        components: dict[str, Any]
+    ) -> dict[str, list[tuple[str, dict]]]:
         """Gruppiert Components nach Type.
 
         Returns:
             Dict {component_type: [(comp_id, comp_data), ...]}
         """
-        grouped: Dict[str, List[Tuple[str, Dict]]] = {}
+        grouped: dict[str, list[tuple[str, dict]]] = {}
 
         for comp_id, comp_data in components.items():
             comp_type = comp_data.get('type')
@@ -364,10 +365,10 @@ provider "aws" {{
     def _get_dependencies(
         self,
         comp_id: str,
-        components: Dict,
-        connections: List[Dict],
-        architecture: Dict
-    ) -> List[str]:
+        components: dict,
+        connections: list[dict],
+        architecture: dict
+    ) -> list[str]:
         """Ermittelt Terraform Dependencies für ein Component.
 
         Returns:
@@ -424,7 +425,7 @@ provider "aws" {{
 
         return dependencies
 
-    def _get_primary_region(self, architecture: Dict) -> str:
+    def _get_primary_region(self, architecture: dict) -> str:
         """Ermittelt primary AWS region aus components."""
         components = architecture.get('components', {})
 
@@ -437,7 +438,7 @@ provider "aws" {{
         metadata = architecture.get('metadata', {})
         return metadata.get('region', 'us-east-1')
 
-    def _extract_variables(self, architecture: Dict) -> List[Dict]:
+    def _extract_variables(self, architecture: dict) -> list[dict]:
         """Extrahiert Terraform Variables aus Architecture."""
         metadata = architecture.get('metadata', {})
 
@@ -464,7 +465,7 @@ provider "aws" {{
 
         return variables
 
-    def _extract_outputs(self, components: Dict[str, Any]) -> List[Dict]:
+    def _extract_outputs(self, components: dict[str, Any]) -> list[dict]:
         """Extrahiert Terraform Outputs aus Components."""
         outputs = []
 

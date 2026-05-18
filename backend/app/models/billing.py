@@ -5,7 +5,7 @@ Hybrid Pricing Model: Flat Fee + % AWS Infrastructure Costs.
 
 from decimal import Decimal
 from enum import Enum
-from typing import Dict, Any
+from typing import Any
 
 
 class BillingTier(str, Enum):
@@ -134,7 +134,7 @@ TIER_PRICING = {
 }
 
 
-def get_tier_config(tier: BillingTier) -> Dict[str, Any]:
+def get_tier_config(tier: BillingTier) -> dict[str, Any]:
     """Get pricing config for tier.
 
     Args:
@@ -180,7 +180,7 @@ def calculate_monthly_cost_example(
     tier: BillingTier,
     aws_costs: Decimal,
     num_deployments: int = 0
-) -> Dict[str, Decimal]:
+) -> dict[str, Decimal]:
     """Calculate example monthly cost for tier.
 
     Args:

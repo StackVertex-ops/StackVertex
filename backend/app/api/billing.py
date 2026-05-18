@@ -482,11 +482,11 @@ async def estimate_monthly_cost(estimate_request: CostEstimateRequest):
     """
     try:
         tier = BillingTier(estimate_request.tier)
-    except ValueError:
+    except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid tier: {estimate_request.tier}"
-        )
+        ) from e
 
     cost_breakdown = calculate_monthly_cost_example(
         tier=tier,
@@ -592,11 +592,11 @@ async def list_invoices(
     if status_filter:
         try:
             status = InvoiceStatus(status_filter)
-        except ValueError:
+        except ValueError as e:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Invalid status: {status_filter}"
-            )
+            ) from e
 
     invoices = invoice_repo.list_by_org(org_id, limit=limit, status_filter=status)
 
@@ -684,4 +684,4 @@ async def preview_next_invoice(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e)
-        )
+        ) from e

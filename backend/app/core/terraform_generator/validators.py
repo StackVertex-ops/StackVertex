@@ -6,7 +6,6 @@ Validiert generierte Terraform-Dateien mit terraform CLI.
 import logging
 import subprocess
 from pathlib import Path
-from typing import Optional, Tuple, List
 
 from app.core.terraform_generator.exceptions import TerraformValidationError
 
@@ -24,7 +23,7 @@ class TerraformValidator:
         """
         self.terraform_binary = terraform_binary
 
-    def validate_syntax(self, hcl_code: str) -> Tuple[bool, List[str]]:
+    def validate_syntax(self, hcl_code: str) -> tuple[bool, list[str]]:
         """Validiert HCL Syntax (einfache Checks ohne terraform CLI).
 
         Prüft auf offensichtliche Syntax-Fehler.
@@ -56,7 +55,7 @@ class TerraformValidator:
         self,
         directory: Path,
         skip_init: bool = False
-    ) -> Tuple[bool, str, str]:
+    ) -> tuple[bool, str, str]:
         """Validiert Terraform-Dateien in einem Verzeichnis.
 
         Führt `terraform init` und `terraform validate` aus.
@@ -100,7 +99,7 @@ class TerraformValidator:
 
         return validate_success, validate_stdout, validate_stderr
 
-    def format_check(self, directory: Path) -> Tuple[bool, str]:
+    def format_check(self, directory: Path) -> tuple[bool, str]:
         """Prüft Terraform Formatting mit `terraform fmt`.
 
         Args:
@@ -121,10 +120,10 @@ class TerraformValidator:
 
     def _run_terraform_command(
         self,
-        args: List[str],
+        args: list[str],
         working_dir: Path,
         timeout: int = 120
-    ) -> Tuple[bool, str, str]:
+    ) -> tuple[bool, str, str]:
         """Führt terraform Kommando aus.
 
         Args:
@@ -162,7 +161,7 @@ class TerraformValidator:
             logger.error(f"Error running terraform command: {e}")
             return False, "", str(e)
 
-    def check_terraform_installed(self) -> Tuple[bool, Optional[str]]:
+    def check_terraform_installed(self) -> tuple[bool, str | None]:
         """Prüft ob Terraform installiert ist und gibt Version zurück.
 
         Returns:

@@ -10,12 +10,10 @@ Quellen:
 - AWS Documentation
 """
 
-from decimal import Decimal
-from typing import Dict, List, Optional, Tuple
-from enum import Enum
 import ipaddress
-from pydantic import BaseModel, Field
+from decimal import Decimal
 
+from pydantic import BaseModel, Field
 
 # ============================================================================
 # EC2 Instance Types
@@ -28,12 +26,12 @@ class EC2InstanceType(BaseModel):
     memory_gb: Decimal
     network_performance: str
     price_per_hour_usd: Decimal
-    architecture: List[str]  # ["x86_64"] or ["arm64"] or both
-    storage: Optional[str] = None  # "EBS only" or instance store details
-    use_cases: List[str] = Field(default_factory=list)
+    architecture: list[str]  # ["x86_64"] or ["arm64"] or both
+    storage: str | None = None  # "EBS only" or instance store details
+    use_cases: list[str] = Field(default_factory=list)
 
 
-EC2_INSTANCE_TYPES: Dict[str, EC2InstanceType] = {
+EC2_INSTANCE_TYPES: dict[str, EC2InstanceType] = {
     # T2 Family - Burstable Performance (Intel x86)
     "t2.micro": EC2InstanceType(
         name="t2.micro",
@@ -472,7 +470,7 @@ class RDSEngine(BaseModel):
     """RDS Database Engine Definition"""
     name: str
     display_name: str
-    versions: List[str]
+    versions: list[str]
     min_storage_gb: int
     max_storage_gb: int
     default_port: int
@@ -480,7 +478,7 @@ class RDSEngine(BaseModel):
     supports_read_replicas: bool = True
 
 
-RDS_ENGINES: Dict[str, RDSEngine] = {
+RDS_ENGINES: dict[str, RDSEngine] = {
     "mysql": RDSEngine(
         name="mysql",
         display_name="MySQL",
@@ -546,11 +544,11 @@ class RDSInstanceClass(BaseModel):
     network_performance: str
     price_per_hour_usd: Decimal  # Single-AZ MySQL pricing
     price_per_hour_multi_az_usd: Decimal
-    architecture: List[str]
-    use_cases: List[str] = Field(default_factory=list)
+    architecture: list[str]
+    use_cases: list[str] = Field(default_factory=list)
 
 
-RDS_INSTANCE_CLASSES: Dict[str, RDSInstanceClass] = {
+RDS_INSTANCE_CLASSES: dict[str, RDSInstanceClass] = {
     # T3 Family - Burstable Performance
     "db.t3.micro": RDSInstanceClass(
         name="db.t3.micro",
@@ -805,14 +803,14 @@ class RDSStorageType(BaseModel):
     display_name: str
     min_size_gb: int
     max_size_gb: int
-    min_iops: Optional[int] = None
-    max_iops: Optional[int] = None
+    min_iops: int | None = None
+    max_iops: int | None = None
     price_per_gb_month_usd: Decimal
-    price_per_iops_month_usd: Optional[Decimal] = None
-    use_cases: List[str] = Field(default_factory=list)
+    price_per_iops_month_usd: Decimal | None = None
+    use_cases: list[str] = Field(default_factory=list)
 
 
-RDS_STORAGE_TYPES: Dict[str, RDSStorageType] = {
+RDS_STORAGE_TYPES: dict[str, RDSStorageType] = {
     "gp2": RDSStorageType(
         name="gp2",
         display_name="General Purpose SSD (gp2)",
@@ -871,10 +869,10 @@ class S3StorageClass(BaseModel):
     retrieval_price_per_gb_usd: Decimal
     min_storage_duration_days: int
     retrieval_time: str
-    use_cases: List[str] = Field(default_factory=list)
+    use_cases: list[str] = Field(default_factory=list)
 
 
-S3_STORAGE_CLASSES: Dict[str, S3StorageClass] = {
+S3_STORAGE_CLASSES: dict[str, S3StorageClass] = {
     "STANDARD": S3StorageClass(
         name="STANDARD",
         display_name="S3 Standard",
@@ -1001,13 +999,13 @@ class CloudFrontPriceClass(BaseModel):
     """CloudFront Price Class Definition"""
     name: str
     display_name: str
-    regions: List[str]
+    regions: list[str]
     data_transfer_out_per_gb_usd: Decimal  # First 10 TB/month
     request_price_per_10k_https_usd: Decimal
-    use_cases: List[str] = Field(default_factory=list)
+    use_cases: list[str] = Field(default_factory=list)
 
 
-CLOUDFRONT_PRICE_CLASSES: Dict[str, CloudFrontPriceClass] = {
+CLOUDFRONT_PRICE_CLASSES: dict[str, CloudFrontPriceClass] = {
     "PriceClass_All": CloudFrontPriceClass(
         name="PriceClass_All",
         display_name="All Edge Locations",
@@ -1063,7 +1061,7 @@ def validate_rds_storage(
     size_gb: int,
     engine: str,
     storage_type: str = "gp3"
-) -> Tuple[bool, Optional[str]]:
+) -> tuple[bool, str | None]:
     """
     Validiert RDS Storage-Konfiguration.
 
@@ -1105,7 +1103,7 @@ def validate_rds_storage(
     return True, None
 
 
-def validate_vpc_cidr(cidr: str) -> Tuple[bool, Optional[str]]:
+def validate_vpc_cidr(cidr: str) -> tuple[bool, str | None]:
     """
     Validiert VPC CIDR-Block.
 
@@ -1169,7 +1167,7 @@ def calculate_vpc_usable_ips(cidr: str) -> int:
         return 0
 
 
-def validate_lambda_memory(memory_mb: int) -> Tuple[bool, Optional[str]]:
+def validate_lambda_memory(memory_mb: int) -> tuple[bool, str | None]:
     """
     Validiert Lambda Memory-Konfiguration.
 
@@ -1188,7 +1186,7 @@ def validate_lambda_memory(memory_mb: int) -> Tuple[bool, Optional[str]]:
     return True, None
 
 
-def validate_lambda_timeout(timeout_seconds: int) -> Tuple[bool, Optional[str]]:
+def validate_lambda_timeout(timeout_seconds: int) -> tuple[bool, str | None]:
     """
     Validiert Lambda Timeout-Konfiguration.
 
@@ -1207,7 +1205,7 @@ def validate_lambda_timeout(timeout_seconds: int) -> Tuple[bool, Optional[str]]:
     return True, None
 
 
-def get_ec2_instance_type(instance_type: str) -> Optional[EC2InstanceType]:
+def get_ec2_instance_type(instance_type: str) -> EC2InstanceType | None:
     """
     Holt EC2 Instance Type Details.
 
@@ -1220,7 +1218,7 @@ def get_ec2_instance_type(instance_type: str) -> Optional[EC2InstanceType]:
     return EC2_INSTANCE_TYPES.get(instance_type)
 
 
-def get_rds_engine(engine: str) -> Optional[RDSEngine]:
+def get_rds_engine(engine: str) -> RDSEngine | None:
     """
     Holt RDS Engine Details.
 
@@ -1237,7 +1235,7 @@ def validate_rds_iops(
     storage_type: str,
     iops: int,
     storage_gb: int
-) -> Tuple[bool, Optional[str]]:
+) -> tuple[bool, str | None]:
     """
     Validiert RDS IOPS-Konfiguration.
 
@@ -1319,7 +1317,7 @@ def calculate_rds_monthly_cost(
     storage_type: str = "gp3",
     multi_az: bool = False,
     backup_storage_gb: int = 0,
-    iops: Optional[int] = None
+    iops: int | None = None
 ) -> Decimal:
     """
     Berechnet monatliche RDS-Kosten.

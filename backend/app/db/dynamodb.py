@@ -3,16 +3,16 @@
 Provides configured DynamoDB resource and table for the application.
 """
 
+
 import boto3
-from typing import Optional
 from mypy_boto3_dynamodb.service_resource import DynamoDBServiceResource, Table
 
 from app.config import settings
 
 
 def get_dynamodb_resource(
-    region_name: Optional[str] = None,
-    endpoint_url: Optional[str] = None
+    region_name: str | None = None,
+    endpoint_url: str | None = None
 ) -> DynamoDBServiceResource:
     """Get configured DynamoDB resource.
 

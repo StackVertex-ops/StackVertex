@@ -4,12 +4,12 @@ Wrapper um die existierende validation.py mit zusätzlicher Funktionalität
 für Versioning und bessere Error-Handling.
 """
 
-from typing import Dict, Any, Optional
-from datetime import datetime
 from dataclasses import dataclass
+from datetime import datetime
+from typing import Any
 
+from app.core.json_engine.exceptions import SchemaNotFoundError, ValidationError
 from app.utils.validation import validate_json
-from app.core.json_engine.exceptions import ValidationError, SchemaNotFoundError
 
 
 @dataclass
@@ -26,7 +26,7 @@ class ValidationResult:
     valid: bool
     version: str
     validated_at: datetime
-    errors: Optional[list] = None
+    errors: list | None = None
 
 
 class ArchitectureValidator:
@@ -48,8 +48,8 @@ class ArchitectureValidator:
 
     def validate(
         self,
-        architecture_json: Dict[str, Any],
-        version: Optional[str] = None
+        architecture_json: dict[str, Any],
+        version: str | None = None
     ) -> ValidationResult:
         """Validiert Architecture JSON gegen Schema.
 
@@ -87,8 +87,8 @@ class ArchitectureValidator:
 
     def validate_and_raise(
         self,
-        architecture_json: Dict[str, Any],
-        version: Optional[str] = None
+        architecture_json: dict[str, Any],
+        version: str | None = None
     ) -> ValidationResult:
         """Validiert und wirft Exception bei Fehler.
 
@@ -114,7 +114,7 @@ class ArchitectureValidator:
 
         return result
 
-    def extract_version(self, architecture_json: Dict[str, Any]) -> str:
+    def extract_version(self, architecture_json: dict[str, Any]) -> str:
         """Extrahiert Version aus Architecture JSON.
 
         Args:
@@ -132,7 +132,7 @@ class ArchitectureValidator:
 
     def is_compatible(
         self,
-        architecture_json: Dict[str, Any],
+        architecture_json: dict[str, Any],
         target_version: str
     ) -> bool:
         """Prüft ob Architecture JSON mit target Version kompatibel ist.

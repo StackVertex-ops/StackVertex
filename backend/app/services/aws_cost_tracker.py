@@ -4,9 +4,10 @@ Fetches AWS costs via Cost Explorer API and tracks them per deployment.
 """
 
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, Any, Optional
+from datetime import datetime
+from typing import Any
 from uuid import UUID
+
 import boto3
 from botocore.exceptions import ClientError
 
@@ -40,7 +41,7 @@ class AWSCostTracker:
         aws_secret_access_key: str,
         aws_region: str,
         month: str  # Format: "2026-05"
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Fetch AWS costs for a month and store them.
 
         Args:
@@ -97,7 +98,7 @@ class AWSCostTracker:
         aws_secret_access_key: str,
         aws_region: str,
         month: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Fetch costs from AWS Cost Explorer API.
 
         Args:
@@ -153,7 +154,7 @@ class AWSCostTracker:
             )
 
             # Parse results into deployment -> service -> cost structure
-            deployment_costs: Dict[str, Dict[str, float]] = {}
+            deployment_costs: dict[str, dict[str, float]] = {}
             total_cost = 0.0
 
             for result in response.get('ResultsByTime', []):
@@ -209,7 +210,7 @@ class AWSCostTracker:
     def get_current_month_costs(
         self,
         org_id: UUID
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Get costs for current month.
 
         Args:
@@ -224,7 +225,7 @@ class AWSCostTracker:
     def get_cost_projection(
         self,
         org_id: UUID
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """Project end-of-month costs based on current usage.
 
         Args:

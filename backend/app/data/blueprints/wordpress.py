@@ -7,16 +7,15 @@ Perfekt für: Blogs, Corporate Websites, E-Commerce (WooCommerce)
 
 from .base import (
     Blueprint,
-    BlueprintMetadata,
     BlueprintCategory,
     BlueprintDifficulty,
-    CostEstimate,
     BlueprintFormField,
+    BlueprintMetadata,
+    CostEstimate,
     FieldType,
     FieldValidation,
     SelectOption,
 )
-
 
 WORDPRESS = Blueprint(
     metadata=BlueprintMetadata(

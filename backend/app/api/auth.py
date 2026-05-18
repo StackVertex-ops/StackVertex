@@ -171,11 +171,11 @@ def verify_refresh_token(token: str) -> dict:
 
         return payload
 
-    except JWTError:
+    except JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid refresh token"
-        )
+        ) from e
 
 
 async def get_current_user(
@@ -210,8 +210,8 @@ async def get_current_user(
         if user_id is None:
             raise credentials_exception
 
-    except JWTError:
-        raise credentials_exception
+    except JWTError as e:
+        raise credentials_exception from e
 
     # Get user from DB
     from uuid import UUID
@@ -596,7 +596,7 @@ async def refresh_token(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid refresh token"
-        )
+        ) from None
 
     # Check if token exists in DB and is valid
     token_item = refresh_token_repo.get_by_token(refresh_token)

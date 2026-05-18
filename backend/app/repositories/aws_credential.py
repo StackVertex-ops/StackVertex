@@ -6,15 +6,14 @@ Unterstützt AssumeRole (bevorzugt) und Access Keys (Fallback).
 
 import json
 import logging
-from typing import Optional
-from uuid import UUID, uuid4
 from datetime import datetime
+from uuid import UUID, uuid4
 
 import boto3
 from botocore.exceptions import ClientError
 
-from app.repositories.base import BaseRepository
 from app.config import settings
+from app.repositories.base import BaseRepository
 
 logger = logging.getLogger(__name__)
 
@@ -31,10 +30,10 @@ class AWSCredentialRepository(BaseRepository):
         org_id: UUID,
         credential_type: str,
         name: str = "Default",
-        role_arn: Optional[str] = None,
-        external_id: Optional[str] = None,
-        access_key_id: Optional[str] = None,
-        secret_access_key: Optional[str] = None,
+        role_arn: str | None = None,
+        external_id: str | None = None,
+        access_key_id: str | None = None,
+        secret_access_key: str | None = None,
         region: str = "us-east-1"
     ) -> dict:
         """Erstellt neue AWS Credentials (encrypted in Secrets Manager).
@@ -104,10 +103,10 @@ class AWSCredentialRepository(BaseRepository):
         self,
         credential_id: str,
         credential_type: str,
-        role_arn: Optional[str] = None,
-        external_id: Optional[str] = None,
-        access_key_id: Optional[str] = None,
-        secret_access_key: Optional[str] = None
+        role_arn: str | None = None,
+        external_id: str | None = None,
+        access_key_id: str | None = None,
+        secret_access_key: str | None = None
     ) -> str:
         """Speichert sensitive Credentials in AWS Secrets Manager.
 

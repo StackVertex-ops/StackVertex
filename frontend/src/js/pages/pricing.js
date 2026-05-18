@@ -314,7 +314,6 @@ function initPricingCalculator() {
     const applyVoucherBtn = document.getElementById('apply-voucher-btn');
 
     if (!tierSelect || !awsCostsInput) {
-        console.log('Pricing calculator elements not found on this page');
         return;
     }
 
@@ -351,7 +350,6 @@ async function loadHybridPricing() {
         if (!response.ok) throw new Error('Failed to load hybrid pricing');
 
         hybridPricingData = await response.json();
-        console.log('Hybrid pricing data loaded:', hybridPricingData);
     } catch (error) {
         console.warn('Failed to load hybrid pricing, using fallback:', error);
 

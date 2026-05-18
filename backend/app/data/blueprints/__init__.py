@@ -5,19 +5,17 @@ Zentrale Registry für alle verfügbaren Blueprints.
 Blueprints sind vorkonfigurierte Architektur-Templates mit realistischen Use Cases und fairen Preisen.
 """
 
-from typing import Optional, List, Dict
 from .base import Blueprint, BlueprintCategory, BlueprintDifficulty
+from .simple_api import SIMPLE_API
+from .spa import SPA
 
 # Import aller Blueprints
 from .static_website import STATIC_WEBSITE
-from .spa import SPA
-from .simple_api import SIMPLE_API
 from .three_tier_web import THREE_TIER_WEB
 from .wordpress import WORDPRESS
 
-
 # Blueprint Registry
-BLUEPRINT_REGISTRY: Dict[str, Blueprint] = {
+BLUEPRINT_REGISTRY: dict[str, Blueprint] = {
     "static-website": STATIC_WEBSITE,
     "spa": SPA,
     "simple-api": SIMPLE_API,
@@ -26,7 +24,7 @@ BLUEPRINT_REGISTRY: Dict[str, Blueprint] = {
 }
 
 
-def get_blueprint(blueprint_id: str) -> Optional[Blueprint]:
+def get_blueprint(blueprint_id: str) -> Blueprint | None:
     """
     Holt einen Blueprint anhand seiner ID.
 
@@ -40,10 +38,10 @@ def get_blueprint(blueprint_id: str) -> Optional[Blueprint]:
 
 
 def list_blueprints(
-    category: Optional[BlueprintCategory] = None,
-    difficulty: Optional[BlueprintDifficulty] = None,
-    max_cost_usd: Optional[float] = None,
-) -> List[Blueprint]:
+    category: BlueprintCategory | None = None,
+    difficulty: BlueprintDifficulty | None = None,
+    max_cost_usd: float | None = None,
+) -> list[Blueprint]:
     """
     Listet alle Blueprints mit optionalen Filtern.
 
@@ -72,14 +70,14 @@ def list_blueprints(
     return blueprints
 
 
-def get_blueprints_by_category() -> Dict[str, List[Blueprint]]:
+def get_blueprints_by_category() -> dict[str, list[Blueprint]]:
     """
     Gruppiert alle Blueprints nach Kategorie.
 
     Returns:
         Dict mit Kategorie -> Liste von Blueprints
     """
-    result: Dict[str, List[Blueprint]] = {}
+    result: dict[str, list[Blueprint]] = {}
 
     for blueprint in BLUEPRINT_REGISTRY.values():
         category = blueprint.metadata.category.value
@@ -90,7 +88,7 @@ def get_blueprints_by_category() -> Dict[str, List[Blueprint]]:
     return result
 
 
-def search_blueprints(query: str) -> List[Blueprint]:
+def search_blueprints(query: str) -> list[Blueprint]:
     """
     Sucht Blueprints nach Name, Description oder Use Cases.
 

@@ -5,16 +5,15 @@ Handles User CRUD operations with DynamoDB Single Table Design.
 
 import logging
 from datetime import datetime
-from typing import Optional, List, Tuple
 from uuid import UUID, uuid4
 
-from boto3.dynamodb.conditions import Key, Attr
+from boto3.dynamodb.conditions import Key
 from mypy_boto3_dynamodb.service_resource import Table
 from passlib.context import CryptContext
 
-from app.repositories.base import BaseRepository
-from app.models.user import AuthProvider, UserRole, UserStatus, SystemRole
 from app.models.organisation import OrganisationPlan, OrganisationType
+from app.models.user import AuthProvider, SystemRole, UserRole, UserStatus
+from app.repositories.base import BaseRepository
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +42,7 @@ class UserRepository(BaseRepository):
         name: str,
         password: str,
         auth_provider: AuthProvider = AuthProvider.EMAIL,
-        auth_provider_id: Optional[str] = None,
+        auth_provider_id: str | None = None,
     ) -> dict:
         """Create new user mit auto-created personal organisation.
 
@@ -145,7 +144,7 @@ class UserRepository(BaseRepository):
     # Read
     # ========================================================================
 
-    def get(self, user_id: UUID) -> Optional[dict]:
+    def get(self, user_id: UUID) -> dict | None:
         """Get user by ID.
 
         Args:
@@ -156,7 +155,7 @@ class UserRepository(BaseRepository):
         """
         return self._get_item(f"USER#{str(user_id)}", "METADATA")
 
-    def get_by_email(self, email: str) -> Optional[dict]:
+    def get_by_email(self, email: str) -> dict | None:
         """Get user by email (case-insensitive).
 
         Args:
@@ -174,7 +173,7 @@ class UserRepository(BaseRepository):
 
         return items[0] if items else None
 
-    def get_organisations(self, user_id: UUID) -> List[dict]:
+    def get_organisations(self, user_id: UUID) -> list[dict]:
         """Get all organisations this user is member of.
 
         Args:
@@ -194,7 +193,7 @@ class UserRepository(BaseRepository):
     # Update
     # ========================================================================
 
-    def update(self, user_id: UUID, updates: dict) -> Optional[dict]:
+    def update(self, user_id: UUID, updates: dict) -> dict | None:
         """Update user profile.
 
         Args:
@@ -241,7 +240,7 @@ class UserRepository(BaseRepository):
 
         return updated is not None
 
-    def update_status(self, user_id: UUID, status: UserStatus) -> Optional[dict]:
+    def update_status(self, user_id: UUID, status: UserStatus) -> dict | None:
         """Update user status.
 
         Args:
@@ -257,7 +256,7 @@ class UserRepository(BaseRepository):
             {"status": status.value}
         )
 
-    def update_system_role(self, user_id: UUID, system_role: SystemRole) -> Optional[dict]:
+    def update_system_role(self, user_id: UUID, system_role: SystemRole) -> dict | None:
         """Update user system role (SuperAdmin only).
 
         Args:
@@ -306,7 +305,7 @@ class UserRepository(BaseRepository):
         """
         return pwd_context.verify(plain_password, hashed_password)
 
-    def authenticate(self, email: str, password: str) -> Optional[dict]:
+    def authenticate(self, email: str, password: str) -> dict | None:
         """Authenticate user by email + password.
 
         Args:
@@ -341,7 +340,7 @@ class UserRepository(BaseRepository):
         self,
         skip: int = 0,
         limit: int = 100,
-    ) -> Tuple[List[dict], int]:
+    ) -> tuple[list[dict], int]:
         """List all users (admin only).
 
         Args:

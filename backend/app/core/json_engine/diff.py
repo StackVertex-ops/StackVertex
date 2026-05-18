@@ -4,9 +4,9 @@ Generiert strukturierte Diffs zwischen zwei Architecture JSON Versionen
 und erstellt human-readable Summaries.
 """
 
-from typing import Dict, Any, List, Set, Optional, Tuple
-from datetime import datetime
 from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Any
 
 from app.core.json_engine.exceptions import DiffGenerationError
 
@@ -24,10 +24,10 @@ class DiffResult:
         generated_at: Zeitpunkt der Diff-Generierung
     """
 
-    added: Dict[str, Any] = field(default_factory=dict)
-    removed: Dict[str, Any] = field(default_factory=dict)
-    modified: Dict[str, Any] = field(default_factory=dict)
-    unchanged: Optional[Set[str]] = None
+    added: dict[str, Any] = field(default_factory=dict)
+    removed: dict[str, Any] = field(default_factory=dict)
+    modified: dict[str, Any] = field(default_factory=dict)
+    unchanged: set[str] | None = None
     summary: str = ""
     generated_at: datetime = field(default_factory=datetime.utcnow)
 
@@ -52,8 +52,8 @@ class JSONDiff:
 
     def generate_diff(
         self,
-        old_json: Dict[str, Any],
-        new_json: Dict[str, Any],
+        old_json: dict[str, Any],
+        new_json: dict[str, Any],
         path: str = "$"
     ) -> DiffResult:
         """Generiert Diff zwischen zwei JSONs.
@@ -119,10 +119,10 @@ class JSONDiff:
 
     def _diff_lists(
         self,
-        old_list: List[Any],
-        new_list: List[Any],
+        old_list: list[Any],
+        new_list: list[Any],
         path: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Vergleicht zwei Listen und findet Änderungen.
 
         Args:
@@ -186,9 +186,9 @@ class JSONDiff:
 
     def generate_component_diff(
         self,
-        old_architecture: Dict[str, Any],
-        new_architecture: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        old_architecture: dict[str, Any],
+        new_architecture: dict[str, Any]
+    ) -> dict[str, Any]:
         """Generiert Component-Level Diff.
 
         Spezialisierter Diff für Architecture Components.
@@ -251,9 +251,9 @@ class JSONDiff:
 
     def apply_diff(
         self,
-        base_json: Dict[str, Any],
+        base_json: dict[str, Any],
         diff: DiffResult
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Wendet Diff auf Base JSON an.
 
         Nützlich für Migrations und Rollbacks.
@@ -291,7 +291,7 @@ class JSONDiff:
 
     def _set_value_by_path(
         self,
-        obj: Dict[str, Any],
+        obj: dict[str, Any],
         path: str,
         value: Any
     ) -> None:
@@ -314,7 +314,7 @@ class JSONDiff:
 
     def _delete_value_by_path(
         self,
-        obj: Dict[str, Any],
+        obj: dict[str, Any],
         path: str
     ) -> None:
         """Löscht Wert an JSON Path.

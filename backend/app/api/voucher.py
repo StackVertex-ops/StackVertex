@@ -184,7 +184,7 @@ async def validate_voucher(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
-        )
+        ) from e
 
 
 @router.post("/api/v1/voucher/redeem", response_model=VoucherRedeemResponse)
@@ -263,7 +263,7 @@ async def redeem_voucher(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
-        )
+        ) from e
 
 
 @router.delete("/api/v1/voucher/remove/{org_id}")
@@ -323,7 +323,7 @@ async def remove_voucher_from_subscription(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e)
-        )
+        ) from e
 
 
 # ============================================================================
@@ -421,7 +421,7 @@ async def get_voucher_stats(
         stats = voucher_repo.get_usage_stats(code)
         return VoucherStatsResponse(**stats)
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
 
 
 @router.post("/api/v1/admin/vouchers", response_model=VoucherResponse, status_code=status.HTTP_201_CREATED)
@@ -484,7 +484,7 @@ async def create_voucher(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
-        )
+        ) from e
 
 
 @router.delete("/api/v1/admin/vouchers/{code}")
@@ -530,7 +530,7 @@ async def deactivate_voucher(
         }
 
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
 
 
 @router.post("/api/v1/admin/vouchers/{code}/reactivate")
@@ -576,4 +576,4 @@ async def reactivate_voucher(
         }
 
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e

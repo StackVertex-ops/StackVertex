@@ -3,9 +3,9 @@
 Tracks AWS infrastructure costs per organisation and deployment.
 """
 
+from typing import Any
 from uuid import UUID
-from datetime import datetime
-from typing import Dict, Any, List, Optional
+
 from boto3.dynamodb.conditions import Key
 
 from app.repositories.base import BaseRepository
@@ -18,10 +18,10 @@ class AWSCostRepository(BaseRepository):
         self,
         org_id: UUID,
         month: str,  # Format: "2026-05"
-        deployment_costs: Dict[str, Dict[str, float]],
+        deployment_costs: dict[str, dict[str, float]],
         total_aws_costs: float,
         percentage_fee: float
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Store AWS costs for a month.
 
         Args:
@@ -53,7 +53,7 @@ class AWSCostRepository(BaseRepository):
         self,
         org_id: UUID,
         month: str
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Get AWS costs for a specific month.
 
         Args:
@@ -72,7 +72,7 @@ class AWSCostRepository(BaseRepository):
         self,
         org_id: UUID,
         limit: int = 12
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """List cost records for organisation (most recent first).
 
         Args:
@@ -96,7 +96,7 @@ class AWSCostRepository(BaseRepository):
         org_id: UUID,
         deployment_id: str,
         months: int = 3
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get cost history for a specific deployment.
 
         Args:
@@ -127,7 +127,7 @@ class AWSCostRepository(BaseRepository):
         self,
         org_id: UUID,
         year: int
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """Calculate total AWS costs for a year.
 
         Args:
@@ -160,7 +160,7 @@ class AWSCostRepository(BaseRepository):
         org_id: UUID,
         month: str,
         limit: int = 5
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get top spending deployments for a month.
 
         Args:
@@ -197,7 +197,7 @@ class AWSCostRepository(BaseRepository):
         self,
         org_id: UUID,
         months: int = 6
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get cost trend over time.
 
         Args:

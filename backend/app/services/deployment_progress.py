@@ -4,13 +4,12 @@ Berechnet Progress Percentage und Schätzungen basierend auf Deployment Status.
 """
 
 from datetime import datetime
-from typing import Dict, Optional, Any
+from typing import Any
 
 from app.models.deployment import DeploymentStatus
 
-
 # Status → Progress Mapping (in %)
-STATUS_PROGRESS_MAP: Dict[DeploymentStatus, int] = {
+STATUS_PROGRESS_MAP: dict[DeploymentStatus, int] = {
     DeploymentStatus.PENDING: 0,
     DeploymentStatus.GENERATING: 10,
     DeploymentStatus.INITIALIZING: 25,
@@ -24,7 +23,7 @@ STATUS_PROGRESS_MAP: Dict[DeploymentStatus, int] = {
 }
 
 # Status → Step Description
-STATUS_STEP_MAP: Dict[DeploymentStatus, str] = {
+STATUS_STEP_MAP: dict[DeploymentStatus, str] = {
     DeploymentStatus.PENDING: "Waiting to start",
     DeploymentStatus.GENERATING: "Generating Terraform code",
     DeploymentStatus.INITIALIZING: "Initializing Terraform",
@@ -38,7 +37,7 @@ STATUS_STEP_MAP: Dict[DeploymentStatus, str] = {
 }
 
 # Average duration per step (in seconds) - empirical values
-AVERAGE_STEP_DURATIONS: Dict[DeploymentStatus, float] = {
+AVERAGE_STEP_DURATIONS: dict[DeploymentStatus, float] = {
     DeploymentStatus.GENERATING: 5.0,
     DeploymentStatus.INITIALIZING: 10.0,
     DeploymentStatus.PLANNING: 15.0,
@@ -47,7 +46,7 @@ AVERAGE_STEP_DURATIONS: Dict[DeploymentStatus, float] = {
 }
 
 
-def get_progress_info(deployment: Dict[str, Any]) -> Dict:
+def get_progress_info(deployment: dict[str, Any]) -> dict:
     """Berechnet Progress-Informationen für Deployment.
 
     Args:
@@ -111,7 +110,7 @@ def get_progress_info(deployment: Dict[str, Any]) -> Dict:
     }
 
 
-def _estimate_remaining_time(deployment: Dict[str, Any]) -> Optional[float]:
+def _estimate_remaining_time(deployment: dict[str, Any]) -> float | None:
     """Schätzt verbleibende Zeit basierend auf aktuellem Status.
 
     Args:

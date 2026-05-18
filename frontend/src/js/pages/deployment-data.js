@@ -236,7 +236,6 @@ class DeploymentDataUploader {
             });
 
             alert('DockerHub Import gestartet! Dies kann einige Minuten dauern.');
-            console.log('Import result:', result);
 
             // Reload uploaded files after a delay
             setTimeout(() => this.loadUploadedFiles(), 5000);

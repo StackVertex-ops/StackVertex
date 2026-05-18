@@ -7,16 +7,15 @@ Perfekt für: Landing Pages, Dokumentation, Portfolios, Marketing Sites
 
 from .base import (
     Blueprint,
-    BlueprintMetadata,
     BlueprintCategory,
     BlueprintDifficulty,
-    CostEstimate,
     BlueprintFormField,
+    BlueprintMetadata,
+    CostEstimate,
     FieldType,
     FieldValidation,
     SelectOption,
 )
-
 
 STATIC_WEBSITE = Blueprint(
     metadata=BlueprintMetadata(

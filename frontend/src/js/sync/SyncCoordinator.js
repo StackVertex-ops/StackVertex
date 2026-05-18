@@ -121,7 +121,7 @@ export class SyncCoordinator {
                 break;
 
             default:
-                console.log('Unhandled state change:', changeType, payload);
+                // Unhandled state change - no action needed
         }
     }
 
@@ -225,8 +225,6 @@ export class SyncCoordinator {
         // Reload entire state into canvas and tabs
         this.canvas.loadFromJSON(this.state.state);
         this.tabs.loadFromJSON(this.state.state);
-
-        console.log(`State ${action === 'undo' ? 'rückgängig gemacht' : 'wiederhergestellt'}`);
     }
 
     /**
@@ -407,7 +405,6 @@ export class SyncCoordinator {
         try {
             const text = await file.text();
             this.state.import(text);
-            console.log('Architektur erfolgreich importiert');
         } catch (error) {
             console.error('Fehler beim Importieren:', error);
             alert('Fehler beim Importieren der Architektur');
@@ -420,7 +417,6 @@ export class SyncCoordinator {
     saveToLocalStorage(key = 'architecture-autosave') {
         const json = this.state.export();
         localStorage.setItem(key, json);
-        console.log('Architektur in LocalStorage gespeichert');
     }
 
     /**
@@ -430,7 +426,6 @@ export class SyncCoordinator {
         const json = localStorage.getItem(key);
         if (json) {
             this.state.import(json);
-            console.log('Architektur aus LocalStorage geladen');
             return true;
         }
         return false;

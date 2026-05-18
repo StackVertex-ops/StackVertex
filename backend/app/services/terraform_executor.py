@@ -5,9 +5,8 @@ Wrapper für Terraform CLI Commands.
 
 import logging
 import subprocess
-from pathlib import Path
-from typing import Tuple, List, Optional, Dict, Any
 from dataclasses import dataclass
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +29,7 @@ class TerraformExecutor:
         self,
         working_dir: Path,
         terraform_binary: str = "terraform",
-        env_vars: Optional[Dict[str, str]] = None
+        env_vars: dict[str, str] | None = None
     ):
         """Initialisiert Executor.
 
@@ -45,7 +44,7 @@ class TerraformExecutor:
 
         logger.info(f"TerraformExecutor initialized for {working_dir}")
 
-    def init(self, backend_config: Optional[Dict[str, str]] = None) -> ExecutionResult:
+    def init(self, backend_config: dict[str, str] | None = None) -> ExecutionResult:
         """Führt terraform init aus.
 
         Args:
@@ -72,8 +71,8 @@ class TerraformExecutor:
 
     def plan(
         self,
-        var_file: Optional[Path] = None,
-        out_file: Optional[Path] = None
+        var_file: Path | None = None,
+        out_file: Path | None = None
     ) -> ExecutionResult:
         """Führt terraform plan aus.
 
@@ -96,7 +95,7 @@ class TerraformExecutor:
 
     def apply(
         self,
-        plan_file: Optional[Path] = None,
+        plan_file: Path | None = None,
         auto_approve: bool = False
     ) -> ExecutionResult:
         """Führt terraform apply aus.
@@ -160,7 +159,7 @@ class TerraformExecutor:
 
     def _run_command(
         self,
-        args: List[str],
+        args: list[str],
         timeout: int = 600
     ) -> ExecutionResult:
         """Führt Terraform Command aus.

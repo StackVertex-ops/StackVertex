@@ -3,20 +3,21 @@
 Manages subscription lifecycle, tier changes, and billing periods.
 """
 
-from uuid import UUID, uuid4
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, List
+from typing import Any
+from uuid import UUID, uuid4
+
 from boto3.dynamodb.conditions import Key
 
-from app.repositories.base import BaseRepository
 from app.models.billing import (
-    BillingTier,
     BillingPeriod,
     BillingStatus,
-    get_tier_config,
+    BillingTier,
+    get_aws_markup_percentage,
     get_base_price,
-    get_aws_markup_percentage
+    get_tier_config,
 )
+from app.repositories.base import BaseRepository
 
 
 class SubscriptionRepository(BaseRepository):
@@ -28,7 +29,7 @@ class SubscriptionRepository(BaseRepository):
         tier: BillingTier,
         billing_period: BillingPeriod = BillingPeriod.MONTHLY,
         trial_days: int = 0
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Erstellt neue Subscription für Organisation.
 
         Args:
@@ -81,7 +82,7 @@ class SubscriptionRepository(BaseRepository):
 
         return self._put_item(item)
 
-    def get_by_org(self, org_id: UUID) -> Optional[Dict[str, Any]]:
+    def get_by_org(self, org_id: UUID) -> dict[str, Any] | None:
         """Get active subscription for organisation.
 
         Args:
@@ -92,7 +93,7 @@ class SubscriptionRepository(BaseRepository):
         """
         return self._get_item(f"ORG#{org_id}", "SUBSCRIPTION")
 
-    def get_by_id(self, subscription_id: str) -> Optional[Dict[str, Any]]:
+    def get_by_id(self, subscription_id: str) -> dict[str, Any] | None:
         """Get subscription by ID.
 
         Args:
@@ -112,8 +113,8 @@ class SubscriptionRepository(BaseRepository):
         self,
         org_id: UUID,
         new_tier: BillingTier,
-        new_billing_period: Optional[BillingPeriod] = None
-    ) -> Dict[str, Any]:
+        new_billing_period: BillingPeriod | None = None
+    ) -> dict[str, Any]:
         """Change subscription tier (upgrade/downgrade).
 
         Args:
@@ -152,7 +153,7 @@ class SubscriptionRepository(BaseRepository):
         self,
         org_id: UUID,
         status: BillingStatus
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Update subscription status.
 
         Args:
@@ -173,7 +174,7 @@ class SubscriptionRepository(BaseRepository):
         org_id: UUID,
         stripe_subscription_id: str,
         stripe_customer_id: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Link Stripe subscription to OverCloud subscription.
 
         Args:
@@ -196,7 +197,7 @@ class SubscriptionRepository(BaseRepository):
     def renew_period(
         self,
         org_id: UUID
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Renew subscription period (nach Zahlung).
 
         Args:
@@ -232,7 +233,7 @@ class SubscriptionRepository(BaseRepository):
         self,
         org_id: UUID,
         immediately: bool = False
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Cancel subscription.
 
         Args:
@@ -263,7 +264,7 @@ class SubscriptionRepository(BaseRepository):
     def list_expiring_soon(
         self,
         days: int = 7
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """List subscriptions expiring in the next N days.
 
         Args:
@@ -283,7 +284,7 @@ class SubscriptionRepository(BaseRepository):
 
         return items
 
-    def get_limits(self, org_id: UUID) -> Dict[str, Any]:
+    def get_limits(self, org_id: UUID) -> dict[str, Any]:
         """Get subscription limits for organisation.
 
         Args:

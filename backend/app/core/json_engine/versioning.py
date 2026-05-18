@@ -4,19 +4,17 @@ Verwaltet Architecture Versionen, parent-child Beziehungen,
 und koordiniert Validation + Diff Generation.
 """
 
-from typing import List, Dict, Any, Optional
+from typing import Any
 from uuid import UUID
-from datetime import datetime
 
+from app.core.json_engine.diff import JSONDiff
+from app.core.json_engine.exceptions import (
+    CircularReferenceError,
+    VersionNotFoundError,
+)
+from app.core.json_engine.validator import ArchitectureValidator, ValidationResult
 from app.repositories.architecture import ArchitectureRepository
 from app.schemas.architecture import ArchitectureCreate
-from app.core.json_engine.validator import ArchitectureValidator, ValidationResult
-from app.core.json_engine.diff import JSONDiff, DiffResult
-from app.core.json_engine.exceptions import (
-    VersionNotFoundError,
-    ValidationError,
-    CircularReferenceError
-)
 
 
 class VersioningService:
@@ -36,13 +34,13 @@ class VersioningService:
 
     def create_version(
         self,
-        architecture_json: Dict[str, Any],
+        architecture_json: dict[str, Any],
         name: str,
-        description: Optional[str] = None,
+        description: str | None = None,
         owner: str = "system",
-        parent_version_id: Optional[UUID] = None,
+        parent_version_id: UUID | None = None,
         validate: bool = True
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Erstellt neue Architecture Version mit Validation.
 
         Args:
@@ -95,8 +93,8 @@ class VersioningService:
     def get_version_history(
         self,
         architecture_id: UUID,
-        limit: Optional[int] = None
-    ) -> List[Dict[str, Any]]:
+        limit: int | None = None
+    ) -> list[dict[str, Any]]:
         """Holt Version History für Architecture.
 
         Verfolgt die Version-Chain von aktueller Version bis zur Root.
@@ -160,7 +158,7 @@ class VersioningService:
         version_a_id: UUID,
         version_b_id: UUID,
         component_level: bool = False
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Vergleicht zwei Architecture Versionen.
 
         Args:
@@ -225,7 +223,7 @@ class VersioningService:
     def get_latest_version(
         self,
         architecture_id: UUID
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Holt die neueste Version einer Architecture.
 
         Geht die Version-Chain vorwärts bis zur neuesten Version.
@@ -264,8 +262,8 @@ class VersioningService:
 
     def validate_version(
         self,
-        architecture_json: Dict[str, Any],
-        version: Optional[str] = None
+        architecture_json: dict[str, Any],
+        version: str | None = None
     ) -> ValidationResult:
         """Validiert Architecture JSON ohne zu speichern.
 

@@ -6,7 +6,8 @@ DynamoDB-basierte Tests mit Mocks oder DynamoDB Local.
 import json
 import tempfile
 from pathlib import Path
-from typing import Dict, Any, Generator
+from collections.abc import Generator
+from typing import Any
 from uuid import uuid4
 
 import pytest
@@ -43,7 +44,7 @@ def client(mock_dynamodb_table) -> TestClient:
 
 
 @pytest.fixture
-def sample_architecture_json() -> Dict[str, Any]:
+def sample_architecture_json() -> dict[str, Any]:
     """Provide sample architecture JSON for testing."""
     return {
         "version": "1.0.0",
@@ -92,7 +93,7 @@ def sample_architecture_json() -> Dict[str, Any]:
 
 
 @pytest.fixture
-def sample_deployment_data() -> Dict[str, Any]:
+def sample_deployment_data() -> dict[str, Any]:
     """Provide sample deployment data for testing."""
     return {
         "architecture_id": str(uuid4()),
@@ -272,7 +273,7 @@ def mock_secrets_manager(mock_secrets_manager_client):
 
 
 @pytest.fixture
-def sample_large_architecture_json() -> Dict[str, Any]:
+def sample_large_architecture_json() -> dict[str, Any]:
     """Generate architecture JSON > 300KB für S3 Offload Testing."""
     # Create base structure
     arch = {
@@ -313,7 +314,7 @@ def sample_large_architecture_json() -> Dict[str, Any]:
 
 
 @pytest.fixture
-def sample_architecture_minimal() -> Dict[str, Any]:
+def sample_architecture_minimal() -> dict[str, Any]:
     """Provide minimal architecture JSON (Alias für sample_architecture_json).
 
     Für Rückwärtskompatibilität mit alten Tests.
@@ -345,7 +346,7 @@ def sample_architecture_minimal() -> Dict[str, Any]:
 
 
 @pytest.fixture
-def sample_architecture_simple_web() -> Dict[str, Any]:
+def sample_architecture_simple_web() -> dict[str, Any]:
     """Provide simple web app architecture for E2E testing."""
     return {
         "version": "1.0.0",

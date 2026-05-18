@@ -5,10 +5,10 @@ Lädt und cached statische AWS Pricing-Daten.
 
 import json
 import logging
-from pathlib import Path
-from typing import Dict, Any, Optional
 from decimal import Decimal
 from functools import lru_cache
+from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class PricingDataLoader:
     """Lädt AWS Pricing-Daten aus JSON-Dateien."""
 
-    def __init__(self, pricing_dir: Optional[Path] = None):
+    def __init__(self, pricing_dir: Path | None = None):
         """Initialisiert Loader.
 
         Args:
@@ -31,10 +31,10 @@ class PricingDataLoader:
         logger.info(f"Pricing data directory: {self.pricing_dir}")
 
         # Cache für geladene Pricing-Daten
-        self._cache: Dict[str, Dict[str, Any]] = {}
+        self._cache: dict[str, dict[str, Any]] = {}
 
     @lru_cache(maxsize=32)
-    def _load_pricing_file(self, filename: str) -> Dict[str, Any]:
+    def _load_pricing_file(self, filename: str) -> dict[str, Any]:
         """Lädt Pricing-Datei und cached das Ergebnis.
 
         Args:
@@ -52,7 +52,7 @@ class PricingDataLoader:
             logger.error(f"Pricing file not found: {file_path}")
             raise FileNotFoundError(f"Pricing file not found: {filename}")
 
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             data = json.load(f)
 
         logger.debug(f"Loaded pricing data from {filename}")
@@ -62,7 +62,7 @@ class PricingDataLoader:
         self,
         instance_type: str,
         region: str = "us-east-1"
-    ) -> Optional[Decimal]:
+    ) -> Decimal | None:
         """Gibt EC2 Preis pro Stunde zurück.
 
         Args:
@@ -93,7 +93,7 @@ class PricingDataLoader:
         self,
         instance_class: str,
         region: str = "us-east-1"
-    ) -> Optional[Decimal]:
+    ) -> Decimal | None:
         """Gibt RDS Preis pro Stunde zurück.
 
         Args:
@@ -124,7 +124,7 @@ class PricingDataLoader:
         self,
         storage_type: str = "gp3",
         region: str = "us-east-1"
-    ) -> Optional[Decimal]:
+    ) -> Decimal | None:
         """Gibt RDS Storage Preis pro GB pro Stunde zurück.
 
         Args:
@@ -152,7 +152,7 @@ class PricingDataLoader:
         self,
         storage_class: str = "standard",
         region: str = "us-east-1"
-    ) -> Optional[Decimal]:
+    ) -> Decimal | None:
         """Gibt S3 Storage Preis pro GB pro Monat zurück.
 
         Args:
@@ -189,7 +189,7 @@ class PricingDataLoader:
     def get_lambda_price(
         self,
         region: str = "us-east-1"
-    ) -> Dict[str, Decimal]:
+    ) -> dict[str, Decimal]:
         """Gibt Lambda Pricing zurück.
 
         Args:
@@ -218,7 +218,7 @@ class PricingDataLoader:
                 "compute_per_gb_second": Decimal("0.0000166667"),
             }
 
-    def get_all_ec2_instances(self, region: str = "us-east-1") -> Dict[str, Dict]:
+    def get_all_ec2_instances(self, region: str = "us-east-1") -> dict[str, dict]:
         """Gibt alle verfügbaren EC2 Instance Types für eine Region zurück.
 
         Args:

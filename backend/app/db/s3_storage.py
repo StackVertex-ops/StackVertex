@@ -3,8 +3,8 @@
 Handles upload/download of large items that exceed DynamoDB's 400KB item size limit.
 """
 
+
 import boto3
-from typing import Optional
 from mypy_boto3_s3 import S3Client
 
 from app.config import settings
@@ -19,8 +19,8 @@ class S3Storage:
 
     def __init__(
         self,
-        bucket_name: Optional[str] = None,
-        region_name: Optional[str] = None
+        bucket_name: str | None = None,
+        region_name: str | None = None
     ):
         """Initialize S3 storage.
 

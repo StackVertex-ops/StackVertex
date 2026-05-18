@@ -4,10 +4,11 @@ Handles audit log creation and querying with time-based partitioning
 and pre-aggregated statistics support.
 """
 
-from typing import Dict, List, Optional, Any
-from uuid import UUID, uuid4
 from datetime import datetime
-from boto3.dynamodb.conditions import Key, Attr
+from typing import Any
+from uuid import UUID, uuid4
+
+from boto3.dynamodb.conditions import Attr, Key
 
 from app.repositories.base import BaseRepository
 
@@ -39,13 +40,13 @@ class AuditLogRepository(BaseRepository):
         user: str,
         action: str,
         resource_type: str,
-        resource_id: Optional[UUID] = None,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None,
+        resource_id: UUID | None = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+        details: dict[str, Any] | None = None,
         success: bool = True,
-        error_message: Optional[str] = None
-    ) -> Dict[str, Any]:
+        error_message: str | None = None
+    ) -> dict[str, Any]:
         """Create new audit log entry.
 
         Args:
@@ -79,7 +80,7 @@ class AuditLogRepository(BaseRepository):
         # Sort key format: {timestamp}#{log_id} for chronological ordering
         sort_key = f"{timestamp_iso}#{log_id}"
 
-        item: Dict[str, Any] = {
+        item: dict[str, Any] = {
             "PK": f"AUDIT#{partition_suffix}",
             "SK": sort_key,
             "id": log_id,
@@ -110,7 +111,7 @@ class AuditLogRepository(BaseRepository):
 
         return self._put_item(item)
 
-    def get(self, log_id: UUID, timestamp: datetime) -> Optional[Dict[str, Any]]:
+    def get(self, log_id: UUID, timestamp: datetime) -> dict[str, Any] | None:
         """Get audit log by ID and timestamp.
 
         Args:
@@ -137,13 +138,13 @@ class AuditLogRepository(BaseRepository):
         self,
         skip: int = 0,
         limit: int = 100,
-        user: Optional[str] = None,
-        action: Optional[str] = None,
-        resource_type: Optional[str] = None,
-        resource_id: Optional[UUID] = None,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None
-    ) -> tuple[List[Dict[str, Any]], int]:
+        user: str | None = None,
+        action: str | None = None,
+        resource_type: str | None = None,
+        resource_id: UUID | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None
+    ) -> tuple[list[dict[str, Any]], int]:
         """List audit logs with filtering and pagination.
 
         Args:
@@ -165,7 +166,7 @@ class AuditLogRepository(BaseRepository):
             - Provide start_date/end_date to limit partition scans
             - Avoid scanning all partitions (can be expensive)
         """
-        items: List[Dict[str, Any]] = []
+        items: list[dict[str, Any]] = []
 
         if user:
             # Query GSI5 (by user)
@@ -246,7 +247,7 @@ class AuditLogRepository(BaseRepository):
 
         return paginated_items, total
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get pre-aggregated audit log statistics.
 
         Returns:
@@ -277,7 +278,7 @@ class AuditLogRepository(BaseRepository):
             "last_updated": stats_item.get("last_updated")
         }
 
-    def initialize_stats(self) -> Dict[str, Any]:
+    def initialize_stats(self) -> dict[str, Any]:
         """Initialize stats item (for testing or manual setup).
 
         Returns:

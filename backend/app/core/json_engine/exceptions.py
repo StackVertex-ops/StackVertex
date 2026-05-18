@@ -3,7 +3,7 @@
 Definiert alle spezifischen Exceptions für Versioning, Validation und Migrations.
 """
 
-from typing import List, Dict, Any, Optional
+from typing import Any
 
 
 class JSONEngineException(Exception):
@@ -23,8 +23,8 @@ class ValidationError(JSONEngineException):
     def __init__(
         self,
         message: str,
-        errors: Optional[List[Dict[str, Any]]] = None,
-        schema_version: Optional[str] = None
+        errors: list[dict[str, Any]] | None = None,
+        schema_version: str | None = None
     ):
         super().__init__(message)
         self.errors = errors or []
@@ -65,8 +65,8 @@ class MigrationError(JSONEngineException):
     def __init__(
         self,
         message: str,
-        source_version: Optional[str] = None,
-        target_version: Optional[str] = None
+        source_version: str | None = None,
+        target_version: str | None = None
     ):
         super().__init__(message)
         self.source_version = source_version
@@ -97,7 +97,7 @@ class DiffGenerationError(JSONEngineException):
 class CircularReferenceError(JSONEngineException):
     """Exception bei zirkulären Referenzen in Version-Chain."""
 
-    def __init__(self, version_ids: List[str]):
+    def __init__(self, version_ids: list[str]):
         super().__init__(
             f"Circular reference detected in version chain: {' -> '.join(version_ids)}"
         )

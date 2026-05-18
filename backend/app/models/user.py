@@ -4,7 +4,6 @@ Domain models für User Management.
 """
 
 from enum import Enum
-from typing import Optional
 
 
 class AuthProvider(str, Enum):

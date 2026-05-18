@@ -249,7 +249,7 @@ module "backup" {
 
   # KMS Encryption (use storage module KMS key if available)
   kms_key_arn    = module.storage.customer_data_kms_key_arn
-  dr_kms_key_arn = null # TODO: Create DR region KMS key
+  dr_kms_key_arn = null # MVP: DR region KMS wird in Phase 2 konfiguriert
 
   # Backup Retention (Production: Long retention)
   daily_backup_retention_days   = 30   # 30 days
@@ -261,7 +261,7 @@ module "backup" {
   enable_monthly_backups = true
 
   # Cross-Region Backup for Disaster Recovery
-  enable_cross_region_backup = true # Prod: DR enabled
+  enable_cross_region_backup = false # MVP: DR wird in Phase 2 aktiviert
 
   # Resources to Backup
   # Note: DynamoDB tables should be added here when DynamoDB module is integrated
@@ -269,12 +269,12 @@ module "backup" {
   aurora_cluster_arn = module.database.cluster_arn # Aurora backup
 
   # S3 Cross-Region Replication
-  enable_s3_cross_region_replication = true
+  enable_s3_cross_region_replication = false # MVP: DR wird in Phase 2 aktiviert
   s3_source_bucket_arns = [
     module.storage.customer_data_bucket_arn,
     module.storage.deployment_states_bucket_arn
   ]
-  s3_destination_bucket_arns = [] # TODO: Create DR region S3 buckets
+  s3_destination_bucket_arns = [] # MVP: DR region S3 wird in Phase 2 erstellt
 
   # Monitoring
   enable_backup_alarms = true

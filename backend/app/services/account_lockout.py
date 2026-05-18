@@ -5,7 +5,7 @@ Tracks failed login attempts and locks accounts after threshold exceeded.
 
 import logging
 from datetime import datetime, timedelta
-from typing import Optional, Tuple
+
 from mypy_boto3_dynamodb.service_resource import Table
 
 logger = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ class AccountLockoutService:
         """
         self.table = table
 
-    def record_failed_login(self, email: str, ip_address: str) -> Tuple[bool, int, Optional[datetime]]:
+    def record_failed_login(self, email: str, ip_address: str) -> tuple[bool, int, datetime | None]:
         """Record failed login attempt.
 
         Args:
@@ -103,7 +103,7 @@ class AccountLockoutService:
         except Exception as e:
             logger.error(f"Failed to clear lockout data: {e}")
 
-    def is_account_locked(self, email: str) -> Tuple[bool, Optional[datetime]]:
+    def is_account_locked(self, email: str) -> tuple[bool, datetime | None]:
         """Check if account is currently locked.
 
         Args:
@@ -157,7 +157,7 @@ class AccountLockoutService:
             logger.error(f"Failed to unlock account: {e}")
             return False
 
-    def _get_lockout_data(self, email_lower: str) -> Optional[dict]:
+    def _get_lockout_data(self, email_lower: str) -> dict | None:
         """Get lockout data for email."""
         try:
             response = self.table.get_item(
@@ -174,8 +174,8 @@ class AccountLockoutService:
         self,
         email_lower: str,
         failed_count: int,
-        last_failed_at: Optional[datetime],
-        locked_until: Optional[datetime],
+        last_failed_at: datetime | None,
+        locked_until: datetime | None,
         last_failed_ip: str = None
     ):
         """Save lockout data to DynamoDB."""

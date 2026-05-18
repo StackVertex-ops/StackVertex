@@ -4,7 +4,7 @@ Terraform-spezifische Filter für Template-Rendering.
 """
 
 import re
-from typing import Any, List, Dict
+from typing import Any
 
 
 def terraform_bool(value: Any) -> str:
@@ -50,7 +50,7 @@ def terraform_string(value: Any) -> str:
     return f'"{escaped}"'
 
 
-def terraform_list(value: List[Any]) -> str:
+def terraform_list(value: list[Any]) -> str:
     """Konvertiert Python List zu Terraform List.
 
     Args:
@@ -81,7 +81,7 @@ def terraform_list(value: List[Any]) -> str:
     return f"[{', '.join(items)}]"
 
 
-def terraform_map(value: Dict[str, Any]) -> str:
+def terraform_map(value: dict[str, Any]) -> str:
     """Konvertiert Python Dict zu Terraform Map.
 
     Args:
@@ -153,7 +153,7 @@ def terraform_identifier(value: str) -> str:
     return sanitized or "resource"
 
 
-def terraform_tags(tags: List[str]) -> str:
+def terraform_tags(tags: list[str]) -> str:
     """Konvertiert Tag-Array zu Terraform Tags Map.
 
     Args:

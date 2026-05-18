@@ -4,9 +4,8 @@ Manages Refresh Tokens with Token Rotation for secure JWT authentication.
 """
 
 import hashlib
-from uuid import uuid4, UUID
-from datetime import datetime, timedelta
-from typing import Optional
+from datetime import datetime
+from uuid import UUID, uuid4
 
 from boto3.dynamodb.conditions import Key
 
@@ -54,7 +53,7 @@ class RefreshTokenRepository(BaseRepository):
 
         return self._put_item(item)
 
-    def get_by_token(self, token: str) -> Optional[dict]:
+    def get_by_token(self, token: str) -> dict | None:
         """Findet Refresh Token via GSI.
 
         Args:

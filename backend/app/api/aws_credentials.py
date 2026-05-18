@@ -113,10 +113,10 @@ async def create_credentials(
         return CredentialResponse(**credential)
 
     except ValueError as e:
-        raise HTTPException(400, detail=str(e))
+        raise HTTPException(400, detail=str(e)) from e
     except Exception as e:
         logger.error(f"Fehler beim Erstellen der Credentials: {e}")
-        raise HTTPException(500, detail="Interner Fehler")
+        raise HTTPException(500, detail="Interner Fehler") from e
 
 
 @router.post("/aws-credentials/{credential_id}/verify")
@@ -163,10 +163,10 @@ async def verify_credentials(
         }
 
     except ValueError as e:
-        raise HTTPException(404, detail=str(e))
+        raise HTTPException(404, detail=str(e)) from e
     except Exception as e:
         logger.error(f"Fehler bei Credential Verification: {e}")
-        raise HTTPException(500, detail="Verification fehlgeschlagen")
+        raise HTTPException(500, detail="Verification fehlgeschlagen") from e
 
 
 @router.get("/aws-credentials", response_model=List[CredentialResponse])
@@ -236,10 +236,10 @@ async def delete_credentials(
         }
 
     except ValueError as e:
-        raise HTTPException(404, detail=str(e))
+        raise HTTPException(404, detail=str(e)) from e
     except Exception as e:
         logger.error(f"Fehler beim Löschen der Credentials: {e}")
-        raise HTTPException(500, detail="Löschen fehlgeschlagen")
+        raise HTTPException(500, detail="Löschen fehlgeschlagen") from e
 
 
 @router.get("/aws-credentials/setup-guide")

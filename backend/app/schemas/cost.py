@@ -3,8 +3,7 @@
 Pydantic schemas für Cost API Responses.
 """
 
-from typing import List, Dict
-from decimal import Decimal
+
 from pydantic import BaseModel, Field
 
 
@@ -16,7 +15,7 @@ class ComponentCostResponse(BaseModel):
     component_name: str = Field(..., description="Component Name")
     hourly_cost: float = Field(..., description="Hourly cost in USD")
     monthly_cost: float = Field(..., description="Monthly cost in USD")
-    breakdown: Dict[str, float] = Field(
+    breakdown: dict[str, float] = Field(
         default_factory=dict,
         description="Cost breakdown by category"
     )
@@ -43,11 +42,11 @@ class CostEstimateResponse(BaseModel):
     total_monthly: float = Field(..., description="Total monthly cost in USD")
     total_yearly: float = Field(..., description="Total yearly cost in USD")
     currency: str = Field(default="USD", description="Currency")
-    components: List[ComponentCostResponse] = Field(
+    components: list[ComponentCostResponse] = Field(
         default_factory=list,
         description="Cost breakdown per component"
     )
-    breakdown_by_type: Dict[str, float] = Field(
+    breakdown_by_type: dict[str, float] = Field(
         default_factory=dict,
         description="Cost breakdown by component type"
     )

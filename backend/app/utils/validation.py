@@ -7,15 +7,15 @@ Das Schema wird gecacht, um wiederholtes Laden von der Festplatte zu vermeiden.
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
-from jsonschema import Draft202012Validator, ValidationError
+from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError
 
 logger = logging.getLogger(__name__)
 
 # Cache für geladene Schemas
-_schema_cache: Dict[str, Dict[str, Any]] = {}
+_schema_cache: dict[str, dict[str, Any]] = {}
 
 # Basis-Pfad für JSON Schemas
 SCHEMA_BASE_PATH = Path(__file__).parent.parent.parent.parent / "docs" / "json-schemas"
@@ -24,13 +24,13 @@ SCHEMA_BASE_PATH = Path(__file__).parent.parent.parent.parent / "docs" / "json-s
 class SchemaValidationError(Exception):
     """Exception für Schema-Validierungsfehler."""
 
-    def __init__(self, message: str, errors: List[Dict[str, Any]]):
+    def __init__(self, message: str, errors: list[dict[str, Any]]):
         self.message = message
         self.errors = errors
         super().__init__(self.message)
 
 
-def load_schema(schema_name: str) -> Dict[str, Any]:
+def load_schema(schema_name: str) -> dict[str, Any]:
     """Lädt ein JSON Schema von der Festplatte und cached es.
 
     Args:
@@ -57,7 +57,7 @@ def load_schema(schema_name: str) -> Dict[str, Any]:
         raise FileNotFoundError(f"Schema-Datei nicht gefunden: {schema_path}")
 
     try:
-        with open(schema_path, "r", encoding="utf-8") as f:
+        with open(schema_path, encoding="utf-8") as f:
             schema = json.load(f)
 
         # Validiere, dass das Schema selbst gültig ist
@@ -78,8 +78,8 @@ def load_schema(schema_name: str) -> Dict[str, Any]:
 
 
 def validate_json(
-    data: Dict[str, Any], schema_name: str
-) -> Tuple[bool, List[Dict[str, Any]]]:
+    data: dict[str, Any], schema_name: str
+) -> tuple[bool, list[dict[str, Any]]]:
     """Validiert JSON-Daten gegen ein Schema.
 
     Args:
@@ -98,7 +98,7 @@ def validate_json(
     schema = load_schema(schema_name)
     validator = Draft202012Validator(schema)
 
-    errors: List[Dict[str, Any]] = []
+    errors: list[dict[str, Any]] = []
 
     # Sammle alle Validierungsfehler
     for error in validator.iter_errors(data):

@@ -8,19 +8,17 @@ Workflow:
 5. Verifiziere Deployment
 """
 
+import json
+import logging
 import subprocess
 import tempfile
-import logging
-import json
 from pathlib import Path
-from typing import Dict, Optional
 
 import boto3
-from botocore.exceptions import ClientError
 
+from app.config import settings
 from app.services.aws_session import AWSSessionManager
 from app.services.terraform_generator_v2 import TerraformGeneratorV2
-from app.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +28,8 @@ class DeploymentExecutor:
 
     def __init__(
         self,
-        session_manager: Optional[AWSSessionManager] = None,
-        terraform_generator: Optional[TerraformGeneratorV2] = None
+        session_manager: AWSSessionManager | None = None,
+        terraform_generator: TerraformGeneratorV2 | None = None
     ):
         """Initialisiert Deployment Executor.
 
@@ -48,7 +46,7 @@ class DeploymentExecutor:
         architecture_json: dict,
         credential_id: str,
         org_id: str
-    ) -> Dict:
+    ) -> dict:
         """Deployed Infrastruktur in Kunden-Account.
 
         Args:
@@ -417,7 +415,7 @@ class DeploymentExecutor:
         deployment_id: str,
         credential_id: str,
         terraform_state_file: str
-    ) -> Dict:
+    ) -> dict:
         """Zerstört Deployment via Terraform Destroy.
 
         Args:

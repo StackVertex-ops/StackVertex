@@ -4,8 +4,6 @@ Verwaltet WebSocket Connections für Real-time Deployment Updates.
 """
 
 import logging
-import json
-from typing import Dict, Set
 from uuid import UUID
 
 from fastapi import WebSocket
@@ -28,7 +26,7 @@ class WebSocketManager:
         """Initialize WebSocket manager."""
         if not hasattr(self, 'connections'):
             # deployment_id -> set of WebSocket connections
-            self.connections: Dict[UUID, Set[WebSocket]] = {}
+            self.connections: dict[UUID, set[WebSocket]] = {}
             logger.info("WebSocketManager initialized")
 
     async def connect(self, deployment_id: UUID, websocket: WebSocket):

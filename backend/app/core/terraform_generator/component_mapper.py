@@ -3,11 +3,10 @@
 Maps Architecture Component Types zu Terraform Templates.
 """
 
-from typing import Dict, Optional
 from pathlib import Path
 
 # Component Type → Template Path Mapping
-COMPONENT_TEMPLATES: Dict[str, str] = {
+COMPONENT_TEMPLATES: dict[str, str] = {
     # Networking
     "vpc": "networking/vpc.tf.j2",
     "subnet": "networking/subnet.tf.j2",
@@ -41,7 +40,7 @@ COMPONENT_TEMPLATES: Dict[str, str] = {
 }
 
 # Alternative/Alias Namen
-COMPONENT_ALIASES: Dict[str, str] = {
+COMPONENT_ALIASES: dict[str, str] = {
     "network": "vpc",
     "virtual_private_cloud": "vpc",
     "instance": "ec2",
@@ -60,7 +59,7 @@ COMPONENT_ALIASES: Dict[str, str] = {
 class ComponentMapper:
     """Maps Architecture Components zu Terraform Templates."""
 
-    def __init__(self, template_dir: Optional[Path] = None):
+    def __init__(self, template_dir: Path | None = None):
         """Initialisiert Mapper.
 
         Args:

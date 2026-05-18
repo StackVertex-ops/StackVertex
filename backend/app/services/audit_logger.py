@@ -4,7 +4,7 @@ Zentrale Logging-Funktionen für Audit Trail.
 """
 
 import logging
-from typing import Optional, Dict, Any
+from typing import Any
 from uuid import UUID
 
 from fastapi import Request
@@ -18,11 +18,11 @@ def log_audit(
     user: str,
     action: str,
     resource_type: str,
-    resource_id: Optional[UUID] = None,
-    details: Optional[Dict[str, Any]] = None,
+    resource_id: UUID | None = None,
+    details: dict[str, Any] | None = None,
     success: bool = True,
-    error_message: Optional[str] = None,
-    request: Optional[Request] = None
+    error_message: str | None = None,
+    request: Request | None = None
 ):
     """Log audit event.
 
@@ -78,7 +78,7 @@ def log_deployment_created(
     user: str,
     deployment_id: UUID,
     architecture_id: UUID,
-    request: Optional[Request] = None
+    request: Request | None = None
 ):
     """Log deployment creation.
 
@@ -101,7 +101,7 @@ def log_deployment_created(
 def log_deployment_cancelled(
     user: str,
     deployment_id: UUID,
-    request: Optional[Request] = None
+    request: Request | None = None
 ):
     """Log deployment cancellation.
 
@@ -123,7 +123,7 @@ def log_deployment_retried(
     user: str,
     original_deployment_id: UUID,
     new_deployment_id: UUID,
-    request: Optional[Request] = None
+    request: Request | None = None
 ):
     """Log deployment retry.
 
@@ -148,7 +148,7 @@ def log_deployment_retried(
 def log_deployment_destroyed(
     user: str,
     deployment_id: UUID,
-    request: Optional[Request] = None
+    request: Request | None = None
 ):
     """Log deployment destruction.
 
@@ -169,7 +169,7 @@ def log_deployment_destroyed(
 def log_architecture_created(
     user: str,
     architecture_id: UUID,
-    request: Optional[Request] = None
+    request: Request | None = None
 ):
     """Log architecture creation.
 
@@ -191,7 +191,7 @@ def log_architecture_updated(
     user: str,
     architecture_id: UUID,
     new_version_id: UUID,
-    request: Optional[Request] = None
+    request: Request | None = None
 ):
     """Log architecture update.
 
@@ -214,7 +214,7 @@ def log_architecture_updated(
 def log_architecture_deleted(
     user: str,
     architecture_id: UUID,
-    request: Optional[Request] = None
+    request: Request | None = None
 ):
     """Log architecture deletion.
 

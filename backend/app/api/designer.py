@@ -157,14 +157,14 @@ async def save_designer_architecture(
         logger.warning(f"Validation error: {e}")
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=str(e),
-        )
+            detail=str(e)
+        ) from e
     except Exception as e:
         logger.error(f"Error saving designer architecture: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error saving architecture: {str(e)}",
-        )
+            detail=f"Error saving architecture: {str(e)}"
+        ) from e
 
 
 @router.get(
@@ -215,8 +215,8 @@ async def load_designer_architecture(
         logger.error(f"Error loading designer architecture: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error loading architecture: {str(e)}",
-        )
+            detail=f"Error loading architecture: {str(e)}"
+        ) from e
 
 
 @router.post(
@@ -273,14 +273,14 @@ async def generate_terraform(
         logger.warning(f"Validation error: {e}")
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=str(e),
-        )
+            detail=str(e)
+        ) from e
     except Exception as e:
         logger.error(f"Error generating Terraform: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error generating Terraform: {str(e)}",
-        )
+            detail=f"Error generating Terraform: {str(e)}"
+        ) from e
 
 
 @router.post(
@@ -379,5 +379,5 @@ async def validate_architecture(
         logger.error(f"Error validating architecture: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error validating architecture: {str(e)}",
-        )
+            detail=f"Error validating architecture: {str(e)}"
+        ) from e

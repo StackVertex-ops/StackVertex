@@ -4,8 +4,8 @@ Ermöglicht Schema-Migrationen zwischen Versionen (z.B. v1.0.0 → v2.0.0).
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
 from datetime import datetime
+from typing import Any
 
 from app.core.json_engine.exceptions import MigrationError
 
@@ -36,7 +36,7 @@ class BaseMigration(ABC):
     description: str = ""
 
     @abstractmethod
-    def upgrade(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def upgrade(self, data: dict[str, Any]) -> dict[str, Any]:
         """Migrates data from source_version to target_version.
 
         Args:
@@ -51,7 +51,7 @@ class BaseMigration(ABC):
         pass
 
     @abstractmethod
-    def downgrade(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def downgrade(self, data: dict[str, Any]) -> dict[str, Any]:
         """Reverts migration from target_version to source_version.
 
         Args:
@@ -65,7 +65,7 @@ class BaseMigration(ABC):
         """
         pass
 
-    def validate_source(self, data: Dict[str, Any]) -> bool:
+    def validate_source(self, data: dict[str, Any]) -> bool:
         """Validates that data matches source_version.
 
         Args:
@@ -77,7 +77,7 @@ class BaseMigration(ABC):
         version = data.get("version", "")
         return version == self.source_version
 
-    def validate_target(self, data: Dict[str, Any]) -> bool:
+    def validate_target(self, data: dict[str, Any]) -> bool:
         """Validates that data matches target_version.
 
         Args:
@@ -91,9 +91,9 @@ class BaseMigration(ABC):
 
     def apply(
         self,
-        data: Dict[str, Any],
+        data: dict[str, Any],
         direction: str = "upgrade"
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Applies migration in specified direction.
 
         Args:
@@ -172,7 +172,7 @@ class MigrationChain:
 
     def __init__(self):
         """Initialize Migration Chain."""
-        self.migrations: Dict[tuple, BaseMigration] = {}
+        self.migrations: dict[tuple, BaseMigration] = {}
 
     def register(self, migration: BaseMigration) -> None:
         """Registriert eine Migration.
@@ -187,7 +187,7 @@ class MigrationChain:
         self,
         source_version: str,
         target_version: str
-    ) -> Optional[list]:
+    ) -> list | None:
         """Findet Migration-Pfad zwischen Versionen.
 
         Args:
@@ -207,9 +207,9 @@ class MigrationChain:
 
     def migrate(
         self,
-        data: Dict[str, Any],
+        data: dict[str, Any],
         target_version: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Migrates data to target version.
 
         Args:

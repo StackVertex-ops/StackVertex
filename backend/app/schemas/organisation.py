@@ -4,18 +4,18 @@ API Request/Response Models für Organisation Management.
 """
 
 from datetime import datetime
-from typing import Optional, List, Dict, Any
+from typing import Any
 from uuid import UUID
-from pydantic import BaseModel, Field, ConfigDict
+
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.organisation import (
+    MonitoringLevel,
     OrganisationPlan,
     OrganisationStatus,
     OrganisationType,
-    MonitoringLevel,
 )
 from app.models.user import UserRole
-
 
 # ============================================================================
 # Organisation Base Schemas
@@ -47,7 +47,7 @@ class OrganisationUpdate(BaseModel):
     Alle Felder optional.
     """
 
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    name: str | None = Field(None, min_length=1, max_length=255)
     # Plan kann nur via separate upgrade/downgrade Endpoints geändert werden
 
 
@@ -82,8 +82,8 @@ class OrganisationResponse(OrganisationBase):
     owner_user_id: UUID = Field(..., description="Organisation owner (creator)")
     plan: OrganisationPlan
     status: OrganisationStatus
-    aws_role_arn: Optional[str] = Field(None, description="AWS IAM Role ARN (encrypted in storage)")
-    aws_account_id: Optional[str] = Field(None, description="Connected AWS Account ID")
+    aws_role_arn: str | None = Field(None, description="AWS IAM Role ARN (encrypted in storage)")
+    aws_account_id: str | None = Field(None, description="Connected AWS Account ID")
     quota: OrganisationQuotaResponse
     created_at: datetime
     updated_at: datetime
@@ -94,7 +94,7 @@ class OrganisationResponse(OrganisationBase):
 class OrganisationDetailResponse(OrganisationResponse):
     """Extended Organisation Response mit Members."""
 
-    members: List["OrganisationMemberResponse"] = Field(default_factory=list)
+    members: list["OrganisationMemberResponse"] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -148,13 +148,13 @@ class OrganisationAWSCredentialsResponse(BaseModel):
     """AWS Credentials Status (NOT the actual credentials!)."""
 
     connected: bool
-    aws_account_id: Optional[str] = None
-    aws_role_arn_partial: Optional[str] = Field(
+    aws_account_id: str | None = None
+    aws_role_arn_partial: str | None = Field(
         None,
         description="Partial ARN for display (e.g., 'arn:aws:iam::123456******:role/Over***')"
     )
-    verified_at: Optional[datetime] = None
-    last_used_at: Optional[datetime] = None
+    verified_at: datetime | None = None
+    last_used_at: datetime | None = None
 
 
 # ============================================================================
@@ -175,7 +175,7 @@ class OrganisationBillingResponse(BaseModel):
     monthly_price_eur: float = Field(..., description="Monthly price in EUR")
     current_period_start: datetime
     current_period_end: datetime
-    usage_this_month: Dict[str, Any] = Field(
+    usage_this_month: dict[str, Any] = Field(
         default_factory=dict,
         description="Usage metrics (deployments, etc.)"
     )
@@ -189,7 +189,7 @@ class OrganisationBillingResponse(BaseModel):
 class OrganisationListResponse(BaseModel):
     """Paginated Organisation List Response."""
 
-    items: List[OrganisationResponse]
+    items: list[OrganisationResponse]
     total: int
     skip: int
     limit: int

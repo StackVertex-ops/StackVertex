@@ -7,16 +7,15 @@ Perfekt für: React, Vue, Angular Apps mit serverless Backend
 
 from .base import (
     Blueprint,
-    BlueprintMetadata,
     BlueprintCategory,
     BlueprintDifficulty,
-    CostEstimate,
     BlueprintFormField,
+    BlueprintMetadata,
+    CostEstimate,
     FieldType,
     FieldValidation,
     SelectOption,
 )
-
 
 SPA = Blueprint(
     metadata=BlueprintMetadata(

@@ -3,7 +3,6 @@
 Custom exceptions für Terraform-Generierung.
 """
 
-from typing import Optional, List
 
 
 class TerraformGeneratorException(Exception):
@@ -34,7 +33,7 @@ class TemplateRenderError(TerraformGeneratorException):
 class TerraformValidationError(TerraformGeneratorException):
     """Exception bei Terraform-Validierungsfehlern."""
 
-    def __init__(self, message: str, errors: Optional[List[str]] = None):
+    def __init__(self, message: str, errors: list[str] | None = None):
         super().__init__(message)
         self.errors = errors or []
 
@@ -58,6 +57,6 @@ class UnsupportedComponentError(TerraformGeneratorException):
 class InvalidConfigurationError(TerraformGeneratorException):
     """Exception für ungültige Konfigurationen."""
 
-    def __init__(self, message: str, field: Optional[str] = None):
+    def __init__(self, message: str, field: str | None = None):
         super().__init__(message)
         self.field = field

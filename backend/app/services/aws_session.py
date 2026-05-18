@@ -4,7 +4,6 @@ Erstellt boto3 Sessions via AssumeRole oder Access Keys.
 """
 
 import logging
-from typing import Optional
 
 import boto3
 from botocore.exceptions import ClientError
@@ -17,7 +16,7 @@ logger = logging.getLogger(__name__)
 class AWSSessionManager:
     """Managed AWS Sessions für Kunden-Accounts."""
 
-    def __init__(self, credential_repo: Optional[AWSCredentialRepository] = None):
+    def __init__(self, credential_repo: AWSCredentialRepository | None = None):
         """Initialisiert Session Manager.
 
         Args:
@@ -61,7 +60,7 @@ class AWSSessionManager:
         role_arn: str,
         region: str,
         session_name: str = "overcloud-deployment",
-        external_id: Optional[str] = None,
+        external_id: str | None = None,
         duration_seconds: int = 3600
     ) -> boto3.Session:
         """Erstellt Session via AssumeRole.

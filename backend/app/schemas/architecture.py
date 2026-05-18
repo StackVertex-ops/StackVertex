@@ -4,18 +4,19 @@ Pydantic schemas für Validierung und Serialisierung von Architecture-Daten.
 """
 
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 from uuid import UUID
-from pydantic import BaseModel, Field, ConfigDict
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ArchitectureBase(BaseModel):
     """Basis-Schema mit gemeinsamen Feldern."""
 
     name: str = Field(..., min_length=1, max_length=255, description="Name der Architektur")
-    description: Optional[str] = Field(None, description="Beschreibung der Architektur")
+    description: str | None = Field(None, description="Beschreibung der Architektur")
     version: str = Field("1.0.0", max_length=50, description="Version der Architektur")
-    architecture_json: Dict[str, Any] = Field(
+    architecture_json: dict[str, Any] = Field(
         ...,
         description="JSON-Definition der Architektur (components, connections, config)",
     )
@@ -36,11 +37,11 @@ class ArchitectureUpdate(BaseModel):
     Alle Felder sind optional, nur die übergebenen werden aktualisiert.
     """
 
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = None
-    version: Optional[str] = Field(None, max_length=50)
-    architecture_json: Optional[Dict[str, Any]] = None
-    owner: Optional[str] = Field(None, max_length=255)
+    name: str | None = Field(None, min_length=1, max_length=255)
+    description: str | None = None
+    version: str | None = Field(None, max_length=50)
+    architecture_json: dict[str, Any] | None = None
+    owner: str | None = Field(None, max_length=255)
 
 
 class ArchitectureInDB(ArchitectureBase):

@@ -80,7 +80,7 @@ async def create_architecture_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Fehler beim Erstellen der Architektur: {str(e)}",
-        )
+        ) from e
 
 
 @router.get(
@@ -129,7 +129,7 @@ async def list_architectures_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Fehler beim Abrufen der Architekturen: {str(e)}",
-        )
+        ) from e
 
 
 @router.get(
@@ -178,7 +178,7 @@ async def get_architecture_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Fehler beim Abrufen der Architektur: {str(e)}",
-        )
+        ) from e
 
 
 @router.put(
@@ -234,7 +234,7 @@ async def update_architecture_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Fehler beim Aktualisieren der Architektur: {str(e)}",
-        )
+        ) from e
 
 
 @router.delete(
@@ -282,7 +282,7 @@ async def delete_architecture_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Fehler beim Löschen der Architektur: {str(e)}",
-        )
+        ) from e
 
 
 # ============================================================================
@@ -327,23 +327,23 @@ async def get_version_history_endpoint(
         logger.info(f"Version history abgerufen für {architecture_id}: {len(history)} Versionen")
         return [ArchitectureResponse(**item) for item in history]
 
-    except VersionNotFoundError:
+    except VersionNotFoundError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Architecture mit ID {architecture_id} nicht gefunden",
-        )
+        ) from e
     except CircularReferenceError as e:
         logger.error(f"Circular reference in version chain: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Circular reference detected in version chain",
-        )
+        ) from e
     except Exception as e:
         logger.error(f"Fehler beim Abrufen der Version History: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Fehler beim Abrufen der Version History: {str(e)}",
-        )
+        ) from e
 
 
 @router.get(
@@ -387,13 +387,13 @@ async def compare_versions_endpoint(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
-        )
+        ) from e
     except Exception as e:
         logger.error(f"Fehler beim Vergleichen der Versionen: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Fehler beim Vergleichen der Versionen: {str(e)}",
-        )
+        ) from e
 
 
 @router.post(
@@ -456,10 +456,10 @@ async def validate_architecture_endpoint(
                 "version": e.schema_version,
                 "message": str(e)
             }
-        )
+        ) from e
     except Exception as e:
         logger.error(f"Fehler bei der Validation: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Fehler bei der Validation: {str(e)}",
-        )
+        ) from e

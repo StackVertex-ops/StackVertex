@@ -4,7 +4,7 @@ Handles encryption/decryption of sensitive data (AWS credentials, API keys, etc.
 """
 
 import logging
-from typing import Optional
+
 import boto3
 from botocore.exceptions import ClientError
 
@@ -65,7 +65,7 @@ class SecretsManager:
 
         return secret_name
 
-    def retrieve_aws_role_arn(self, secret_name: str) -> Optional[str]:
+    def retrieve_aws_role_arn(self, secret_name: str) -> str | None:
         """Retrieve AWS Role ARN from Secrets Manager.
 
         Args:

@@ -62,21 +62,21 @@ async def get_blueprints(
             if category:
                 try:
                     category_enum = BlueprintCategory(category)
-                except ValueError:
+                except ValueError as e:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
                         detail=f"Ungültige Kategorie: {category}. Gültige Werte: static, webapp, api, database"
-                    )
+                    ) from e
 
             difficulty_enum = None
             if difficulty:
                 try:
                     difficulty_enum = BlueprintDifficulty(difficulty)
-                except ValueError:
+                except ValueError as e:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
                         detail=f"Ungültige Schwierigkeit: {difficulty}. Gültige Werte: beginner, intermediate, advanced"
-                    )
+                    ) from e
 
             blueprints = list_blueprints(
                 category=category_enum,
@@ -99,7 +99,7 @@ async def get_blueprints(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Fehler beim Laden der Blueprints"
-        )
+        ) from e
 
 
 @router.get(
@@ -126,7 +126,7 @@ async def get_blueprints_grouped_by_category() -> Dict[str, List[Any]]:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Fehler beim Gruppieren der Blueprints"
-        )
+        ) from e
 
 
 @router.get(
@@ -159,7 +159,7 @@ async def get_blueprint_by_id(blueprint_id: str) -> BlueprintResponse:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Fehler beim Laden des Blueprints"
-        )
+        ) from e
 
 
 @router.get(
@@ -195,4 +195,4 @@ async def get_blueprint_terraform_template(blueprint_id: str) -> Dict[str, str]:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Fehler beim Laden des Terraform-Templates"
-        )
+        ) from e

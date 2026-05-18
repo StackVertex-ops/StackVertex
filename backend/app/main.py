@@ -6,13 +6,13 @@ This is the entry point for the OverCloud backend API.
 import logging
 
 from fastapi import FastAPI, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
-from starlette.exceptions import HTTPException as StarletteHTTPException
 from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import settings
 from app.core.logging import setup_logging
@@ -73,9 +73,24 @@ async def add_security_headers(request: Request, call_next):
     if request.url.scheme == "https":
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 
-    # Content Security Policy (restrictive default)
+    # Content Security Policy
     if settings.ENV == "production":
-        response.headers["Content-Security-Policy"] = "default-src 'self'"
+        # Frontend needs inline scripts for Vite HMR
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: https:; "
+            "connect-src 'self' https://api.overcloud.io;"
+        )
+    else:
+        # Dev: Allow Vite HMR
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "connect-src 'self' ws: http://localhost:*;"
+        )
 
     return response
 
@@ -165,25 +180,27 @@ async def health_check():
 
 # API Routes
 from app.api import (
-    validation,
-    blueprints,
+    admin,
     architectures,
-    costs,
-    deployments,
-    terraform,
-    websockets,
     audit,
     auth,
-    users,
-    organisations,
-    billing,
-    cidr,
-    designer,
-    admin,
     aws_credentials,
+    billing,
+    blueprints,
+    cidr,
+    costs,
     data_upload,
+    deployments,
+    designer,
+    organisations,
+    terraform,
+    users,
+    validation,
     voucher,
-    # dsgvo,  # TODO: Port to DynamoDB
+    websockets,
+)
+from app.api import (
+    dsgvo,
     webhooks as webhooks_module,  # Renamed to avoid conflict with websockets
 )
 
@@ -216,8 +233,7 @@ app.include_router(cidr.router, prefix="/api/v1", tags=["cidr"])
 app.include_router(designer.router, prefix="/api/v1", tags=["designer"])
 
 # DSGVO / GDPR Endpoints
-# TODO: Port dsgvo.py to DynamoDB (currently uses SQLAlchemy)
-# app.include_router(dsgvo.router, prefix="/api/v1/dsgvo", tags=["dsgvo"])
+app.include_router(dsgvo.router, tags=["dsgvo"])
 
 # Webhooks (no auth required)
 app.include_router(webhooks_module.router, prefix="/webhooks", tags=["webhooks"])

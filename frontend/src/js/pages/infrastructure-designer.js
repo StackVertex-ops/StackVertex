@@ -427,7 +427,6 @@ class InfrastructureDesignerPage {
 
             // Notify user about other files
             const fileList = Object.keys(files).join(', ');
-            console.log('Generated files:', fileList);
             alert(`Terraform Dateien generiert:\n${fileList}\n\n(Aktuell wird nur main.tf heruntergeladen)`);
         }
     }

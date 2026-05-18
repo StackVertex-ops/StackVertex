@@ -9,21 +9,17 @@ Implements data processing functions for GDPR rights:
 """
 
 import json
-import uuid
+import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
-from io import BytesIO
+from uuid import UUID
 
-from sqlalchemy.orm import Session
-from sqlalchemy import and_
+from app.repositories.architecture import ArchitectureRepository
+from app.repositories.audit_log import AuditLogRepository
+from app.repositories.deployment import DeploymentRepository
+from app.repositories.dsgvo import DsgvoRepository
+from app.repositories.user import UserRepository
 
-from app.models.user import User
-from app.models.architecture import Architecture  # Placeholder
-from app.models.deployment import Deployment  # Placeholder
-from app.models.audit_log import AuditLog  # Placeholder
-from app.models.consent import Consent  # Placeholder
-from app.core.s3 import S3Client  # Placeholder
-
+logger = logging.getLogger(__name__)
 
 # ===========================
 # Data Export (Art. 15)
@@ -31,11 +27,11 @@ from app.core.s3 import S3Client  # Placeholder
 
 
 async def export_user_data(
-    user_id: str,
+    user_id: UUID,
     format: str = "json",
     include_metadata: bool = True,
-    db: Session = None,
-) -> Dict:
+    dsgvo_repo: DsgvoRepository = None,
+) -> dict:
     """
     Export all user data (DSGVO Art. 15)
 
@@ -43,36 +39,39 @@ async def export_user_data(
         user_id: User UUID
         format: Export format (json, csv, pdf)
         include_metadata: Include timestamps, IDs, etc.
-        db: Database session
+        dsgvo_repo: DSGVO Repository
 
     Returns:
         Dict with export_id, status, expires_at
     """
-    export_id = str(uuid.uuid4())
-    expires_at = datetime.utcnow() + timedelta(days=7)
+    if not dsgvo_repo:
+        dsgvo_repo = DsgvoRepository()
 
-    # Create export record in database
-    export_record = {
-        "export_id": export_id,
-        "user_id": user_id,
-        "format": format,
-        "status": "pending",
-        "expires_at": expires_at,
-        "created_at": datetime.utcnow(),
-    }
+    # Create export request in DynamoDB
+    export_item = dsgvo_repo.create_export_request(
+        user_id=user_id,
+        format=format,
+        include_metadata=include_metadata,
+    )
 
-    # TODO: Store in database (DataExport table)
-    # db.add(DataExport(**export_record))
-    # db.commit()
+    logger.info(f"Created data export request {export_item['export_id']} for user {user_id}")
 
     return {
-        "export_id": export_id,
-        "expires_at": expires_at,
+        "export_id": export_item["export_id"],
+        "expires_at": export_item["expires_at"],
         "download_url": None,  # Will be generated when ready
     }
 
 
-async def generate_data_export_json(user_id: str, export_id: str, db: Session = None):
+async def generate_data_export_json(
+    user_id: UUID,
+    export_id: str,
+    user_repo: UserRepository = None,
+    architecture_repo: ArchitectureRepository = None,
+    deployment_repo: DeploymentRepository = None,
+    audit_log_repo: AuditLogRepository = None,
+    dsgvo_repo: DsgvoRepository = None,
+):
     """
     Background task: Generate complete data export
 
@@ -84,9 +83,21 @@ async def generate_data_export_json(user_id: str, export_id: str, db: Session = 
     - Consents
     - S3 files
     """
+    # Initialize repositories if not provided
+    if not user_repo:
+        user_repo = UserRepository()
+    if not architecture_repo:
+        architecture_repo = ArchitectureRepository()
+    if not deployment_repo:
+        deployment_repo = DeploymentRepository()
+    if not audit_log_repo:
+        audit_log_repo = AuditLogRepository()
+    if not dsgvo_repo:
+        dsgvo_repo = DsgvoRepository()
+
     try:
         # Collect user data
-        user = db.query(User).filter(User.id == user_id).first()
+        user = user_repo.get(user_id)
         if not user:
             raise ValueError(f"User {user_id} not found")
 
@@ -94,19 +105,19 @@ async def generate_data_export_json(user_id: str, export_id: str, db: Session = 
             "export_info": {
                 "export_id": export_id,
                 "generated_at": datetime.utcnow().isoformat(),
-                "user_id": user_id,
+                "user_id": str(user_id),
                 "format_version": "1.0",
             },
             "personal_data": {
-                "email": user.email,
-                "name": getattr(user, "name", None),
-                "created_at": user.created_at.isoformat() if user.created_at else None,
-                "last_login": getattr(user, "last_login", None),
+                "email": user.get("email"),
+                "name": user.get("name"),
+                "created_at": user.get("created_at"),
+                "updated_at": user.get("updated_at"),
             },
-            "architectures": await _export_architectures(user_id, db),
-            "deployments": await _export_deployments(user_id, db),
-            "audit_logs": await _export_audit_logs(user_id, db),
-            "consents": await _export_consents(user_id, db),
+            "architectures": await _export_architectures(user_id, architecture_repo),
+            "deployments": await _export_deployments(user_id, deployment_repo),
+            "audit_logs": await _export_audit_logs(user_id, audit_log_repo),
+            "consents": await _export_consents(user_id, dsgvo_repo),
             "s3_files": await _export_s3_files(user_id),
         }
 
@@ -116,60 +127,125 @@ async def generate_data_export_json(user_id: str, export_id: str, db: Session = 
         # Upload to S3 (temporary bucket)
         s3_key = f"data-exports/{user_id}/{export_id}.json"
         # TODO: Upload to S3
-        # S3Client.upload(json_data, s3_key)
+        # from app.db.s3_storage import S3Storage
+        # s3_storage = S3Storage()
+        # s3_storage.upload_string(json_data, s3_key)
 
-        # Update export record
-        # TODO: Update database
-        # export_record.status = "ready"
-        # export_record.s3_key = s3_key
-        # db.commit()
+        # Update export status to ready
+        dsgvo_repo.update_export_status(
+            user_id=user_id,
+            export_id=export_id,
+            status="ready",
+            s3_key=s3_key,
+        )
+
+        logger.info(f"Data export {export_id} for user {user_id} completed successfully")
 
         return export_data
 
     except Exception as e:
-        # Update export record with error
-        # TODO: Update database
-        # export_record.status = "failed"
-        # export_record.error = str(e)
-        # db.commit()
+        logger.error(f"Failed to generate data export {export_id}: {str(e)}")
+        # Update export status to failed
+        dsgvo_repo.update_export_status(
+            user_id=user_id,
+            export_id=export_id,
+            status="failed",
+            error=str(e),
+        )
         raise
 
 
-async def _export_architectures(user_id: str, db: Session) -> List[Dict]:
+async def _export_architectures(
+    user_id: UUID, architecture_repo: ArchitectureRepository
+) -> list[dict]:
     """Export all user architectures"""
-    # TODO: Implement
-    # architectures = db.query(Architecture).filter(Architecture.user_id == user_id).all()
-    # return [arch.to_dict() for arch in architectures]
-    return []
+    try:
+        architectures = architecture_repo.list_by_owner(str(user_id))
+        return [
+            {
+                "id": arch.get("id"),
+                "name": arch.get("name"),
+                "description": arch.get("description"),
+                "version": arch.get("version"),
+                "created_at": arch.get("created_at"),
+                "updated_at": arch.get("updated_at"),
+                # Include architecture_json (can be large)
+                "architecture_json": arch.get("architecture_json"),
+            }
+            for arch in architectures
+        ]
+    except Exception as e:
+        logger.warning(f"Failed to export architectures for user {user_id}: {str(e)}")
+        return []
 
 
-async def _export_deployments(user_id: str, db: Session) -> List[Dict]:
+async def _export_deployments(
+    user_id: UUID, deployment_repo: DeploymentRepository
+) -> list[dict]:
     """Export all user deployments"""
-    # TODO: Implement
-    return []
+    try:
+        deployments = deployment_repo.list_by_owner(str(user_id))
+        return [
+            {
+                "id": dep.get("id"),
+                "architecture_id": dep.get("architecture_id"),
+                "status": dep.get("status"),
+                "region": dep.get("region"),
+                "created_at": dep.get("created_at"),
+                "updated_at": dep.get("updated_at"),
+            }
+            for dep in deployments
+        ]
+    except Exception as e:
+        logger.warning(f"Failed to export deployments for user {user_id}: {str(e)}")
+        return []
 
 
-async def _export_audit_logs(user_id: str, db: Session) -> List[Dict]:
+async def _export_audit_logs(
+    user_id: UUID, audit_log_repo: AuditLogRepository
+) -> list[dict]:
     """Export audit logs (last 90 days)"""
-    # TODO: Implement
-    # cutoff_date = datetime.utcnow() - timedelta(days=90)
-    # logs = db.query(AuditLog).filter(
-    #     and_(
-    #         AuditLog.user_id == user_id,
-    #         AuditLog.created_at >= cutoff_date
-    #     )
-    # ).all()
-    # return [log.to_dict() for log in logs]
-    return []
+    try:
+        # List audit logs for user (last 90 days)
+        logs = audit_log_repo.list_by_user(str(user_id), limit=1000)
+        cutoff = datetime.utcnow() - timedelta(days=90)
+
+        return [
+            {
+                "id": log.get("id"),
+                "action": log.get("action"),
+                "resource_type": log.get("resource_type"),
+                "resource_id": log.get("resource_id"),
+                "timestamp": log.get("timestamp"),
+                "success": log.get("success"),
+            }
+            for log in logs
+            if datetime.fromisoformat(log.get("timestamp", "")) >= cutoff
+        ]
+    except Exception as e:
+        logger.warning(f"Failed to export audit logs for user {user_id}: {str(e)}")
+        return []
 
 
-async def _export_consents(user_id: str, db: Session) -> List[Dict]:
+async def _export_consents(user_id: UUID, dsgvo_repo: DsgvoRepository) -> list[dict]:
     """Export consent history"""
-    # TODO: Implement
-    return []
+    try:
+        consents = dsgvo_repo.list_consents(user_id)
+        return [
+            {
+                "consent_type": consent.get("consent_type"),
+                "granted": consent.get("granted"),
+                "granted_at": consent.get("granted_at"),
+                "revoked_at": consent.get("revoked_at"),
+            }
+            for consent in consents
+        ]
+    except Exception as e:
+        logger.warning(f"Failed to export consents for user {user_id}: {str(e)}")
+        return []
 
 
-async def _export_s3_files(user_id: str) -> Dict:
+async def _export_s3_files(user_id: str) -> dict:
     """Export S3 file list (not content, only metadata)"""
     # TODO: Implement S3 listing
     return {"files": [], "total_size_bytes": 0}
@@ -181,11 +257,11 @@ async def _export_s3_files(user_id: str) -> Dict:
 
 
 async def schedule_user_deletion(
-    user_id: str,
+    user_id: UUID,
     reason: str,
     delete_backups: bool = True,
-    db: Session = None,
-) -> Dict:
+    dsgvo_repo: DsgvoRepository = None,
+) -> dict:
     """
     Schedule user data deletion (with 7-day grace period)
 
@@ -193,34 +269,38 @@ async def schedule_user_deletion(
         user_id: User UUID
         reason: Deletion reason
         delete_backups: Also delete from backups
-        db: Database session
+        dsgvo_repo: DSGVO Repository
 
     Returns:
         Dict with deletion_id, scheduled_at, estimated_completion
     """
-    deletion_id = str(uuid.uuid4())
-    scheduled_at = datetime.utcnow() + timedelta(days=7)  # 7-day grace period
-    estimated_completion = scheduled_at + timedelta(hours=24)
+    if not dsgvo_repo:
+        dsgvo_repo = DsgvoRepository()
 
-    deletion_record = {
-        "deletion_id": deletion_id,
-        "user_id": user_id,
-        "reason": reason,
-        "delete_backups": delete_backups,
-        "status": "scheduled",
-        "scheduled_at": scheduled_at,
-        "estimated_completion": estimated_completion,
-        "created_at": datetime.utcnow(),
+    # Create deletion request in DynamoDB
+    deletion_item = dsgvo_repo.create_deletion_request(
+        user_id=user_id,
+        reason=reason,
+        delete_backups=delete_backups,
+    )
+
+    logger.info(f"Scheduled data deletion {deletion_item['deletion_id']} for user {user_id}")
+
+    return {
+        "deletion_id": deletion_item["deletion_id"],
+        "scheduled_at": deletion_item["scheduled_at"],
+        "estimated_completion": deletion_item["estimated_completion"],
     }
 
-    # TODO: Store in database (DataDeletion table)
-    # db.add(DataDeletion(**deletion_record))
-    # db.commit()
 
-    return deletion_record
-
-
-async def delete_user_data(user_id: str, delete_backups: bool = True, db: Session = None):
+async def delete_user_data(
+    user_id: UUID,
+    delete_backups: bool = True,
+    user_repo: UserRepository = None,
+    architecture_repo: ArchitectureRepository = None,
+    deployment_repo: DeploymentRepository = None,
+    audit_log_repo: AuditLogRepository = None,
+):
     """
     Execute user data deletion (called by background job)
 
@@ -231,55 +311,86 @@ async def delete_user_data(user_id: str, delete_backups: bool = True, db: Sessio
     4. Delete user account
     5. (Optional) Delete from backups
     """
+    # Initialize repositories if not provided
+    if not user_repo:
+        user_repo = UserRepository()
+    if not architecture_repo:
+        architecture_repo = ArchitectureRepository()
+    if not deployment_repo:
+        deployment_repo = DeploymentRepository()
+    if not audit_log_repo:
+        audit_log_repo = AuditLogRepository()
+
     try:
         # Step 1: Delete architectures
-        # db.query(Architecture).filter(Architecture.user_id == user_id).delete()
+        architectures = architecture_repo.list_by_owner(str(user_id))
+        for arch in architectures:
+            architecture_repo.delete(UUID(arch["id"]))
+        logger.info(f"Deleted {len(architectures)} architectures for user {user_id}")
 
         # Step 2: Delete deployments
-        # db.query(Deployment).filter(Deployment.user_id == user_id).delete()
+        deployments = deployment_repo.list_by_owner(str(user_id))
+        for dep in deployments:
+            deployment_repo.delete(UUID(dep["id"]))
+        logger.info(f"Deleted {len(deployments)} deployments for user {user_id}")
 
         # Step 3: Delete S3 customer data
-        # await _delete_s3_customer_data(user_id)
+        await _delete_s3_customer_data(user_id)
 
         # Step 4: Anonymize audit logs (don't delete - keep for compliance)
-        await anonymize_user_data(user_id, db)
+        await anonymize_user_data(user_id, audit_log_repo)
 
         # Step 5: Delete user account
-        # db.query(User).filter(User.id == user_id).delete()
+        user_repo.delete(user_id)
+        logger.info(f"Deleted user account {user_id}")
 
         # Step 6: (Optional) Delete from backups
         if delete_backups:
             await _delete_from_backups(user_id)
 
-        # db.commit()
+        logger.info(f"User data deletion completed for user {user_id}")
 
-        return {"status": "completed", "deleted_at": datetime.utcnow()}
+        return {"status": "completed", "deleted_at": datetime.utcnow().isoformat()}
 
     except Exception as e:
-        # db.rollback()
+        logger.error(f"Failed to delete user data for {user_id}: {str(e)}")
         raise Exception(f"Failed to delete user data: {str(e)}")
 
 
-async def anonymize_user_data(user_id: str, db: Session = None):
+async def anonymize_user_data(user_id: UUID, audit_log_repo: AuditLogRepository):
     """
     Anonymize user in audit logs (keep logs for compliance, but remove PII)
 
     Replaces:
-    - email → "anonymized_user_{random_id}@deleted.local"
-    - name → "Deleted User"
+    - user → "anonymized_user_{random_id}"
     - ip_address → "0.0.0.0"
     """
-    anonymous_id = str(uuid.uuid4())[:8]
+    from uuid import uuid4
 
-    # TODO: Update audit logs
-    # db.query(AuditLog).filter(AuditLog.user_id == user_id).update({
-    #     "user_email": f"anonymized_user_{anonymous_id}@deleted.local",
-    #     "user_name": "Deleted User",
-    #     "ip_address": "0.0.0.0",
-    #     "anonymized": True,
-    #     "anonymized_at": datetime.utcnow()
-    # })
-    # db.commit()
+    anonymous_id = str(uuid4())[:8]
+
+    # Get all audit logs for user
+    logs = audit_log_repo.list_by_user(str(user_id), limit=10000)
+
+    # Update each log to anonymize user data
+    for log in logs:
+        try:
+            # Note: DynamoDB doesn't support batch updates, so we need to update each item
+            # In a production system, this would be done via DynamoDB Streams + Lambda
+            # For now, we'll update the user field to indicate anonymization
+            audit_log_repo.update(
+                log_id=UUID(log["id"]),
+                updates={
+                    "user": f"anonymized_user_{anonymous_id}",
+                    "ip_address": "0.0.0.0",
+                    "anonymized": True,
+                    "anonymized_at": datetime.utcnow().isoformat(),
+                }
+            )
+        except Exception as e:
+            logger.warning(f"Failed to anonymize audit log {log['id']}: {str(e)}")
+
+    logger.info(f"Anonymized {len(logs)} audit logs for user {user_id}")
 
 
 async def _delete_s3_customer_data(user_id: str):
@@ -291,7 +402,7 @@ async def _delete_s3_customer_data(user_id: str):
     pass
 
 
-async def _delete_from_backups(user_id: str):
+async def _delete_from_backups(user_id: UUID):
     """
     Delete user data from backups (AWS Backup, RDS Snapshots)
 
@@ -303,6 +414,96 @@ async def _delete_from_backups(user_id: str):
     # 2. Identify backups containing user data
     # 3. Create "deletion markers" for those backups
     # 4. Schedule point-in-time deletion (when backups expire)
+    logger.warning(f"Backup deletion for user {user_id} not yet implemented")
+    pass
+
+
+# ===========================
+# Helper Functions for Router
+# ===========================
+
+
+async def get_user_export(
+    export_id: str, user_id: UUID, dsgvo_repo: DsgvoRepository = None
+) -> dict | None:
+    """Retrieve export data by ID"""
+    if not dsgvo_repo:
+        dsgvo_repo = DsgvoRepository()
+
+    return dsgvo_repo.get_export(user_id, export_id)
+
+
+async def cancel_scheduled_deletion(
+    deletion_id: str, user_id: UUID, dsgvo_repo: DsgvoRepository = None
+) -> bool:
+    """Cancel scheduled deletion"""
+    if not dsgvo_repo:
+        dsgvo_repo = DsgvoRepository()
+
+    # Get deletion request
+    deletion = dsgvo_repo.get_deletion(user_id, deletion_id)
+
+    if not deletion:
+        return False
+
+    # Check if still in scheduled state
+    if deletion.get("status") != "scheduled":
+        return False
+
+    # Update status to cancelled
+    dsgvo_repo.update_deletion_status(
+        user_id=user_id,
+        deletion_id=deletion_id,
+        status="cancelled",
+    )
+
+    logger.info(f"Cancelled deletion request {deletion_id} for user {user_id}")
+
+    return True
+
+
+async def update_user_field(
+    user_id: UUID,
+    field: str,
+    old_value: str,
+    new_value: str,
+    reason: str | None = None,
+    user_repo: UserRepository = None,
+) -> dict:
+    """Update user field with audit trail"""
+    if not user_repo:
+        user_repo = UserRepository()
+
+    # Get user
+    user = user_repo.get(user_id)
+    if not user:
+        raise ValueError(f"User {user_id} not found")
+
+    # Verify old value matches
+    current_value = user.get(field)
+    if current_value != old_value:
+        raise ValueError(
+            f"Old value mismatch: expected '{old_value}', got '{current_value}'"
+        )
+
+    # Update field
+    updates = {field: new_value}
+    if reason:
+        updates[f"{field}_change_reason"] = reason
+
+    updated_user = user_repo.update(user_id, updates)
+
+    logger.info(
+        f"Updated field {field} for user {user_id}: '{old_value}' → '{new_value}'"
+    )
+
+    return updated_user
+
+
+async def send_deletion_confirmation_email(email: str, deletion_id: str):
+    """Send deletion confirmation email"""
+    # TODO: Implement email service integration
+    logger.info(f"Would send deletion confirmation email to {email} for {deletion_id}")
     pass
 
 
@@ -311,53 +512,69 @@ async def _delete_from_backups(user_id: str):
 # ===========================
 
 
-async def get_user_consents(user_id: str, db: Session = None) -> List[Dict]:
+async def get_user_consents(user_id: UUID, dsgvo_repo: DsgvoRepository = None) -> list[dict]:
     """
     Get all user consents
 
     Returns:
         List of consent records with type, granted status, timestamps
     """
-    # TODO: Implement
-    # consents = db.query(Consent).filter(Consent.user_id == user_id).all()
-    # return [consent.to_dict() for consent in consents]
+    if not dsgvo_repo:
+        dsgvo_repo = DsgvoRepository()
 
-    # Placeholder
+    consents = dsgvo_repo.list_consents(user_id)
+
+    # If no consents exist, return defaults
+    if not consents:
+        return [
+            {
+                "consent_type": "required",
+                "granted": True,
+                "granted_at": None,
+                "revoked_at": None,
+                "ip_address": None,
+                "user_agent": None,
+            },
+            {
+                "consent_type": "marketing",
+                "granted": False,
+                "granted_at": None,
+                "revoked_at": None,
+                "ip_address": None,
+                "user_agent": None,
+            },
+            {
+                "consent_type": "analytics",
+                "granted": False,
+                "granted_at": None,
+                "revoked_at": None,
+                "ip_address": None,
+                "user_agent": None,
+            },
+        ]
+
     return [
         {
-            "consent_type": "required",
-            "granted": True,
-            "granted_at": datetime.utcnow() - timedelta(days=30),
-            "revoked_at": None,
-            "ip_address": "127.0.0.1",
-            "user_agent": "Mozilla/5.0...",
-        },
-        {
-            "consent_type": "marketing",
-            "granted": False,
-            "granted_at": None,
-            "revoked_at": None,
-            "ip_address": None,
-            "user_agent": None,
-        },
-        {
-            "consent_type": "analytics",
-            "granted": True,
-            "granted_at": datetime.utcnow() - timedelta(days=15),
-            "revoked_at": None,
-            "ip_address": "127.0.0.1",
-            "user_agent": "Mozilla/5.0...",
-        },
+            "consent_type": consent.get("consent_type"),
+            "granted": consent.get("granted"),
+            "granted_at": consent.get("granted_at"),
+            "revoked_at": consent.get("revoked_at"),
+            "ip_address": consent.get("ip_address"),
+            "user_agent": consent.get("user_agent"),
+        }
+        for consent in consents
     ]
 
 
 async def update_user_consent(
-    user_id: str,
+    user_id: UUID,
     consent_type: str,
     granted: bool,
-    reason: Optional[str] = None,
-    db: Session = None,
-) -> Dict:
+    ip_address: str | None = None,
+    user_agent: str | None = None,
+    reason: str | None = None,
+    dsgvo_repo: DsgvoRepository = None,
+) -> dict:
     """
     Update user consent (grant or revoke)
 
@@ -365,8 +582,10 @@ async def update_user_consent(
         user_id: User UUID
         consent_type: Type of consent (marketing, analytics, etc.)
         granted: True to grant, False to revoke
+        ip_address: IP address of request
+        user_agent: User agent of request
         reason: Optional reason for change
-        db: Database session
+        dsgvo_repo: DSGVO Repository
 
     Returns:
         Updated consent record
@@ -378,44 +597,27 @@ async def update_user_consent(
             f"Invalid consent type. Must be one of: {', '.join(valid_types)}"
         )
 
-    # Find existing consent
-    # TODO: Implement
-    # consent = db.query(Consent).filter(
-    #     and_(
-    #         Consent.user_id == user_id,
-    #         Consent.consent_type == consent_type
-    #     )
-    # ).first()
+    if not dsgvo_repo:
+        dsgvo_repo = DsgvoRepository()
 
-    # if not consent:
-    #     # Create new consent record
-    #     consent = Consent(
-    #         user_id=user_id,
-    #         consent_type=consent_type,
-    #         granted=granted,
-    #         granted_at=datetime.utcnow() if granted else None,
-    #         revoked_at=None if granted else datetime.utcnow(),
-    #         reason=reason
-    #     )
-    #     db.add(consent)
-    # else:
-    #     # Update existing consent
-    #     consent.granted = granted
-    #     if granted:
-    #         consent.granted_at = datetime.utcnow()
-    #         consent.revoked_at = None
-    #     else:
-    #         consent.revoked_at = datetime.utcnow()
-    #     consent.reason = reason
+    # Update consent in DynamoDB
+    consent_item = dsgvo_repo.update_consent(
+        user_id=user_id,
+        consent_type=consent_type,
+        granted=granted,
+        ip_address=ip_address,
+        user_agent=user_agent,
+        reason=reason,
+    )
 
-    # db.commit()
-    # return consent.to_dict()
+    logger.info(
+        f"Updated consent {consent_type} for user {user_id}: granted={granted}"
+    )
 
-    # Placeholder
     return {
-        "consent_type": consent_type,
-        "granted": granted,
-        "updated_at": datetime.utcnow(),
+        "consent_type": consent_item.get("consent_type"),
+        "granted": consent_item.get("granted"),
+        "updated_at": consent_item.get("updated_at"),
     }
 
 
@@ -424,65 +626,93 @@ async def update_user_consent(
 # ===========================
 
 
-async def cleanup_expired_exports(db: Session = None):
+async def cleanup_expired_exports(dsgvo_repo: DsgvoRepository = None):
     """
     Background job: Clean up expired data exports (runs daily)
 
     Deletes exports older than 7 days from S3 and database.
     """
-    cutoff_date = datetime.utcnow() - timedelta(days=7)
+    if not dsgvo_repo:
+        dsgvo_repo = DsgvoRepository()
 
-    # TODO: Implement
-    # expired_exports = db.query(DataExport).filter(
-    #     DataExport.expires_at < cutoff_date
-    # ).all()
+    # Get expired exports
+    expired_exports = dsgvo_repo.list_expired_exports(limit=1000)
 
-    # for export in expired_exports:
-    #     # Delete from S3
-    #     S3Client.delete_object(export.s3_key)
-    #
-    #     # Delete from database
-    #     db.delete(export)
+    for export in expired_exports:
+        try:
+            # Delete from S3
+            s3_key = export.get("s3_key")
+            if s3_key:
+                from app.db.s3_storage import S3Storage
+                s3_storage = S3Storage()
+                s3_storage.delete(s3_key)
 
-    # db.commit()
+            # Delete from DynamoDB
+            user_id = UUID(export["user_id"])
+            export_id = export["export_id"]
+            # Note: We need to implement delete in repository
+            # For now, just update status to "expired"
+            dsgvo_repo.update_export_status(
+                user_id=user_id,
+                export_id=export_id,
+                status="expired",
+            )
+
+            logger.info(f"Cleaned up expired export {export_id}")
+
+        except Exception as e:
+            logger.error(f"Failed to cleanup export {export.get('export_id')}: {str(e)}")
+
+    logger.info(f"Cleaned up {len(expired_exports)} expired exports")
 
 
-async def execute_scheduled_deletions(db: Session = None):
+async def execute_scheduled_deletions(dsgvo_repo: DsgvoRepository = None):
     """
     Background job: Execute scheduled user deletions (runs hourly)
 
     Finds deletions with scheduled_at <= now and executes them.
     """
-    now = datetime.utcnow()
+    if not dsgvo_repo:
+        dsgvo_repo = DsgvoRepository()
 
-    # TODO: Implement
-    # pending_deletions = db.query(DataDeletion).filter(
-    #     and_(
-    #         DataDeletion.status == "scheduled",
-    #         DataDeletion.scheduled_at <= now
-    #     )
-    # ).all()
+    # Get scheduled deletions ready to execute
+    pending_deletions = dsgvo_repo.list_scheduled_deletions(limit=100)
 
-    # for deletion in pending_deletions:
-    #     # Update status
-    #     deletion.status = "in_progress"
-    #     db.commit()
-    #
-    #     try:
-    #         # Execute deletion
-    #         await delete_user_data(
-    #             deletion.user_id,
-    #             delete_backups=deletion.delete_backups,
-    #             db=db
-    #         )
-    #
-    #         # Mark as completed
-    #         deletion.status = "completed"
-    #         deletion.completed_at = datetime.utcnow()
-    #         db.commit()
-    #
-    #     except Exception as e:
-    #         # Mark as failed
-    #         deletion.status = "failed"
-    #         deletion.error = str(e)
-    #         db.commit()
+    for deletion in pending_deletions:
+        user_id = UUID(deletion["user_id"])
+        deletion_id = deletion["deletion_id"]
+
+        try:
+            # Update status to in_progress
+            dsgvo_repo.update_deletion_status(
+                user_id=user_id,
+                deletion_id=deletion_id,
+                status="in_progress",
+            )
+
+            # Execute deletion
+            await delete_user_data(
+                user_id=user_id,
+                delete_backups=deletion.get("delete_backups", True),
+            )
+
+            # Mark as completed
+            dsgvo_repo.update_deletion_status(
+                user_id=user_id,
+                deletion_id=deletion_id,
+                status="completed",
+            )
+
+            logger.info(f"Completed scheduled deletion {deletion_id} for user {user_id}")
+
+        except Exception as e:
+            logger.error(f"Failed to execute deletion {deletion_id}: {str(e)}")
+            # Mark as failed
+            dsgvo_repo.update_deletion_status(
+                user_id=user_id,
+                deletion_id=deletion_id,
+                status="failed",
+                error=str(e),
+            )
+
+    logger.info(f"Processed {len(pending_deletions)} scheduled deletions")

@@ -4,7 +4,7 @@ Hilfsfunktionen für VPC/Subnet CIDR-Berechnungen.
 """
 
 import ipaddress
-from typing import List, Dict, Optional, Tuple
+
 from pydantic import BaseModel
 
 
@@ -12,13 +12,13 @@ class SubnetAllocation(BaseModel):
     """Subnet Allocation Info"""
     cidr: str
     name: str
-    availability_zone: Optional[str] = None
+    availability_zone: str | None = None
     subnet_type: str  # "public", "private", "database"
     total_ips: int
     usable_ips: int  # AWS reserviert 5 IPs
     first_ip: str
     last_ip: str
-    reserved_ips: List[str]  # Die 5 von AWS reservierten IPs
+    reserved_ips: list[str]  # Die 5 von AWS reservierten IPs
 
 
 class VPCPlan(BaseModel):
@@ -26,13 +26,13 @@ class VPCPlan(BaseModel):
     vpc_cidr: str
     total_ips: int
     usable_ips: int
-    subnets: List[SubnetAllocation]
+    subnets: list[SubnetAllocation]
     unallocated_ips: int
     has_overlaps: bool
-    overlap_details: List[str] = []
+    overlap_details: list[str] = []
 
 
-def calculate_usable_ips(cidr: str) -> Tuple[int, int]:
+def calculate_usable_ips(cidr: str) -> tuple[int, int]:
     """
     Berechne Total IPs und Usable IPs für einen CIDR Block.
 
@@ -55,7 +55,7 @@ def calculate_usable_ips(cidr: str) -> Tuple[int, int]:
     return total_ips, usable_ips
 
 
-def get_reserved_ips(cidr: str) -> List[str]:
+def get_reserved_ips(cidr: str) -> list[str]:
     """Gibt die 5 von AWS reservierten IPs zurück."""
     network = ipaddress.IPv4Network(cidr, strict=False)
     hosts = list(network.hosts())
@@ -83,7 +83,7 @@ def check_cidr_overlap(cidr1: str, cidr2: str) -> bool:
     return net1.overlaps(net2)
 
 
-def validate_vpc_cidr(cidr: str) -> Tuple[bool, Optional[str]]:
+def validate_vpc_cidr(cidr: str) -> tuple[bool, str | None]:
     """
     Validiert VPC CIDR Block.
 
@@ -113,7 +113,7 @@ def validate_vpc_cidr(cidr: str) -> Tuple[bool, Optional[str]]:
         return False, f"Ungültige CIDR Notation: {e}"
 
 
-def validate_subnet_cidr(subnet_cidr: str, vpc_cidr: str) -> Tuple[bool, Optional[str]]:
+def validate_subnet_cidr(subnet_cidr: str, vpc_cidr: str) -> tuple[bool, str | None]:
     """
     Validiert ob ein Subnet CIDR innerhalb eines VPC CIDR liegt.
 
@@ -142,7 +142,7 @@ def validate_subnet_cidr(subnet_cidr: str, vpc_cidr: str) -> Tuple[bool, Optiona
         return False, f"Ungültige CIDR Notation: {e}"
 
 
-def plan_vpc(vpc_cidr: str, subnet_requests: List[Dict]) -> VPCPlan:
+def plan_vpc(vpc_cidr: str, subnet_requests: list[dict]) -> VPCPlan:
     """
     Plant VPC mit Subnets und prüft auf Overlaps.
 
@@ -208,7 +208,7 @@ def plan_vpc(vpc_cidr: str, subnet_requests: List[Dict]) -> VPCPlan:
     )
 
 
-def suggest_subnet_split(vpc_cidr: str, num_azs: int = 3, subnet_types: Optional[List[str]] = None) -> List[Dict]:
+def suggest_subnet_split(vpc_cidr: str, num_azs: int = 3, subnet_types: list[str] | None = None) -> list[dict]:
     """
     Schlägt eine sinnvolle Subnet-Aufteilung vor.
 

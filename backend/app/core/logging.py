@@ -5,7 +5,7 @@ JSON-formatted logging for CloudWatch, Sentry, and local development.
 
 import logging
 import sys
-from typing import Any, Dict
+from typing import Any
 
 from pythonjsonlogger import jsonlogger
 
@@ -13,7 +13,7 @@ from pythonjsonlogger import jsonlogger
 class CustomJsonFormatter(jsonlogger.JsonFormatter):
     """Custom JSON formatter with additional context fields."""
 
-    def add_fields(self, log_record: Dict[str, Any], record: logging.LogRecord, message_dict: Dict[str, Any]) -> None:
+    def add_fields(self, log_record: dict[str, Any], record: logging.LogRecord, message_dict: dict[str, Any]) -> None:
         """Add custom fields to log record.
 
         Args:

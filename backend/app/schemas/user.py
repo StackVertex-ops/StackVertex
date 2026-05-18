@@ -5,12 +5,11 @@ API Request/Response Models für User Management.
 
 import re
 from datetime import datetime
-from typing import Optional, List
 from uuid import UUID
-from pydantic import BaseModel, EmailStr, Field, ConfigDict, field_validator
 
-from app.models.user import AuthProvider, UserRole, UserStatus, SystemRole
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
+from app.models.user import AuthProvider, SystemRole, UserRole, UserStatus
 
 # ============================================================================
 # User Base Schemas
@@ -37,7 +36,7 @@ class UserCreate(BaseModel):
 
     # Optional: Auth Provider Info (für OAuth)
     auth_provider: AuthProvider = Field(default=AuthProvider.EMAIL)
-    auth_provider_id: Optional[str] = Field(None, description="OAuth Provider User ID")
+    auth_provider_id: str | None = Field(None, description="OAuth Provider User ID")
 
     @field_validator('password')
     @classmethod
@@ -83,7 +82,7 @@ class UserUpdate(BaseModel):
     Alle Felder optional.
     """
 
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    name: str | None = Field(None, min_length=1, max_length=255)
     # Email change requires verification
     # Password change via separate endpoint
 
@@ -171,7 +170,7 @@ class UserMembershipResponse(BaseModel):
 class UserWithOrganisationsResponse(UserResponse):
     """User Response mit ihren Organisations."""
 
-    organisations: List[UserMembershipResponse] = Field(default_factory=list)
+    organisations: list[UserMembershipResponse] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -195,7 +194,7 @@ class TokenPayload(BaseModel):
 
     sub: str = Field(..., description="User ID")
     email: str
-    org_id: Optional[str] = Field(None, description="Current active organisation")
+    org_id: str | None = Field(None, description="Current active organisation")
     exp: int = Field(..., description="Expiration timestamp")
 
 
@@ -207,7 +206,7 @@ class TokenPayload(BaseModel):
 class UserListResponse(BaseModel):
     """Paginated User List Response."""
 
-    items: List[UserResponse]
+    items: list[UserResponse]
     total: int
     skip: int
     limit: int

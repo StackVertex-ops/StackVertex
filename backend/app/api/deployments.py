@@ -96,15 +96,15 @@ async def deploy_architecture(
         logger.error(f"Deployment validation error: {e}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        )
+            detail=str(e)
+        ) from e
 
     except Exception as e:
         logger.error(f"Deployment failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Deployment failed: {str(e)}",
-        )
+            detail=f"Deployment failed: {str(e)}"
+        ) from e
 
 
 @router.get(
@@ -244,15 +244,15 @@ async def destroy_deployment_endpoint(
         logger.error(f"Destroy validation error: {e}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        )
+            detail=str(e)
+        ) from e
 
     except Exception as e:
         logger.error(f"Destroy failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Destroy failed: {str(e)}",
-        )
+            detail=f"Destroy failed: {str(e)}"
+        ) from e
 
 
 @router.get(
@@ -345,15 +345,15 @@ async def cancel_deployment_endpoint(
         logger.error(f"Cancel deployment error: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
+            detail=str(e)
+        ) from e
 
     except Exception as e:
         logger.error(f"Cancel failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Cancel failed: {str(e)}",
-        )
+            detail=f"Cancel failed: {str(e)}"
+        ) from e
 
 
 @router.post(
@@ -413,12 +413,12 @@ async def retry_deployment_endpoint(
         logger.error(f"Retry deployment error: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
+            detail=str(e)
+        ) from e
 
     except Exception as e:
         logger.error(f"Retry failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Retry failed: {str(e)}",
-        )
+            detail=f"Retry failed: {str(e)}"
+        ) from e

@@ -1052,7 +1052,6 @@ export class ConfigurationTabs {
      * Component Update Handler
      */
     updateComponent(id, field, value) {
-        console.log('Update component:', id, field, value);
         this.onComponentUpdate(id, field, value);
         // Re-render if needed
         this.renderTabContent();

@@ -60,21 +60,21 @@ async def generate_terraform(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Blueprint template not found: {blueprint_id}",
-        )
+        ) from e
 
     except ValueError as e:
         logger.error(f"Validation error in Terraform generation: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid configuration: {str(e)}",
-        )
+        ) from e
 
     except Exception as e:
         logger.error(f"Error generating Terraform: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error generating Terraform: {str(e)}",
-        )
+        ) from e
 
 
 @router.post(
@@ -122,14 +122,14 @@ async def validate_terraform(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid Terraform code: {str(e)}",
-        )
+        ) from e
 
     except Exception as e:
         logger.error(f"Error validating Terraform: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error validating Terraform: {str(e)}",
-        )
+        ) from e
 
 
 @router.post(
@@ -186,11 +186,11 @@ async def generate_terraform_from_json(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid architecture JSON: {str(e)}",
-        )
+        ) from e
 
     except Exception as e:
         logger.error(f"Error generating Terraform from JSON: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error generating Terraform: {str(e)}",
-        )
+        ) from e

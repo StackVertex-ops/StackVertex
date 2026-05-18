@@ -4,9 +4,10 @@ Handles CRUD operations for Architecture entities with automatic
 S3 offload for large architecture_json (> 300KB).
 """
 
-from typing import Dict, List, Optional, Any
-from uuid import UUID, uuid4
 import json
+from typing import Any
+from uuid import UUID, uuid4
+
 from boto3.dynamodb.conditions import Key
 
 from app.repositories.base import BaseRepository
@@ -24,7 +25,7 @@ class ArchitectureRepository(BaseRepository):
         GSI2: owner#{owner} + created_at (for list by owner)
     """
 
-    def create(self, architecture: ArchitectureCreate) -> Dict[str, Any]:
+    def create(self, architecture: ArchitectureCreate) -> dict[str, Any]:
         """Create new architecture.
 
         Args:
@@ -43,7 +44,7 @@ class ArchitectureRepository(BaseRepository):
         json_size = len(json_str.encode("utf-8"))
 
         # Prepare base item
-        item: Dict[str, Any] = {
+        item: dict[str, Any] = {
             "PK": f"ARCH#{arch_id}",
             "SK": "METADATA",
             "id": arch_id,
@@ -77,7 +78,7 @@ class ArchitectureRepository(BaseRepository):
         # Store in DynamoDB
         return self._put_item(item)
 
-    def get(self, architecture_id: UUID) -> Optional[Dict[str, Any]]:
+    def get(self, architecture_id: UUID) -> dict[str, Any] | None:
         """Get architecture by ID.
 
         Args:
@@ -104,8 +105,8 @@ class ArchitectureRepository(BaseRepository):
         self,
         skip: int = 0,
         limit: int = 100,
-        owner: Optional[str] = None
-    ) -> tuple[List[Dict[str, Any]], int]:
+        owner: str | None = None
+    ) -> tuple[list[dict[str, Any]], int]:
         """List architectures with pagination and optional owner filter.
 
         Args:
@@ -155,7 +156,7 @@ class ArchitectureRepository(BaseRepository):
         self,
         architecture_id: UUID,
         architecture_update: ArchitectureUpdate
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Update architecture (partial update).
 
         Args:

@@ -5,7 +5,7 @@ Loads configuration from environment variables using Pydantic Settings.
 
 import tempfile
 from pathlib import Path
-from typing import List, Union
+
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     PORT: int = 8000
 
     # CORS Settings
-    CORS_ORIGINS: Union[List[str], str] = [
+    CORS_ORIGINS: list[str] | str = [
         "http://localhost:5173",  # Vite dev server
         "http://localhost:5174",  # Vite dev server (alternative port)
         "http://localhost:3000",

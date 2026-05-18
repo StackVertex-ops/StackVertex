@@ -3,13 +3,14 @@
 Manages invoices, payments, and billing history.
 """
 
-from uuid import UUID, uuid4
 from datetime import datetime
-from typing import Dict, Any, List, Optional
+from typing import Any
+from uuid import UUID, uuid4
+
 from boto3.dynamodb.conditions import Key
 
-from app.repositories.base import BaseRepository
 from app.models.billing import InvoiceStatus
+from app.repositories.base import BaseRepository
 
 
 class InvoiceRepository(BaseRepository):
@@ -21,12 +22,12 @@ class InvoiceRepository(BaseRepository):
         invoice_number: str,
         period_start: datetime,
         period_end: datetime,
-        line_items: List[Dict[str, Any]],
+        line_items: list[dict[str, Any]],
         subtotal: float,
         tax: float,
         total: float,
-        stripe_invoice_id: Optional[str] = None
-    ) -> Dict[str, Any]:
+        stripe_invoice_id: str | None = None
+    ) -> dict[str, Any]:
         """Create new invoice.
 
         Args:
@@ -73,7 +74,7 @@ class InvoiceRepository(BaseRepository):
         self,
         org_id: UUID,
         invoice_number: str
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Get invoice by number.
 
         Args:
@@ -88,7 +89,7 @@ class InvoiceRepository(BaseRepository):
             sk=f"INVOICE#{invoice_number}"
         )
 
-    def get_by_id(self, invoice_id: str) -> Optional[Dict[str, Any]]:
+    def get_by_id(self, invoice_id: str) -> dict[str, Any] | None:
         """Get invoice by ID.
 
         Args:
@@ -108,8 +109,8 @@ class InvoiceRepository(BaseRepository):
         self,
         org_id: UUID,
         limit: int = 50,
-        status_filter: Optional[InvoiceStatus] = None
-    ) -> List[Dict[str, Any]]:
+        status_filter: InvoiceStatus | None = None
+    ) -> list[dict[str, Any]]:
         """List invoices for organisation.
 
         Args:
@@ -143,8 +144,8 @@ class InvoiceRepository(BaseRepository):
         org_id: UUID,
         invoice_number: str,
         status: InvoiceStatus,
-        paid_at: Optional[datetime] = None
-    ) -> Dict[str, Any]:
+        paid_at: datetime | None = None
+    ) -> dict[str, Any]:
         """Update invoice status.
 
         Args:
@@ -172,7 +173,7 @@ class InvoiceRepository(BaseRepository):
         org_id: UUID,
         invoice_number: str,
         due_date: datetime
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Mark invoice as sent to customer.
 
         Args:
@@ -197,9 +198,9 @@ class InvoiceRepository(BaseRepository):
         self,
         org_id: UUID,
         invoice_number: str,
-        paid_at: Optional[datetime] = None,
-        payment_intent_id: Optional[str] = None
-    ) -> Dict[str, Any]:
+        paid_at: datetime | None = None,
+        payment_intent_id: str | None = None
+    ) -> dict[str, Any]:
         """Mark invoice as paid.
 
         Args:
@@ -225,7 +226,7 @@ class InvoiceRepository(BaseRepository):
             updates=updates
         )
 
-    def get_overdue_invoices(self) -> List[Dict[str, Any]]:
+    def get_overdue_invoices(self) -> list[dict[str, Any]]:
         """Get all overdue invoices.
 
         Returns:
@@ -245,7 +246,7 @@ class InvoiceRepository(BaseRepository):
         self,
         start_date: datetime,
         end_date: datetime
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """Calculate total revenue in a date range.
 
         Args:

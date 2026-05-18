@@ -5,20 +5,19 @@ Generiert Terraform HCL Code aus Architecture JSON.
 
 import logging
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Any
+
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound, select_autoescape
 
 from app.core.terraform_generator.component_mapper import ComponentMapper
-from app.core.terraform_generator.file_builder import TerraformFileBuilder, TerraformProject
-from app.core.terraform_generator.validators import TerraformValidator
-from app.core.terraform_generator.filters import TERRAFORM_FILTERS
 from app.core.terraform_generator.exceptions import (
-    TerraformGeneratorException,
     TemplateNotFoundError,
     TemplateRenderError,
     UnsupportedComponentError,
-    InvalidConfigurationError,
 )
+from app.core.terraform_generator.file_builder import TerraformFileBuilder, TerraformProject
+from app.core.terraform_generator.filters import TERRAFORM_FILTERS
+from app.core.terraform_generator.validators import TerraformValidator
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +27,7 @@ class TerraformGenerator:
 
     def __init__(
         self,
-        template_dir: Optional[Path] = None,
+        template_dir: Path | None = None,
         terraform_binary: str = "terraform"
     ):
         """Initialisiert Generator.
@@ -69,7 +68,7 @@ class TerraformGenerator:
 
     def generate(
         self,
-        architecture_json: Dict[str, Any],
+        architecture_json: dict[str, Any],
         validate: bool = True
     ) -> TerraformProject:
         """Generiert Terraform-Projekt aus Architecture JSON.
@@ -133,8 +132,8 @@ class TerraformGenerator:
 
     def _group_components_by_type(
         self,
-        components: List[Dict[str, Any]]
-    ) -> Dict[str, List[Dict[str, Any]]]:
+        components: list[dict[str, Any]]
+    ) -> dict[str, list[dict[str, Any]]]:
         """Gruppiert Components nach Type.
 
         Args:
@@ -143,7 +142,7 @@ class TerraformGenerator:
         Returns:
             Dict {component_type: [components]}
         """
-        grouped: Dict[str, List[Dict[str, Any]]] = {}
+        grouped: dict[str, list[dict[str, Any]]] = {}
 
         for component in components:
             component_type = component.get("type")
@@ -160,8 +159,8 @@ class TerraformGenerator:
 
     def _generate_component_resource(
         self,
-        component: Dict[str, Any],
-        metadata: Dict[str, Any]
+        component: dict[str, Any],
+        metadata: dict[str, Any]
     ) -> None:
         """Generiert Terraform Resource für ein Component.
 
@@ -215,7 +214,7 @@ class TerraformGenerator:
             logger.error(f"Failed to render template {template_path}: {e}")
             raise TemplateRenderError(template_path, str(e)) from e
 
-    def _generate_variables(self, architecture_json: Dict[str, Any]) -> None:
+    def _generate_variables(self, architecture_json: dict[str, Any]) -> None:
         """Generiert Terraform Variables.
 
         Args:
@@ -255,7 +254,7 @@ class TerraformGenerator:
                 default={tag: tag for tag in tags}
             )
 
-    def _generate_outputs(self, components: List[Dict[str, Any]]) -> None:
+    def _generate_outputs(self, components: list[dict[str, Any]]) -> None:
         """Generiert Terraform Outputs.
 
         Args:

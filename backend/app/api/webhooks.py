@@ -101,7 +101,7 @@ async def stripe_webhook(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to process webhook"
-        )
+        ) from e
 
     return {"received": True}
 

@@ -5,7 +5,8 @@ Generiert Terraform HCL aus Blueprint Templates und User Configuration.
 
 import logging
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
+
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 
 logger = logging.getLogger(__name__)
@@ -15,7 +16,7 @@ TEMPLATES_DIR = Path(__file__).parent.parent.parent / "templates" / "terraform"
 
 
 def generate_terraform_from_blueprint(
-    blueprint_id: str, configuration: Dict[str, Any]
+    blueprint_id: str, configuration: dict[str, Any]
 ) -> str:
     """Generiert Terraform Code aus Blueprint + User Config.
 

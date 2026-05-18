@@ -150,14 +150,14 @@ async def validate_architecture(request: ValidationRequest) -> ValidationRespons
         logger.error(f"Schema-Datei nicht gefunden: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Schema-Datei konnte nicht geladen werden: {str(e)}",
-        )
+            detail=f"Schema-Datei konnte nicht geladen werden: {str(e)}"
+        ) from e
     except Exception as e:
         logger.error(f"Unerwarteter Fehler bei Validierung: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Interner Fehler bei Validierung: {str(e)}",
-        )
+            detail=f"Interner Fehler bei Validierung: {str(e)}"
+        ) from e
 
 
 @router.get(
@@ -192,8 +192,8 @@ async def validation_health() -> Dict[str, Any]:
         logger.error(f"Validation Service Health-Check fehlgeschlagen: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Schema konnte nicht geladen werden: {str(e)}",
-        )
+            detail=f"Schema konnte nicht geladen werden: {str(e)}"
+        ) from e
 
 
 # ============================================================================

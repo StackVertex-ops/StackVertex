@@ -4,15 +4,15 @@ Generates monthly invoices based on subscription + AWS costs.
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
-from typing import Dict, Any, List
+from typing import Any
 from uuid import UUID
 
+from app.models.billing import BillingTier
+from app.repositories.aws_cost import AWSCostRepository
 from app.repositories.invoice import InvoiceRepository
 from app.repositories.subscription import SubscriptionRepository
-from app.repositories.aws_cost import AWSCostRepository
-from app.models.billing import BillingTier, BillingPeriod
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ class InvoiceGenerator:
         self,
         org_id: UUID,
         month: str  # Format: "2026-05"
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Generate invoice for an organisation for a specific month.
 
         Args:
@@ -110,10 +110,10 @@ class InvoiceGenerator:
 
     def _build_line_items(
         self,
-        subscription: Dict[str, Any],
+        subscription: dict[str, Any],
         aws_costs: Decimal,
-        deployment_costs: Dict[str, Dict[str, float]]
-    ) -> List[Dict[str, Any]]:
+        deployment_costs: dict[str, dict[str, float]]
+    ) -> list[dict[str, Any]]:
         """Build invoice line items.
 
         Args:
@@ -193,7 +193,7 @@ class InvoiceGenerator:
 
     def _calculate_voucher_discount(
         self,
-        subscription: Dict[str, Any],
+        subscription: dict[str, Any],
         base_price: Decimal,
         aws_costs: Decimal,
         percentage: int
@@ -239,8 +239,8 @@ class InvoiceGenerator:
 
     def _summarize_deployment_costs(
         self,
-        deployment_costs: Dict[str, Dict[str, float]]
-    ) -> List[Dict[str, Any]]:
+        deployment_costs: dict[str, dict[str, float]]
+    ) -> list[dict[str, Any]]:
         """Summarize deployment costs for invoice.
 
         Args:
@@ -263,7 +263,7 @@ class InvoiceGenerator:
 
         return summaries
 
-    def generate_invoices_for_all_orgs(self, month: str) -> List[Dict[str, Any]]:
+    def generate_invoices_for_all_orgs(self, month: str) -> list[dict[str, Any]]:
         """Generate invoices for all active organisations for a month.
 
         Args:
@@ -288,7 +288,7 @@ class InvoiceGenerator:
 
         return generated_invoices
 
-    def preview_next_invoice(self, org_id: UUID) -> Dict[str, Any]:
+    def preview_next_invoice(self, org_id: UUID) -> dict[str, Any]:
         """Preview next invoice for organisation (without creating it).
 
         Args:

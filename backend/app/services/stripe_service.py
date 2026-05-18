@@ -5,7 +5,8 @@ Handles Stripe Checkout, Subscriptions, and Webhooks.
 
 import logging
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Any
+
 import stripe
 
 from app.config import settings
@@ -20,7 +21,7 @@ stripe.api_key = settings.STRIPE_SECRET_KEY if hasattr(settings, 'STRIPE_SECRET_
 class StripeService:
     """Stripe API Integration."""
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         """Initialize Stripe Service.
 
         Args:
@@ -70,7 +71,7 @@ class StripeService:
         success_url: str,
         cancel_url: str,
         auto_renewal: bool = False
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create Stripe Checkout Session.
 
         Args:
@@ -159,7 +160,7 @@ class StripeService:
         logger.info(f"Created billing portal session for customer {customer_id}")
         return portal_session.url
 
-    def get_subscription(self, subscription_id: str) -> Optional[Dict[str, Any]]:
+    def get_subscription(self, subscription_id: str) -> dict[str, Any] | None:
         """Get Subscription details.
 
         Args:
@@ -245,7 +246,7 @@ class StripeService:
         payload: bytes,
         signature: str,
         webhook_secret: str
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Verify Stripe Webhook signature.
 
         Args:

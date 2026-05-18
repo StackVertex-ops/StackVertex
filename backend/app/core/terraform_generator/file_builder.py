@@ -4,9 +4,9 @@ Generiert Terraform-Datei-Struktur (main.tf, variables.tf, outputs.tf).
 """
 
 import logging
-from pathlib import Path
-from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ class TerraformProject:
     """Repräsentiert ein generiertes Terraform-Projekt."""
 
     # File Contents (filename → content)
-    files: Dict[str, str] = field(default_factory=dict)
+    files: dict[str, str] = field(default_factory=dict)
 
     # Metadata
     provider: str = "aws"
@@ -60,10 +60,10 @@ class TerraformFileBuilder:
 
     def __init__(self):
         """Initialisiert Builder."""
-        self.resources: List[str] = []
-        self.variables: List[Dict[str, Any]] = []
-        self.outputs: List[Dict[str, Any]] = []
-        self.locals: Dict[str, Any] = {}
+        self.resources: list[str] = []
+        self.variables: list[dict[str, Any]] = []
+        self.outputs: list[dict[str, Any]] = []
+        self.locals: dict[str, Any] = {}
 
     def add_resource(self, hcl_code: str) -> None:
         """Fügt eine Resource hinzu.
@@ -78,7 +78,7 @@ class TerraformFileBuilder:
         name: str,
         type_: str = "string",
         description: str = "",
-        default: Optional[Any] = None
+        default: Any | None = None
     ) -> None:
         """Fügt eine Variable hinzu.
 
@@ -133,7 +133,7 @@ class TerraformFileBuilder:
         self,
         provider: str,
         region: str,
-        additional_config: Optional[Dict[str, Any]] = None
+        additional_config: dict[str, Any] | None = None
     ) -> str:
         """Generiert provider.tf Inhalt.
 

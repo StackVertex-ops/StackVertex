@@ -4,9 +4,9 @@ Berechnet Kosten für Architecture Deployments.
 """
 
 import logging
-from typing import Dict, Any, List, Optional
-from decimal import Decimal
 from dataclasses import dataclass, field
+from decimal import Decimal
+from typing import Any
 
 from app.services.pricing_data import PricingDataLoader
 
@@ -22,7 +22,7 @@ class ComponentCost:
     component_name: str
     hourly_cost: Decimal
     monthly_cost: Decimal
-    breakdown: Dict[str, Decimal] = field(default_factory=dict)
+    breakdown: dict[str, Decimal] = field(default_factory=dict)
 
 
 @dataclass
@@ -33,8 +33,8 @@ class CostEstimate:
     total_monthly: Decimal
     total_yearly: Decimal
     currency: str = "USD"
-    components: List[ComponentCost] = field(default_factory=list)
-    breakdown_by_type: Dict[str, Decimal] = field(default_factory=dict)
+    components: list[ComponentCost] = field(default_factory=list)
+    breakdown_by_type: dict[str, Decimal] = field(default_factory=dict)
 
     def add_component(self, component_cost: ComponentCost) -> None:
         """Fügt Component-Kosten hinzu."""
@@ -55,7 +55,7 @@ class CostEstimator:
 
     HOURS_PER_MONTH = 730  # Durchschnitt (365 * 24 / 12)
 
-    def __init__(self, pricing_loader: Optional[PricingDataLoader] = None):
+    def __init__(self, pricing_loader: PricingDataLoader | None = None):
         """Initialisiert Cost Estimator.
 
         Args:
@@ -65,7 +65,7 @@ class CostEstimator:
 
     def estimate_architecture_cost(
         self,
-        architecture_json: Dict[str, Any],
+        architecture_json: dict[str, Any],
         period: str = "monthly"
     ) -> CostEstimate:
         """Berechnet Gesamtkosten einer Architecture.
@@ -134,9 +134,9 @@ class CostEstimator:
         component_type: str,
         component_id: str,
         component_name: str,
-        config: Dict[str, Any],
+        config: dict[str, Any],
         region: str
-    ) -> Optional[ComponentCost]:
+    ) -> ComponentCost | None:
         """Berechnet Kosten für ein einzelnes Component.
 
         Args:
@@ -177,7 +177,7 @@ class CostEstimator:
         self,
         component_id: str,
         component_name: str,
-        config: Dict[str, Any],
+        config: dict[str, Any],
         region: str
     ) -> ComponentCost:
         """Berechnet EC2 Kosten.
@@ -215,7 +215,7 @@ class CostEstimator:
         self,
         component_id: str,
         component_name: str,
-        config: Dict[str, Any],
+        config: dict[str, Any],
         region: str
     ) -> ComponentCost:
         """Berechnet RDS Kosten.
@@ -263,7 +263,7 @@ class CostEstimator:
         self,
         component_id: str,
         component_name: str,
-        config: Dict[str, Any],
+        config: dict[str, Any],
         region: str
     ) -> ComponentCost:
         """Berechnet S3 Kosten.
@@ -302,7 +302,7 @@ class CostEstimator:
         self,
         component_id: str,
         component_name: str,
-        config: Dict[str, Any],
+        config: dict[str, Any],
         region: str
     ) -> ComponentCost:
         """Berechnet Lambda Kosten.
