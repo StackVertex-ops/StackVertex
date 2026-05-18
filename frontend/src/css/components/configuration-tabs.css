@@ -61,10 +61,10 @@
 
 @keyframes pulse-highlight {
     0%, 100% {
-        @apply ring-opacity-50;
+        --tw-ring-opacity: 0.5;
     }
     50% {
-        @apply ring-opacity-100;
+        --tw-ring-opacity: 1;
     }
 }
 

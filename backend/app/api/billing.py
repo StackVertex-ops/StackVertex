@@ -1,11 +1,13 @@
 """Billing & Subscription API Endpoints.
 
+Hybrid Pricing Model: Base Fee + % AWS Infrastructure Costs.
 Stripe Integration for Plan Upgrades, Subscriptions, and Billing Portal.
 """
 
 import logging
-from typing import Annotated
+from typing import Annotated, List, Optional
 from uuid import UUID
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Header
 from pydantic import BaseModel, Field
@@ -15,8 +17,22 @@ from slowapi.util import get_remote_address
 from app.config import settings
 from app.db.dynamodb import get_dynamodb_table
 from app.repositories.organisation import OrganisationRepository
+from app.repositories.subscription import SubscriptionRepository
+from app.repositories.aws_cost import AWSCostRepository
+from app.repositories.invoice import InvoiceRepository
 from app.services.stripe_service import StripeService, get_stripe_service
+from app.services.invoice_generator import InvoiceGenerator
+from app.services.aws_cost_tracker import AWSCostTracker
 from app.models.organisation import OrganisationPlan, get_plan_price, calculate_yearly_discount
+from app.models.billing import (
+    BillingTier,
+    BillingPeriod,
+    BillingStatus,
+    InvoiceStatus,
+    get_tier_config,
+    get_base_price,
+    calculate_monthly_cost_example
+)
 from app.models.user import UserRole
 from app.api.auth import get_current_user
 from app.api.organisations import check_org_permission, get_organisation_repository
@@ -78,6 +94,86 @@ class SubscriptionStatusResponse(BaseModel):
     current_period_end: str | None = None
     cancel_at_period_end: bool = False
     auto_renewal_enabled: bool = False
+
+
+class HybridPricingTier(BaseModel):
+    """Hybrid Pricing Tier Information."""
+
+    tier: str
+    base_price_monthly: float
+    base_price_annual: float
+    aws_cost_percentage: int
+    limits: dict
+    features: List[str]
+
+
+class CostEstimateRequest(BaseModel):
+    """Cost Estimate Request."""
+
+    tier: str = Field(..., description="Billing tier")
+    estimated_aws_costs: float = Field(..., description="Estimated monthly AWS costs")
+    num_deployments: int = Field(0, description="Number of deployments (for PAYG)")
+
+
+class CostEstimateResponse(BaseModel):
+    """Cost Estimate Response."""
+
+    tier: str
+    base_price: float
+    aws_costs: float
+    markup_percentage: int
+    markup_fee: float
+    deployment_fees: float
+    subtotal: float
+    tax: float
+    total: float
+    currency: str = "EUR"
+
+
+class InvoiceLineItem(BaseModel):
+    """Invoice Line Item."""
+
+    description: str
+    amount: float
+    currency: str
+    breakdown: Optional[dict] = None
+
+
+class InvoiceResponse(BaseModel):
+    """Invoice Response."""
+
+    id: str
+    invoice_number: str
+    org_id: str
+    period_start: str
+    period_end: str
+    line_items: List[InvoiceLineItem]
+    subtotal: float
+    tax: float
+    total: float
+    status: str
+    created_at: str
+    paid_at: Optional[str] = None
+
+
+class CostTrendItem(BaseModel):
+    """Cost Trend Item."""
+
+    month: str
+    aws_costs: float
+    overcloud_fee: float
+    total: float
+
+
+class CostProjectionResponse(BaseModel):
+    """Cost Projection Response."""
+
+    current_aws_costs: float
+    projected_aws_costs: float
+    projected_overcloud_fee: float
+    projected_total: float
+    days_elapsed: int
+    days_in_month: int
 
 
 # ============================================================================
@@ -347,3 +443,245 @@ async def cancel_subscription(
     return {
         "message": "Subscription canceled at period end" if not immediately else "Subscription canceled immediately"
     }
+
+
+# ============================================================================
+# New Hybrid Pricing Endpoints
+# ============================================================================
+
+
+@router.get("/pricing/hybrid", response_model=List[HybridPricingTier])
+async def get_hybrid_pricing():
+    """Get hybrid pricing information for all tiers.
+
+    Public endpoint - no authentication required.
+    Returns: Base price + AWS cost percentage for each tier.
+    """
+    tiers = []
+
+    for tier in [BillingTier.STARTER, BillingTier.PRO, BillingTier.ENTERPRISE, BillingTier.PAY_AS_YOU_GO]:
+        config = get_tier_config(tier)
+
+        tiers.append(HybridPricingTier(
+            tier=tier.value,
+            base_price_monthly=config["base_price_monthly"],
+            base_price_annual=config["base_price_annual"],
+            aws_cost_percentage=config["aws_cost_percentage"],
+            limits=config["limits"],
+            features=config["features"]
+        ))
+
+    return tiers
+
+
+@router.post("/pricing/estimate", response_model=CostEstimateResponse)
+async def estimate_monthly_cost(estimate_request: CostEstimateRequest):
+    """Estimate monthly costs for a tier.
+
+    Public endpoint - helps users calculate their expected costs.
+    """
+    try:
+        tier = BillingTier(estimate_request.tier)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid tier: {estimate_request.tier}"
+        )
+
+    cost_breakdown = calculate_monthly_cost_example(
+        tier=tier,
+        aws_costs=estimate_request.estimated_aws_costs,
+        num_deployments=estimate_request.num_deployments
+    )
+
+    return CostEstimateResponse(
+        tier=tier.value,
+        **cost_breakdown
+    )
+
+
+@router.get("/{org_id}/costs/current", response_model=dict)
+async def get_current_month_costs(
+    org_id: UUID,
+    current_user: Annotated[dict, Depends(get_current_user)],
+    org_repo: OrganisationRepository = Depends(get_organisation_repository)
+):
+    """Get AWS costs for current month.
+
+    Requires: MEMBER role
+    """
+    # Check permission
+    await check_org_permission(org_id, current_user, UserRole.MEMBER, org_repo)
+
+    cost_repo = AWSCostRepository()
+    current_month = datetime.utcnow().strftime("%Y-%m")
+    cost_record = cost_repo.get_monthly_costs(org_id, current_month)
+
+    if not cost_record:
+        return {
+            "month": current_month,
+            "total_aws_costs": 0.0,
+            "overcloud_percentage_fee": 0.0,
+            "deployment_costs": {}
+        }
+
+    return cost_record
+
+
+@router.get("/{org_id}/costs/trend", response_model=List[CostTrendItem])
+async def get_cost_trend(
+    org_id: UUID,
+    current_user: Annotated[dict, Depends(get_current_user)],
+    org_repo: OrganisationRepository = Depends(get_organisation_repository),
+    months: int = 6
+):
+    """Get cost trend over time.
+
+    Requires: MEMBER role
+    """
+    # Check permission
+    await check_org_permission(org_id, current_user, UserRole.MEMBER, org_repo)
+
+    cost_repo = AWSCostRepository()
+    trend = cost_repo.get_cost_trend(org_id, months=months)
+
+    return [CostTrendItem(**item) for item in trend]
+
+
+@router.get("/{org_id}/costs/projection", response_model=CostProjectionResponse)
+async def get_cost_projection(
+    org_id: UUID,
+    current_user: Annotated[dict, Depends(get_current_user)],
+    org_repo: OrganisationRepository = Depends(get_organisation_repository)
+):
+    """Project end-of-month costs based on current usage.
+
+    Requires: MEMBER role
+    """
+    # Check permission
+    await check_org_permission(org_id, current_user, UserRole.MEMBER, org_repo)
+
+    cost_repo = AWSCostRepository()
+    subscription_repo = SubscriptionRepository()
+
+    tracker = AWSCostTracker(cost_repo, subscription_repo)
+    projection = tracker.get_cost_projection(org_id)
+
+    return CostProjectionResponse(**projection)
+
+
+@router.get("/{org_id}/invoices", response_model=List[InvoiceResponse])
+async def list_invoices(
+    org_id: UUID,
+    current_user: Annotated[dict, Depends(get_current_user)],
+    org_repo: OrganisationRepository = Depends(get_organisation_repository),
+    limit: int = 50,
+    status_filter: Optional[str] = None
+):
+    """List invoices for organisation.
+
+    Requires: MEMBER role
+    """
+    # Check permission
+    await check_org_permission(org_id, current_user, UserRole.MEMBER, org_repo)
+
+    invoice_repo = InvoiceRepository()
+
+    # Parse status filter
+    status = None
+    if status_filter:
+        try:
+            status = InvoiceStatus(status_filter)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid status: {status_filter}"
+            )
+
+    invoices = invoice_repo.list_by_org(org_id, limit=limit, status_filter=status)
+
+    return [
+        InvoiceResponse(
+            id=inv["id"],
+            invoice_number=inv["invoice_number"],
+            org_id=inv["org_id"],
+            period_start=inv["period_start"],
+            period_end=inv["period_end"],
+            line_items=[InvoiceLineItem(**item) for item in inv["line_items"]],
+            subtotal=inv["subtotal"],
+            tax=inv["tax"],
+            total=inv["total"],
+            status=inv["status"],
+            created_at=inv["created_at"],
+            paid_at=inv.get("paid_at")
+        )
+        for inv in invoices
+    ]
+
+
+@router.get("/{org_id}/invoices/{invoice_number}", response_model=InvoiceResponse)
+async def get_invoice(
+    org_id: UUID,
+    invoice_number: str,
+    current_user: Annotated[dict, Depends(get_current_user)],
+    org_repo: OrganisationRepository = Depends(get_organisation_repository)
+):
+    """Get invoice details.
+
+    Requires: MEMBER role
+    """
+    # Check permission
+    await check_org_permission(org_id, current_user, UserRole.MEMBER, org_repo)
+
+    invoice_repo = InvoiceRepository()
+    invoice = invoice_repo.get_by_number(org_id, invoice_number)
+
+    if not invoice:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Invoice {invoice_number} not found"
+        )
+
+    return InvoiceResponse(
+        id=invoice["id"],
+        invoice_number=invoice["invoice_number"],
+        org_id=invoice["org_id"],
+        period_start=invoice["period_start"],
+        period_end=invoice["period_end"],
+        line_items=[InvoiceLineItem(**item) for item in invoice["line_items"]],
+        subtotal=invoice["subtotal"],
+        tax=invoice["tax"],
+        total=invoice["total"],
+        status=invoice["status"],
+        created_at=invoice["created_at"],
+        paid_at=invoice.get("paid_at")
+    )
+
+
+@router.get("/{org_id}/invoices/preview/next", response_model=dict)
+async def preview_next_invoice(
+    org_id: UUID,
+    current_user: Annotated[dict, Depends(get_current_user)],
+    org_repo: OrganisationRepository = Depends(get_organisation_repository)
+):
+    """Preview next invoice without creating it.
+
+    Requires: MEMBER role
+    """
+    # Check permission
+    await check_org_permission(org_id, current_user, UserRole.MEMBER, org_repo)
+
+    subscription_repo = SubscriptionRepository()
+    cost_repo = AWSCostRepository()
+    invoice_repo = InvoiceRepository()
+
+    generator = InvoiceGenerator(invoice_repo, subscription_repo, cost_repo)
+
+    try:
+        preview = generator.preview_next_invoice(org_id)
+        return preview
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )

@@ -20,11 +20,13 @@ from app.api.admin import (
     get_user_as_admin,
     update_user_status,
     update_user_system_role,
+    reset_user_password,
     list_all_organisations,
     get_organisation_architectures,
     get_audit_logs,
     impersonate_user,
     get_system_stats,
+    get_platform_statistics,
 )
 from app.config import settings
 from app.models.user import SystemRole, UserStatus
@@ -44,6 +46,7 @@ def superadmin_user():
         "name": "Super Admin",
         "system_role": SystemRole.SUPERADMIN.value,
         "status": UserStatus.ACTIVE.value,
+        "auth_provider": "email",
         "personal_org_id": str(uuid4()),
         "created_at": datetime.utcnow().isoformat(),
         "updated_at": datetime.utcnow().isoformat(),
@@ -59,6 +62,7 @@ def regular_user():
         "name": "Regular User",
         "system_role": SystemRole.USER.value,
         "status": UserStatus.ACTIVE.value,
+        "auth_provider": "email",
         "personal_org_id": str(uuid4()),
         "created_at": datetime.utcnow().isoformat(),
         "updated_at": datetime.utcnow().isoformat(),
@@ -230,6 +234,15 @@ async def test_list_all_organisations_success(superadmin_user, mock_org_repo):
             "owner_user_id": str(uuid4()),
             "plan": "free",
             "status": "active",
+            "quota": {
+                "active_deployments": 1,
+                "max_active_deployments": 3,
+                "members": 2,
+                "max_members": 5,
+                "architectures": 1,
+                "max_architectures": 10,
+                "monitoring_level": "basic"
+            },
             "created_at": datetime.utcnow().isoformat(),
             "updated_at": datetime.utcnow().isoformat(),
         },
@@ -240,6 +253,15 @@ async def test_list_all_organisations_success(superadmin_user, mock_org_repo):
             "owner_user_id": str(uuid4()),
             "plan": "pro",
             "status": "active",
+            "quota": {
+                "active_deployments": 5,
+                "max_active_deployments": -1,
+                "members": 10,
+                "max_members": -1,
+                "architectures": 20,
+                "max_architectures": -1,
+                "monitoring_level": "advanced"
+            },
             "created_at": datetime.utcnow().isoformat(),
             "updated_at": datetime.utcnow().isoformat(),
         }
@@ -260,32 +282,49 @@ async def test_list_all_organisations_success(superadmin_user, mock_org_repo):
 
 
 @pytest.mark.asyncio
-async def test_get_organisation_architectures_success(superadmin_user, mock_arch_repo):
+async def test_get_organisation_architectures_success(superadmin_user, mock_org_repo, mock_arch_repo):
     """Test viewing organisation architectures as SuperAdmin."""
     # Setup
     org_id = uuid4()
+    user_id = str(uuid4())
+
+    # Mock organisation exists
+    mock_org_repo.get.return_value = {
+        "id": str(org_id),
+        "name": "Test Org",
+        "type": "team"
+    }
+
+    # Mock organisation members
+    mock_org_repo.get_members.return_value = [
+        {"user_id": user_id}
+    ]
+
+    # Mock architectures for the user
     architectures = [
         {
             "id": str(uuid4()),
             "name": "Web App Architecture",
             "description": "Test architecture",
             "version": "1.0.0",
-            "owner": str(uuid4()),
+            "owner": user_id,
         }
     ]
-    mock_arch_repo.list_by_organisation.return_value = architectures
+    mock_arch_repo.list.return_value = (architectures, 1)
 
     # Execute
     result = await get_organisation_architectures(
         org_id=org_id,
         current_admin=superadmin_user,
+        org_repo=mock_org_repo,
         arch_repo=mock_arch_repo
     )
 
     # Verify
     assert len(result) == 1
     assert result[0]["name"] == "Web App Architecture"
-    mock_arch_repo.list_by_organisation.assert_called_once_with(str(org_id))
+    mock_org_repo.get.assert_called_once()
+    mock_org_repo.get_members.assert_called_once_with(org_id)
 
 
 # ============================================================================
@@ -426,6 +465,80 @@ async def test_impersonate_user_reason_too_short(superadmin_user, regular_user, 
 
 
 # ============================================================================
+# Password Reset Tests
+# ============================================================================
+
+
+@pytest.mark.asyncio
+async def test_reset_user_password_success(superadmin_user, regular_user, mock_user_repo):
+    """Test password reset as SuperAdmin."""
+    # Setup
+    user_id = regular_user["id"]
+    mock_user_repo.get.return_value = regular_user
+    mock_user_repo.update_password.return_value = True
+
+    # Execute
+    result = await reset_user_password(
+        user_id=user_id,
+        current_admin=superadmin_user,
+        user_repo=mock_user_repo
+    )
+
+    # Verify
+    assert result.user_id == user_id
+    assert result.email == regular_user["email"]
+    assert len(result.new_password) >= 16
+    assert "Password reset successful" in result.message
+    mock_user_repo.update_password.assert_called_once()
+
+    # Verify password contains required character types
+    password = result.new_password
+    assert any(c.islower() for c in password)  # Lowercase
+    assert any(c.isupper() for c in password)  # Uppercase
+    assert any(c.isdigit() for c in password)  # Digit
+    assert any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in password)  # Special char
+
+
+@pytest.mark.asyncio
+async def test_reset_user_password_not_found(superadmin_user, mock_user_repo):
+    """Test password reset for non-existent user."""
+    # Setup
+    user_id = uuid4()
+    mock_user_repo.get.return_value = None
+
+    # Execute & Verify
+    with pytest.raises(HTTPException) as exc_info:
+        await reset_user_password(
+            user_id=user_id,
+            current_admin=superadmin_user,
+            user_repo=mock_user_repo
+        )
+
+    assert exc_info.value.status_code == 404
+    assert exc_info.value.detail == "User not found"
+
+
+@pytest.mark.asyncio
+async def test_reset_user_password_update_fails(superadmin_user, regular_user, mock_user_repo):
+    """Test password reset when update fails."""
+    # Setup
+    user_id = regular_user["id"]
+    mock_user_repo.get.return_value = regular_user
+    mock_user_repo.update_password.return_value = False
+
+    # Execute & Verify
+    with pytest.raises(HTTPException) as exc_info:
+        await reset_user_password(
+            user_id=user_id,
+            current_admin=superadmin_user,
+            user_repo=mock_user_repo
+        )
+
+    assert exc_info.value.status_code == 500
+    assert "Failed to update password" in exc_info.value.detail
+
+
+# ============================================================================
 # System Stats Tests
 # ============================================================================
 
@@ -462,6 +575,53 @@ async def test_get_system_stats_success(
     assert result["organisations"]["total"] == 15
     assert result["audit"]["total_logs"] == 1000
     assert "timestamp" in result
+
+
+@pytest.mark.asyncio
+async def test_get_platform_statistics_success(
+    superadmin_user,
+    regular_user,
+    mock_user_repo,
+    mock_org_repo,
+    mock_arch_repo
+):
+    """Test getting detailed platform statistics as SuperAdmin."""
+    # Setup
+    users_list = [superadmin_user, regular_user]
+    mock_user_repo.list.return_value = (users_list, 2)
+    mock_org_repo.list_all.return_value = ([], 5)
+
+    # Mock architectures - only return architectures for regular_user, not superadmin
+    architectures = [
+        {"id": str(uuid4()), "status": "deployed", "owner": regular_user["id"]},
+        {"id": str(uuid4()), "status": "draft", "owner": regular_user["id"]},
+    ]
+
+    # Mock arch_repo.list to return different values based on owner parameter
+    def mock_arch_list(skip, limit, owner):
+        if owner == regular_user["id"]:
+            return (architectures, 2)
+        else:
+            return ([], 0)  # Superadmin has no architectures
+
+    mock_arch_repo.list.side_effect = mock_arch_list
+
+    # Execute
+    result = await get_platform_statistics(
+        current_admin=superadmin_user,
+        user_repo=mock_user_repo,
+        org_repo=mock_org_repo,
+        arch_repo=mock_arch_repo
+    )
+
+    # Verify
+    assert result.users["total"] == 2
+    assert result.users["active"] == 2  # Both users are active
+    assert result.organisations["total"] == 5
+    assert result.architectures["total"] == 2
+    assert result.architectures["deployed"] == 1
+    assert result.architectures["draft"] == 1
+    assert result.timestamp is not None
 
 
 # ============================================================================

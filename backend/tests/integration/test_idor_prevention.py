@@ -5,44 +5,42 @@ Tests für Authorization Checks in User Endpoints.
 """
 
 import pytest
+from uuid import uuid4
 from fastapi import status
-from fastapi.testclient import TestClient
 
-from app.main import app
 from app.repositories.user import UserRepository
-from app.db.dynamodb import get_dynamodb_table
-
-
-@pytest.fixture
-def client():
-    """Test client."""
-    return TestClient(app)
 
 
 @pytest.fixture
 def test_users(client):
-    """Create test users."""
+    """Create test users with unique emails."""
+    # Generate unique emails per test run
+    unique_id = str(uuid4())[:8]
+
     # User A
     response_a = client.post("/api/v1/auth/register", json={
-        "email": "user_a@example.com",
+        "email": f"user_a_{unique_id}@example.com",
         "name": "User A",
         "password": "SecurePass123!"
     })
-    assert response_a.status_code == status.HTTP_201_CREATED
+    assert response_a.status_code == status.HTTP_201_CREATED, f"User A registration failed: {response_a.json()}"
     user_a = response_a.json()
     token_a = user_a["access_token"]
     user_a_id = user_a["user"]["id"]
 
     # User B
     response_b = client.post("/api/v1/auth/register", json={
-        "email": "user_b@example.com",
+        "email": f"user_b_{unique_id}@example.com",
         "name": "User B",
         "password": "SecurePass456!"
     })
-    assert response_b.status_code == status.HTTP_201_CREATED
+    assert response_b.status_code == status.HTTP_201_CREATED, f"User B registration failed: {response_b.json()}"
     user_b = response_b.json()
     token_b = user_b["access_token"]
     user_b_id = user_b["user"]["id"]
+
+    # Clear cookies so tests only use tokens, not cookies
+    client.cookies.clear()
 
     return {
         "user_a_id": user_a_id,
@@ -75,7 +73,8 @@ class TestIDORPrevention:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["id"] == test_users['user_a_id']
-        assert data["email"] == "user_a@example.com"
+        # Email has unique_id suffix, just check it starts correctly
+        assert data["email"].startswith("user_a_")
 
     def test_user_cannot_update_other_user_profile(self, client, test_users):
         """User A cannot update User B's profile."""
@@ -133,7 +132,7 @@ class TestSuperAdminAccess:
     """Test SuperAdmin can access all resources."""
 
     @pytest.fixture
-    def superadmin_user(self, client):
+    def superadmin_user(self, client, mock_dynamodb_table):
         """Create superadmin user."""
         # Register normal user first
         response = client.post("/api/v1/auth/register", json={
@@ -141,12 +140,11 @@ class TestSuperAdminAccess:
             "name": "Admin User",
             "password": "AdminPass123!"
         })
-        assert response.status_code == status.HTTP_201_CREATED
+        assert response.status_code == 201
         user_data = response.json()
 
         # Manually upgrade to superadmin in DB
-        table = next(get_dynamodb_table())
-        user_repo = UserRepository(table=table)
+        user_repo = UserRepository(table=mock_dynamodb_table)
         user_repo.update(user_data["user"]["id"], {"system_role": "superadmin"})
 
         # Login again to get token with updated role
@@ -154,7 +152,10 @@ class TestSuperAdminAccess:
             "username": "admin@example.com",
             "password": "AdminPass123!"
         })
-        assert login_response.status_code == status.HTTP_200_OK
+        assert login_response.status_code == 200
+
+        # Clear cookies so tests only use token
+        client.cookies.clear()
 
         return login_response.json()
 

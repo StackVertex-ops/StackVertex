@@ -21,12 +21,20 @@ from app.main import app
 
 
 @pytest.fixture
-def client() -> TestClient:
-    """Provide FastAPI test client.
+def client(mock_dynamodb_table) -> TestClient:
+    """Provide FastAPI test client with mocked DynamoDB.
 
-    Note: Tests should mock DynamoDB/S3 operations or use DynamoDB Local.
+    Automatically overrides get_dynamodb_table dependency to use mocked table.
     """
-    return TestClient(app)
+    from app.db.dynamodb import get_dynamodb_table
+
+    # Override DynamoDB dependency to use mocked table
+    app.dependency_overrides[get_dynamodb_table] = lambda: mock_dynamodb_table
+
+    yield TestClient(app)
+
+    # Cleanup
+    app.dependency_overrides.clear()
 
 
 # =============================================================================

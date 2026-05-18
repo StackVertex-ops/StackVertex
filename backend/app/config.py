@@ -33,6 +33,7 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173",
         "http://127.0.0.1:5174",
     ]
+    CORS_ALLOW_CREDENTIALS: bool = True  # Required for cookies (CSRF protection)
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
@@ -54,6 +55,9 @@ class Settings(BaseSettings):
     S3_LARGE_ITEMS_BUCKET: str = "overcloud-dev-large-items"
     LARGE_ITEM_THRESHOLD: int = 300_000  # 300KB - items larger than this go to S3
 
+    # User Data Storage (für Uploads)
+    USER_DATA_BUCKET: str = "overcloud-user-data-dev"
+
     # AWS Settings (for Boto3)
     AWS_REGION: str = "us-east-1"
     AWS_ACCESS_KEY_ID: str | None = None  # Use IAM roles in production
@@ -62,9 +66,9 @@ class Settings(BaseSettings):
     # Security
     SECRET_KEY: str  # REQUIRED in .env - min 32 chars, cryptographically random
     ALGORITHM: str = "HS256"
-    # SECURITY FIX: Reduced from 24h to 1h (Quick Fix for MVP)
-    # TODO: Implement Refresh Token Pattern (15min access + 7d refresh)
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60  # 1 hour (was 24h)
+    # JWT Token Settings: Short-lived Access Token + Long-lived Refresh Token
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15  # 15 minutes
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7  # 7 days
     ENV: str = "development"  # development, staging, production
     TESTING: bool = False  # Set True in tests to disable rate limiting
 

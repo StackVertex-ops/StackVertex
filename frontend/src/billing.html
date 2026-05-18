@@ -82,6 +82,56 @@
                 </div>
             </div>
 
+            <!-- Voucher Card -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Gutscheincode einlösen</h3>
+
+                <!-- Active Voucher Display -->
+                <div id="activeVoucherDisplay" class="hidden mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span class="font-semibold text-green-900">Aktiver Gutschein</span>
+                            </div>
+                            <p class="text-sm text-green-700" id="activeVoucherDetails">
+                                <!-- Voucher details via JS -->
+                            </p>
+                        </div>
+                        <button id="removeVoucherBtn" class="text-red-600 hover:text-red-800 text-sm font-medium">
+                            Entfernen
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Voucher Input Form -->
+                <div id="voucherInputForm">
+                    <div class="flex gap-3 mb-2">
+                        <input
+                            type="text"
+                            id="voucherCodeInput"
+                            placeholder="Gutscheincode eingeben (z.B. FRIEND2026)"
+                            class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            maxlength="32"
+                        />
+                        <button id="validateVoucherBtn" class="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
+                            Prüfen
+                        </button>
+                    </div>
+
+                    <!-- Validation Result -->
+                    <div id="voucherValidationResult" class="hidden mt-3">
+                        <!-- Filled via JS -->
+                    </div>
+
+                    <p class="text-gray-600 text-sm mt-3">
+                        Hast du einen Gutscheincode? Gib ihn hier ein, um Rabatte auf deine Subscription zu erhalten.
+                    </p>
+                </div>
+            </div>
+
             <!-- Billing History (Placeholder) -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h3 class="text-xl font-semibold text-gray-900 mb-4">Zahlungen & Rechnungen</h3>

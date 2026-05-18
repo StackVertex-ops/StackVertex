@@ -31,6 +31,7 @@ from app.repositories.audit_log import AuditLogRepository
 from app.schemas.user import UserResponse
 from app.schemas.organisation import OrganisationResponse
 from app.services.audit_logger import log_audit
+from app.utils.password import generate_secure_password
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +94,24 @@ class AdminUserDetailResponse(UserResponse):
     password_hash: str = Field(..., description="Password hash (for verification, never exposed to client)")
     last_login_at: Optional[datetime] = Field(None, description="Last login timestamp")
     last_login_ip: Optional[str] = Field(None, description="Last login IP address")
+
+
+class PasswordResetResponse(BaseModel):
+    """Response for password reset."""
+
+    user_id: str
+    email: str
+    new_password: str
+    message: str
+
+
+class StatisticsResponse(BaseModel):
+    """Response for platform statistics."""
+
+    users: dict
+    organisations: dict
+    architectures: dict
+    timestamp: str
 
 
 # ============================================================================
@@ -296,6 +315,71 @@ async def update_user_system_role(
     )
 
     return UserResponse(**updated_user)
+
+
+@router.post("/admin/users/{user_id}/reset-password", response_model=PasswordResetResponse)
+async def reset_user_password(
+    user_id: UUID,
+    current_admin: Annotated[dict, Depends(get_current_superadmin)] = None,
+    user_repo: UserRepository = Depends(get_user_repository),
+):
+    """Reset user password (SuperAdmin only).
+
+    Generates new random secure password and returns it.
+    User should be notified via email (future implementation).
+
+    Args:
+        user_id: User ID
+        current_admin: Current SuperAdmin user
+        user_repo: UserRepository
+
+    Returns:
+        New password and user info
+
+    Raises:
+        HTTPException: 404 if user not found
+    """
+    # Get user first
+    user = user_repo.get(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Generate secure password (16 characters)
+    new_password = generate_secure_password(length=16)
+
+    # Update user password
+    success = user_repo.update_password(user_id, new_password)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to update password")
+
+    # Log admin action (CRITICAL severity)
+    log_audit(
+        user=current_admin["email"],
+        action="admin.reset_password",
+        resource_type="user",
+        resource_id=user_id,
+        details={
+            "target_user_email": user["email"],
+            "reset_by": current_admin["email"]
+        },
+        success=True
+    )
+
+    logger.critical(
+        f"SuperAdmin {current_admin['email']} reset password for user {user_id}",
+        extra={
+            "admin_id": current_admin["id"],
+            "target_user_id": str(user_id),
+            "target_user_email": user["email"]
+        }
+    )
+
+    return PasswordResetResponse(
+        user_id=str(user_id),
+        email=user["email"],
+        new_password=new_password,
+        message="Password reset successful. User should change this password after login."
+    )
 
 
 # ============================================================================
@@ -524,13 +608,13 @@ async def impersonate_user(
     )
 
     # Create short-lived token (15 minutes)
+    # Note: create_access_token uses ACCESS_TOKEN_EXPIRE_MINUTES from settings (15 min)
     token = create_access_token(
         data={
             "sub": str(user_id),
             "email": target_user["email"],
             "impersonated_by": str(current_admin["id"])
-        },
-        expires_delta=timedelta(minutes=15)
+        }
     )
 
     logger.critical(
@@ -592,3 +676,80 @@ async def get_system_stats(
         "audit": audit_stats,
         "timestamp": datetime.utcnow().isoformat()
     }
+
+
+@router.get("/admin/statistics", response_model=StatisticsResponse)
+async def get_platform_statistics(
+    current_admin: Annotated[dict, Depends(get_current_superadmin)] = None,
+    user_repo: UserRepository = Depends(get_user_repository),
+    org_repo: OrganisationRepository = Depends(get_organisation_repository),
+    arch_repo: ArchitectureRepository = Depends(get_architecture_repository),
+):
+    """Get detailed platform statistics (SuperAdmin only).
+
+    Returns comprehensive metrics about users, organisations, and architectures.
+
+    Args:
+        current_admin: Current SuperAdmin user
+        user_repo: UserRepository
+        org_repo: OrganisationRepository
+        arch_repo: ArchitectureRepository
+
+    Returns:
+        Platform statistics
+    """
+    # Log admin action
+    log_audit(
+        user=current_admin["email"],
+        action="admin.view_statistics",
+        resource_type="statistics"
+    )
+
+    # Get all users to count by status
+    all_users, total_users = user_repo.list(skip=0, limit=10000)
+    active_users = len([u for u in all_users if u.get("status") == UserStatus.ACTIVE.value])
+    suspended_users = total_users - active_users
+
+    # Get organisations count
+    _, total_orgs = org_repo.list_all(skip=0, limit=1)
+
+    # Get all architectures to count by status
+    # Note: arch_repo.list() nimmt owner parameter, aber wir brauchen ALLE
+    # Workaround: Sammle von allen Users
+    all_architectures = []
+    for user in all_users:
+        user_archs, _ = arch_repo.list(skip=0, limit=1000, owner=user.get("id"))
+        all_architectures.extend(user_archs)
+
+    total_archs = len(all_architectures)
+    deployed_archs = len([a for a in all_architectures if a.get("status") == "deployed"])
+    draft_archs = total_archs - deployed_archs
+
+    logger.info(
+        f"SuperAdmin {current_admin['email']} viewed platform statistics",
+        extra={
+            "admin_id": current_admin["id"],
+            "stats": {
+                "users": total_users,
+                "orgs": total_orgs,
+                "architectures": total_archs
+            }
+        }
+    )
+
+    return StatisticsResponse(
+        users={
+            "total": total_users,
+            "active": active_users,
+            "suspended": suspended_users
+        },
+        organisations={
+            "total": total_orgs
+        },
+        architectures={
+            "total": total_archs,
+            "deployed": deployed_archs,
+            "draft": draft_archs
+        },
+        timestamp=datetime.utcnow().isoformat()
+    )

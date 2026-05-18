@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hybrid Pricing - OverCloud</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex justify-between items-center">
+                <a href="/index.html" class="text-2xl font-bold text-gray-900 hover:opacity-80 transition" style="text-decoration: none;">
+                    OverCloud
+                </a>
+                <nav class="flex gap-6">
+                    <a href="/index.html" class="text-gray-600 hover:text-gray-900">Home</a>
+                    <a href="/pricing-hybrid.html" class="text-blue-600 font-medium">Preise</a>
+                    <a href="/billing.html" class="text-gray-600 hover:text-gray-900">Billing</a>
+                    <a href="/login.html" class="text-gray-600 hover:text-gray-900">Login</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <main class="max-w-7xl mx-auto px-4 py-16">
+        <div class="text-center mb-16">
+            <h1 class="text-4xl font-bold mb-4">Simple, transparent pricing</h1>
+            <p class="text-xl text-gray-600 mb-2">Flat Fee + % AWS Infrastructure Costs</p>
+            <p class="text-sm text-gray-500">You only pay for what you use. No hidden fees.</p>
+        </div>
+
+        <!-- Pricing Tiers -->
+        <div class="grid md:grid-cols-4 gap-6 mb-16">
+            <!-- PAY-AS-YOU-GO -->
+            <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold mb-2">Pay-as-you-go</h3>
+                    <div class="mb-2">
+                        <span class="text-3xl font-bold">€0</span>
+                        <span class="text-gray-600">/month</span>
+                    </div>
+                    <div class="text-sm text-gray-600 mb-2">
+                        + 20% AWS markup
+                    </div>
+                </div>
+                <ul class="space-y-2 mb-6 text-sm">
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        €5 per deployment
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        20% AWS markup
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        No monthly commitment
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Community support
+                    </li>
+                </ul>
+                <button class="w-full btn btn-secondary">Start Free</button>
+            </div>
+
+            <!-- STARTER -->
+            <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold mb-2">Starter</h3>
+                    <div class="mb-2">
+                        <span class="text-3xl font-bold">€10</span>
+                        <span class="text-gray-600">/month</span>
+                    </div>
+                    <div class="text-sm text-gray-600 mb-2">
+                        + 15% AWS markup
+                    </div>
+                </div>
+                <ul class="space-y-2 mb-6 text-sm">
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Up to 3 deployments
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Max 10 resources each
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Basic monitoring
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Community support
+                    </li>
+                </ul>
+                <button class="w-full btn btn-primary">Get Started</button>
+            </div>
+
+            <!-- PRO (Recommended) -->
+            <div class="bg-white rounded-lg shadow-lg p-6 border-2 border-blue-500 relative">
+                <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                    POPULAR
+                </div>
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold mb-2">Pro</h3>
+                    <div class="mb-2">
+                        <span class="text-3xl font-bold">€50</span>
+                        <span class="text-gray-600">/month</span>
+                    </div>
+                    <div class="text-sm text-gray-600 mb-2">
+                        + 10% AWS markup
+                    </div>
+                </div>
+                <ul class="space-y-2 mb-6 text-sm">
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Up to 20 deployments
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Unlimited resources
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Advanced monitoring
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Email support (24h)
+                    </li>
+                </ul>
+                <button class="w-full btn btn-primary">Upgrade to Pro</button>
+            </div>
+
+            <!-- ENTERPRISE -->
+            <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold mb-2">Enterprise</h3>
+                    <div class="mb-2">
+                        <span class="text-3xl font-bold">€250</span>
+                        <span class="text-gray-600">/month</span>
+                    </div>
+                    <div class="text-sm text-gray-600 mb-2">
+                        + 5% AWS markup
+                    </div>
+                </div>
+                <ul class="space-y-2 mb-6 text-sm">
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Unlimited deployments
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Priority support (4h)
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        SLA 99.9%
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Account manager
+                    </li>
+                </ul>
+                <button class="w-full btn btn-secondary">Contact Sales</button>
+            </div>
+        </div>
+
+        <!-- Pricing Calculator -->
+        <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-8">
+            <h2 class="text-2xl font-bold mb-6">Estimate your costs</h2>
+
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Select Tier</label>
+                    <select id="tier-select" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="payg">Pay-as-you-go</option>
+                        <option value="starter">Starter</option>
+                        <option value="pro" selected>Pro</option>
+                        <option value="enterprise">Enterprise</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2">Expected AWS Costs/Month (€)</label>
+                    <input
+                        type="number"
+                        id="aws-costs"
+                        value="200"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="200"
+                        min="0"
+                        step="10"
+                    >
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2">Number of Deployments (PAYG only)</label>
+                    <input
+                        type="number"
+                        id="num-deployments"
+                        value="1"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="1"
+                        min="0"
+                    >
+                </div>
+
+                <!-- Voucher Code Section -->
+                <div class="pt-4 border-t border-gray-200">
+                    <label class="block text-sm font-medium mb-2">Gutscheincode (optional)</label>
+                    <div class="flex gap-2">
+                        <input
+                            type="text"
+                            id="voucher-code"
+                            placeholder="z.B. LAUNCH50"
+                            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
+                        >
+                        <button
+                            id="apply-voucher-btn"
+                            class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+                        >
+                            Einlösen
+                        </button>
+                    </div>
+                    <!-- Voucher Status Message -->
+                    <div id="voucher-status" class="mt-2 text-sm hidden"></div>
+                </div>
+            </div>
+
+            <!-- Cost Breakdown -->
+            <div class="bg-blue-50 rounded-lg p-6">
+                <div class="space-y-3">
+                    <div class="flex justify-between text-sm">
+                        <span>OverCloud Base Fee:</span>
+                        <span id="base-fee" class="font-semibold">€50.00</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span>AWS Infrastructure:</span>
+                        <span id="aws-cost-display" class="font-semibold">€200.00</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span>OverCloud Markup (<span id="markup-percent">10</span>%):</span>
+                        <span id="markup-fee" class="font-semibold">€20.00</span>
+                    </div>
+                    <div id="deployment-fees-row" class="flex justify-between text-sm" style="display: none;">
+                        <span>Deployment Fees:</span>
+                        <span id="deployment-fees" class="font-semibold">€0.00</span>
+                    </div>
+                    <div class="border-t border-blue-200 pt-2 mt-2"></div>
+                    <div class="flex justify-between text-sm">
+                        <span>Subtotal:</span>
+                        <span id="subtotal-cost" class="font-semibold">€270.00</span>
+                    </div>
+                    <!-- Voucher Discount Row (hidden by default) -->
+                    <div id="voucher-discount-row" class="flex justify-between text-sm text-green-600 hidden">
+                        <span>Gutscheinrabatt (<span id="voucher-discount-percent">0</span>%):</span>
+                        <span id="voucher-discount-amount" class="font-semibold">-€0.00</span>
+                    </div>
+                    <div class="border-t border-blue-200 pt-3 mt-3 flex justify-between text-lg font-bold">
+                        <span>Total Monthly Cost:</span>
+                        <span id="total-cost" class="text-blue-600">€270.00</span>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-2">Includes 19% VAT (Germany)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example Calculation -->
+        <div class="mt-16 max-w-4xl mx-auto bg-white rounded-lg shadow-sm p-8">
+            <h3 class="text-xl font-bold mb-4">How it works: Example</h3>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-semibold mb-2">Scenario: Web App (PRO Tier)</h4>
+                    <ul class="text-sm space-y-2 text-gray-700">
+                        <li>• AWS Costs: €200/month (EC2, RDS, S3)</li>
+                        <li>• OverCloud Base: €50/month</li>
+                        <li>• OverCloud Markup (10%): €20/month</li>
+                        <li class="font-semibold text-blue-600">= Total: €270/month</li>
+                    </ul>
+                </div>
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-semibold mb-2">Scenario: Side Project (STARTER)</h4>
+                    <ul class="text-sm space-y-2 text-gray-700">
+                        <li>• AWS Costs: €30/month (small EC2)</li>
+                        <li>• OverCloud Base: €10/month</li>
+                        <li>• OverCloud Markup (15%): €4.50/month</li>
+                        <li class="font-semibold text-blue-600">= Total: €44.50/month</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="mt-16 max-w-3xl mx-auto">
+            <h3 class="text-2xl font-bold text-center mb-8">FAQ</h3>
+            <div class="space-y-4 bg-white rounded-lg shadow-sm p-8">
+                <div>
+                    <h4 class="font-semibold mb-2">How do you track AWS costs?</h4>
+                    <p class="text-sm text-gray-700">
+                        We use AWS Cost Explorer API to fetch your actual infrastructure costs. All resources
+                        deployed by OverCloud are tagged automatically, so we can track them accurately.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-2">Can I cancel anytime?</h4>
+                    <p class="text-sm text-gray-700">
+                        Yes! Monthly subscriptions can be canceled anytime. No hidden fees, no long-term contracts.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-2">What if my AWS costs vary?</h4>
+                    <p class="text-sm text-gray-700">
+                        You only pay the percentage markup on your actual AWS costs. If they go down, your bill goes down.
+                        We provide cost projections and alerts to help you stay in control.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t mt-24">
+        <div class="max-w-7xl mx-auto px-4 py-8 text-center text-gray-600">
+            <p>&copy; 2026 OverCloud. Transparent pricing. No surprises.</p>
+        </div>
+    </footer>
+
+    <script type="module" src="/js/pages/pricing.js"></script>
+</body>
+</html>

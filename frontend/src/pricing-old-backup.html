@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - OverCloud</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex justify-between items-center">
+                <a href="/index.html" class="text-2xl font-bold text-gray-900 hover:opacity-80 transition" style="text-decoration: none;">
+                    OverCloud
+                </a>
+                <nav class="flex gap-6">
+                    <a href="/index.html" class="text-gray-600 hover:text-gray-900">Home</a>
+                    <a href="/pricing.html" class="text-blue-600 font-medium">Preise</a>
+                    <a href="/guides/" class="text-gray-600 hover:text-gray-900">Anleitungen</a>
+                    <a href="/billing.html" class="text-gray-600 hover:text-gray-900">Billing</a>
+                    <a href="/login.html" class="text-gray-600 hover:text-gray-900">Login</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Pricing Hero -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-gray-900 mb-4">
+                Transparente Preise, keine Überraschungen
+            </h2>
+            <p class="text-xl text-gray-600 mb-8">
+                Wähle den Plan, der zu dir passt. Jederzeit kündbar.
+            </p>
+
+            <!-- Interval Toggle -->
+            <div class="inline-flex items-center gap-4 bg-white rounded-lg p-1 shadow-sm">
+                <button id="monthlyBtn" class="interval-toggle active px-6 py-2 rounded-md font-medium transition">
+                    Monatlich
+                </button>
+                <button id="yearlyBtn" class="interval-toggle px-6 py-2 rounded-md font-medium transition">
+                    Jährlich <span class="text-green-600 text-sm ml-1">(17% Rabatt!)</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Pricing Cards -->
+        <div id="pricingCards" class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <!-- Cards werden via JS geladen -->
+            <div class="flex justify-center items-center col-span-3 py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="mt-24 max-w-3xl mx-auto">
+            <h3 class="text-2xl font-bold text-gray-900 mb-8 text-center">
+                Häufige Fragen
+            </h3>
+
+            <div class="space-y-6 bg-white rounded-lg shadow-sm p-8">
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-2">
+                        Kann ich jederzeit kündigen?
+                    </h4>
+                    <p class="text-gray-600">
+                        Ja! Monatliche Pläne sind jederzeit kündbar. Jährliche Pläne können nach Ablauf gekündigt werden.
+                        Es gibt <strong>keine automatische Verlängerung</strong> per Default – du entscheidest.
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-2">
+                        Was passiert nach Ablauf meines Plans?
+                    </h4>
+                    <p class="text-gray-600">
+                        Du bekommst Benachrichtigungen 30 Tage und 7 Tage vor Ablauf. Nach Ablauf hast du eine
+                        <strong>30-tägige Grace Period</strong>, in der deine Deployments pausiert (aber nicht gelöscht!) werden.
+                        Du kannst jederzeit wieder upgraden.
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-2">
+                        Welche Zahlungsmethoden werden akzeptiert?
+                    </h4>
+                    <p class="text-gray-600">
+                        Wir akzeptieren alle gängigen Kreditkarten (Visa, Mastercard, American Express) und SEPA-Lastschrift.
+                        Die Zahlung wird sicher über Stripe abgewickelt.
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-2">
+                        Kann ich meinen Plan wechseln?
+                    </h4>
+                    <p class="text-gray-600">
+                        Ja! Du kannst jederzeit im Billing-Portal deinen Plan upgraden oder downgraden.
+                        Upgrades sind sofort aktiv, Downgrades gelten ab der nächsten Periode.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t mt-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="text-center text-gray-600">
+                <p>&copy; 2026 OverCloud. Keine versteckten Kosten. Keine Dark Patterns.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module" src="/js/pages/pricing.js"></script>
+</body>
+</html>

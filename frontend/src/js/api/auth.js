@@ -64,14 +64,19 @@ export class AuthAPI {
     }
 
     /**
-     * Refresh access token (not yet implemented in backend)
-     * @param {string} refreshToken - Refresh token
+     * Refresh access token
      * @returns {Promise<Object>} New token response
      */
-    async refreshToken(refreshToken) {
-        return this.client.post('/api/v1/auth/refresh', {
-            refresh_token: refreshToken
-        });
+    async refreshToken() {
+        return this.client.post('/api/v1/auth/refresh');
+    }
+
+    /**
+     * Logout user
+     * @returns {Promise<Object>} Logout response
+     */
+    async logout() {
+        return this.client.post('/api/v1/auth/logout');
     }
 }
 

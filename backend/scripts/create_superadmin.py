@@ -12,44 +12,16 @@ Wichtig:
 
 import argparse
 import logging
-import secrets
-import string
 from uuid import uuid4
 
 from app.db.dynamodb import get_dynamodb_table
 from app.models.user import SystemRole, UserStatus, AuthProvider
 from app.repositories.user import UserRepository
 from app.services.audit_logger import log_audit
+from app.utils.password import generate_secure_password
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-def generate_secure_password(length: int = 20) -> str:
-    """Generate secure random password.
-
-    Args:
-        length: Password length (default: 20)
-
-    Returns:
-        Random password
-    """
-    alphabet = string.ascii_letters + string.digits + string.punctuation
-    # Ensure password contains at least one of each type
-    password = [
-        secrets.choice(string.ascii_lowercase),
-        secrets.choice(string.ascii_uppercase),
-        secrets.choice(string.digits),
-        secrets.choice(string.punctuation),
-    ]
-
-    # Fill the rest randomly
-    password += [secrets.choice(alphabet) for _ in range(length - 4)]
-
-    # Shuffle
-    secrets.SystemRandom().shuffle(password)
-
-    return "".join(password)
 
 
 def check_existing_superadmin(user_repo: UserRepository) -> bool:

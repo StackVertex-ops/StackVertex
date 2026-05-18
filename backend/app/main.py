@@ -180,6 +180,9 @@ from app.api import (
     cidr,
     designer,
     admin,
+    aws_credentials,
+    data_upload,
+    voucher,
     # dsgvo,  # TODO: Port to DynamoDB
     webhooks as webhooks_module,  # Renamed to avoid conflict with websockets
 )
@@ -190,8 +193,15 @@ app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
 app.include_router(organisations.router, prefix="/api/v1/organisations", tags=["organisations"])
 app.include_router(billing.router, prefix="/api/v1/billing", tags=["billing"])
 
+# AWS Integration
+app.include_router(aws_credentials.router, prefix="/api/v1", tags=["aws-credentials"])
+app.include_router(data_upload.router, prefix="/api/v1", tags=["data-upload"])
+
 # Admin Endpoints (SuperAdmin only)
 app.include_router(admin.router, prefix="/api/v1", tags=["admin"])
+
+# Vouchers (Authenticated + Admin)
+app.include_router(voucher.router, tags=["vouchers"])
 
 # Core Features
 app.include_router(validation.router, prefix="/api/v1", tags=["validation"])

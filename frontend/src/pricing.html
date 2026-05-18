@@ -4,114 +4,713 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pricing - OverCloud</title>
-    <link rel="stylesheet" href="/css/main.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --secondary: #764ba2;
+            --dark: #1a1a2e;
+            --gray: #4a5568;
+            --light-gray: #f7fafc;
+            --success: #48bb78;
+            --warning: #ed8936;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: var(--light-gray);
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            padding: 1rem 2rem;
+        }
+
+        nav .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--gray);
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: var(--primary);
+        }
+
+        /* Main Container */
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 120px 2rem 80px;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .hero .subtitle {
+            font-size: 0.95rem;
+            color: var(--gray);
+        }
+
+        /* Pricing Cards Grid */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.15);
+        }
+
+        .pricing-card.popular {
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .pricing-card.popular::before {
+            content: 'BELIEBT';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .pricing-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .pricing-card .price {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .pricing-card .price span {
+            font-size: 1rem;
+            font-weight: 400;
+            color: var(--gray);
+        }
+
+        .pricing-card .markup {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-bottom: 1.5rem;
+        }
+
+        .pricing-card ul {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .pricing-card li {
+            padding: 0.6rem 0;
+            display: flex;
+            align-items: flex-start;
+            font-size: 0.9rem;
+            color: var(--dark);
+        }
+
+        .pricing-card li::before {
+            content: '✓';
+            color: var(--success);
+            font-weight: bold;
+            margin-right: 0.8rem;
+            font-size: 1.1rem;
+        }
+
+        .pricing-card .btn {
+            width: 100%;
+            padding: 0.9rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pricing-card.popular .btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .pricing-card.popular .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .pricing-card .btn-secondary {
+            background: var(--light-gray);
+            color: var(--dark);
+        }
+
+        .pricing-card .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        /* Calculator Section */
+        .calculator {
+            background: white;
+            border-radius: 16px;
+            padding: 3rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 4rem;
+        }
+
+        .calculator h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            color: var(--dark);
+        }
+
+        .calculator .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .calculator label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+            font-size: 0.95rem;
+        }
+
+        .calculator input,
+        .calculator select {
+            width: 100%;
+            padding: 0.9rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .calculator input:focus,
+        .calculator select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .calculator .voucher-section {
+            border-top: 2px solid var(--border);
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .calculator .voucher-input-group {
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        .calculator .voucher-input-group input {
+            flex: 1;
+        }
+
+        .calculator .voucher-btn {
+            padding: 0.9rem 2rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .calculator .voucher-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .calculator .voucher-btn:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+        }
+
+        .calculator .voucher-status {
+            margin-top: 0.8rem;
+            font-size: 0.9rem;
+            padding: 0.6rem;
+            border-radius: 6px;
+        }
+
+        .calculator .voucher-status.success {
+            background: #e6f7ed;
+            color: var(--success);
+        }
+
+        .calculator .voucher-status.error {
+            background: #fef0ef;
+            color: #e53e3e;
+        }
+
+        /* Cost Breakdown */
+        .cost-breakdown {
+            background: linear-gradient(135deg, #f0f4ff, #e6f0ff);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .cost-breakdown .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.7rem 0;
+            font-size: 0.95rem;
+        }
+
+        .cost-breakdown .row.total {
+            border-top: 2px solid var(--primary);
+            padding-top: 1rem;
+            margin-top: 0.5rem;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .cost-breakdown .row.discount {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .cost-breakdown .row.subtotal {
+            font-weight: 600;
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Example Section */
+        .examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .example-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            border: 2px solid var(--border);
+        }
+
+        .example-card h4 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .example-card ul {
+            list-style: none;
+        }
+
+        .example-card li {
+            padding: 0.4rem 0;
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .example-card .total {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid var(--border);
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+
+        /* FAQ */
+        .faq {
+            background: white;
+            border-radius: 16px;
+            padding: 3rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .faq h3 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: var(--dark);
+        }
+
+        .faq-item {
+            margin-bottom: 2rem;
+        }
+
+        .faq-item h4 {
+            font-size: 1.1rem;
+            margin-bottom: 0.8rem;
+            color: var(--dark);
+        }
+
+        .faq-item p {
+            color: var(--gray);
+            line-height: 1.7;
+        }
+
+        /* Footer */
+        footer {
+            background: white;
+            border-top: 1px solid var(--border);
+            padding: 2rem;
+            text-align: center;
+            color: var(--gray);
+            margin-top: 4rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-card.popular {
+                transform: scale(1);
+            }
+
+            .calculator {
+                padding: 2rem;
+            }
+
+            nav ul {
+                gap: 1rem;
+            }
+        }
+    </style>
 </head>
-<body class="bg-gray-50">
-    <!-- Header -->
-    <header class="bg-white shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div class="flex justify-between items-center">
-                <a href="/index.html" class="text-2xl font-bold text-gray-900 hover:opacity-80 transition" style="text-decoration: none;">
-                    OverCloud
-                </a>
-                <nav class="flex gap-6">
-                    <a href="/index.html" class="text-gray-600 hover:text-gray-900">Home</a>
-                    <a href="/pricing.html" class="text-blue-600 font-medium">Preise</a>
-                    <a href="/guides/" class="text-gray-600 hover:text-gray-900">Anleitungen</a>
-                    <a href="/billing.html" class="text-gray-600 hover:text-gray-900">Billing</a>
-                    <a href="/login.html" class="text-gray-600 hover:text-gray-900">Login</a>
-                </nav>
-            </div>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <a href="/index.html" class="logo">OverCloud</a>
+            <ul>
+                <li><a href="/index.html">Home</a></li>
+                <li><a href="/pricing-new.html" style="color: var(--primary);">Preise</a></li>
+                <li><a href="/billing.html">Billing</a></li>
+                <li><a href="/login.html">Login</a></li>
+            </ul>
         </div>
-    </header>
+    </nav>
 
-    <!-- Pricing Hero -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div class="text-center mb-12">
-            <h2 class="text-4xl font-bold text-gray-900 mb-4">
-                Transparente Preise, keine Überraschungen
-            </h2>
-            <p class="text-xl text-gray-600 mb-8">
-                Wähle den Plan, der zu dir passt. Jederzeit kündbar.
-            </p>
-
-            <!-- Interval Toggle -->
-            <div class="inline-flex items-center gap-4 bg-white rounded-lg p-1 shadow-sm">
-                <button id="monthlyBtn" class="interval-toggle active px-6 py-2 rounded-md font-medium transition">
-                    Monatlich
-                </button>
-                <button id="yearlyBtn" class="interval-toggle px-6 py-2 rounded-md font-medium transition">
-                    Jährlich <span class="text-green-600 text-sm ml-1">(17% Rabatt!)</span>
-                </button>
-            </div>
+    <!-- Main Content -->
+    <main>
+        <!-- Hero -->
+        <div class="hero">
+            <h1>Transparente Preise, keine Überraschungen</h1>
+            <p>Hybrid-Preismodell: Flat Fee + % AWS Infrastructure Costs</p>
+            <p class="subtitle">Du zahlst nur für das, was du nutzt. Keine versteckten Kosten.</p>
         </div>
 
         <!-- Pricing Cards -->
-        <div id="pricingCards" class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <!-- Cards werden via JS geladen -->
-            <div class="flex justify-center items-center col-span-3 py-12">
-                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div class="pricing-grid">
+            <!-- PAY-AS-YOU-GO -->
+            <div class="pricing-card">
+                <h3>Pay-as-you-go</h3>
+                <div class="price">€0 <span>/Monat</span></div>
+                <div class="markup">+ 20% AWS Markup</div>
+                <ul>
+                    <li>€5 pro Deployment</li>
+                    <li>20% AWS Markup</li>
+                    <li>Keine monatliche Bindung</li>
+                    <li>Community Support</li>
+                    <li>1 Organisation</li>
+                </ul>
+                <button class="btn btn-secondary">Jetzt starten</button>
+            </div>
+
+            <!-- STARTER -->
+            <div class="pricing-card">
+                <h3>Starter</h3>
+                <div class="price">€10 <span>/Monat</span></div>
+                <div class="markup">+ 15% AWS Markup</div>
+                <ul>
+                    <li>Bis zu 3 Deployments</li>
+                    <li>Max 10 Ressourcen pro Deployment</li>
+                    <li>Basis-Monitoring</li>
+                    <li>JSON Export</li>
+                    <li>Community Support</li>
+                </ul>
+                <button class="btn btn-secondary">Upgrade</button>
+            </div>
+
+            <!-- PRO (Beliebt) -->
+            <div class="pricing-card popular">
+                <h3>Pro</h3>
+                <div class="price">€50 <span>/Monat</span></div>
+                <div class="markup">+ 10% AWS Markup</div>
+                <ul>
+                    <li>Bis zu 20 Deployments</li>
+                    <li>Unbegrenzte Ressourcen</li>
+                    <li>Advanced Monitoring</li>
+                    <li>Email Support (24h)</li>
+                    <li>Cost Tracking & Alerts</li>
+                </ul>
+                <button class="btn">Upgrade zu Pro</button>
+            </div>
+
+            <!-- ENTERPRISE -->
+            <div class="pricing-card">
+                <h3>Enterprise</h3>
+                <div class="price">€250 <span>/Monat</span></div>
+                <div class="markup">+ 5% AWS Markup</div>
+                <ul>
+                    <li>Unbegrenzte Deployments</li>
+                    <li>Priority Support (4h)</li>
+                    <li>SLA 99.9%</li>
+                    <li>Account Manager</li>
+                    <li>Multi-Cloud (AWS, Azure, GCP)</li>
+                </ul>
+                <button class="btn btn-secondary">Kontakt</button>
             </div>
         </div>
 
-        <!-- FAQ Section -->
-        <div class="mt-24 max-w-3xl mx-auto">
-            <h3 class="text-2xl font-bold text-gray-900 mb-8 text-center">
-                Häufige Fragen
-            </h3>
+        <!-- Calculator -->
+        <div class="calculator">
+            <h2>Kostenrechner</h2>
 
-            <div class="space-y-6 bg-white rounded-lg shadow-sm p-8">
-                <div>
-                    <h4 class="font-semibold text-gray-900 mb-2">
-                        Kann ich jederzeit kündigen?
-                    </h4>
-                    <p class="text-gray-600">
-                        Ja! Monatliche Pläne sind jederzeit kündbar. Jährliche Pläne können nach Ablauf gekündigt werden.
-                        Es gibt <strong>keine automatische Verlängerung</strong> per Default – du entscheidest.
-                    </p>
+            <div class="form-group">
+                <label>Tier auswählen</label>
+                <select id="tier-select">
+                    <option value="payg">Pay-as-you-go</option>
+                    <option value="starter">Starter</option>
+                    <option value="pro" selected>Pro</option>
+                    <option value="enterprise">Enterprise</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Erwartete AWS-Kosten/Monat (€)</label>
+                <input
+                    type="number"
+                    id="aws-costs"
+                    value="500"
+                    min="0"
+                    step="10"
+                    placeholder="500"
+                >
+            </div>
+
+            <div class="form-group" id="deployments-group" style="display: none;">
+                <label>Anzahl Deployments (nur PAYG)</label>
+                <input
+                    type="number"
+                    id="num-deployments"
+                    value="1"
+                    min="0"
+                    placeholder="1"
+                >
+            </div>
+
+            <!-- Voucher Section -->
+            <div class="voucher-section">
+                <div class="form-group">
+                    <label>Gutscheincode (optional)</label>
+                    <div class="voucher-input-group">
+                        <input
+                            type="text"
+                            id="voucher-code"
+                            placeholder="z.B. LAUNCH50"
+                            style="text-transform: uppercase;"
+                        >
+                        <button class="voucher-btn" id="apply-voucher-btn">Einlösen</button>
+                    </div>
+                    <div id="voucher-status" class="voucher-status" style="display: none;"></div>
                 </div>
+            </div>
 
-                <div>
-                    <h4 class="font-semibold text-gray-900 mb-2">
-                        Was passiert nach Ablauf meines Plans?
-                    </h4>
-                    <p class="text-gray-600">
-                        Du bekommst Benachrichtigungen 30 Tage und 7 Tage vor Ablauf. Nach Ablauf hast du eine
-                        <strong>30-tägige Grace Period</strong>, in der deine Deployments pausiert (aber nicht gelöscht!) werden.
-                        Du kannst jederzeit wieder upgraden.
-                    </p>
+            <!-- Cost Breakdown -->
+            <div class="cost-breakdown">
+                <div class="row">
+                    <span>OverCloud Base Fee:</span>
+                    <strong id="base-fee">€50.00</strong>
                 </div>
-
-                <div>
-                    <h4 class="font-semibold text-gray-900 mb-2">
-                        Welche Zahlungsmethoden werden akzeptiert?
-                    </h4>
-                    <p class="text-gray-600">
-                        Wir akzeptieren alle gängigen Kreditkarten (Visa, Mastercard, American Express) und SEPA-Lastschrift.
-                        Die Zahlung wird sicher über Stripe abgewickelt.
-                    </p>
+                <div class="row">
+                    <span>AWS Infrastruktur:</span>
+                    <strong id="aws-cost-display">€500.00</strong>
                 </div>
-
-                <div>
-                    <h4 class="font-semibold text-gray-900 mb-2">
-                        Kann ich meinen Plan wechseln?
-                    </h4>
-                    <p class="text-gray-600">
-                        Ja! Du kannst jederzeit im Billing-Portal deinen Plan upgraden oder downgraden.
-                        Upgrades sind sofort aktiv, Downgrades gelten ab der nächsten Periode.
-                    </p>
+                <div class="row">
+                    <span>OverCloud Markup (<span id="markup-percent">10</span>%):</span>
+                    <strong id="markup-fee">€50.00</strong>
+                </div>
+                <div class="row" id="deployment-fees-row" style="display: none;">
+                    <span>Deployment Fees:</span>
+                    <strong id="deployment-fees">€0.00</strong>
+                </div>
+                <div class="row subtotal">
+                    <span>Zwischensumme:</span>
+                    <strong id="subtotal-cost">€600.00</strong>
+                </div>
+                <div class="row discount" id="voucher-discount-row" style="display: none;">
+                    <span>Gutscheinrabatt (<span id="voucher-discount-percent">0</span>%):</span>
+                    <strong id="voucher-discount-amount">-€0.00</strong>
+                </div>
+                <div class="row total">
+                    <span>Gesamt/Monat (inkl. 19% MwSt.):</span>
+                    <strong id="total-cost">€714.00</strong>
                 </div>
             </div>
         </div>
-    </div>
+
+        <!-- Examples -->
+        <h2 style="text-align: center; margin-bottom: 2rem; font-size: 2rem; font-weight: 800;">Beispielrechnungen</h2>
+        <div class="examples">
+            <div class="example-card">
+                <h4>Szenario: Side Project (STARTER)</h4>
+                <ul>
+                    <li>AWS Kosten: €30/Monat (kleine EC2)</li>
+                    <li>OverCloud Base: €10/Monat</li>
+                    <li>OverCloud Markup (15%): €4.50/Monat</li>
+                </ul>
+                <div class="total">= Total: €44.50/Monat</div>
+            </div>
+
+            <div class="example-card">
+                <h4>Szenario: Web App (PRO)</h4>
+                <ul>
+                    <li>AWS Kosten: €500/Monat (EC2, RDS, S3)</li>
+                    <li>OverCloud Base: €50/Monat</li>
+                    <li>OverCloud Markup (10%): €50/Monat</li>
+                </ul>
+                <div class="total">= Total: €600/Monat</div>
+            </div>
+
+            <div class="example-card">
+                <h4>Szenario: Enterprise (ENTERPRISE)</h4>
+                <ul>
+                    <li>AWS Kosten: €2.000/Monat (Multi-Region)</li>
+                    <li>OverCloud Base: €250/Monat</li>
+                    <li>OverCloud Markup (5%): €100/Monat</li>
+                </ul>
+                <div class="total">= Total: €2.350/Monat</div>
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="faq">
+            <h3>Häufig gestellte Fragen</h3>
+
+            <div class="faq-item">
+                <h4>Wie werden AWS-Kosten getrackt?</h4>
+                <p>
+                    Wir nutzen die AWS Cost Explorer API, um deine tatsächlichen Infrastrukturkosten zu erfassen.
+                    Alle von OverCloud erstellten Ressourcen werden automatisch getaggt, sodass wir sie präzise zuordnen können.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h4>Kann ich jederzeit kündigen?</h4>
+                <p>
+                    Ja! Monatliche Abos können jederzeit gekündigt werden. Keine versteckten Gebühren, keine langfristigen Verträge.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h4>Was passiert, wenn meine AWS-Kosten schwanken?</h4>
+                <p>
+                    Du zahlst nur den prozentualen Aufschlag auf deine tatsächlichen AWS-Kosten. Wenn diese sinken, sinkt auch deine Rechnung.
+                    Wir bieten Kostenprognosen und Warnungen, damit du immer die Kontrolle behältst.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h4>Wie funktionieren Gutscheine?</h4>
+                <p>
+                    Gutscheine gewähren dir prozentuale Rabatte auf deine OverCloud-Gebühren (Base Fee + AWS Markup).
+                    Gib einfach deinen Code im Kostenrechner ein, um deinen Rabatt zu sehen. Gutscheine können 10%, 25%, 50%, 75% oder 100% Rabatt gewähren.
+                </p>
+            </div>
+        </div>
+    </main>
 
     <!-- Footer -->
-    <footer class="bg-white border-t mt-24">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="text-center text-gray-600">
-                <p>&copy; 2026 OverCloud. Keine versteckten Kosten. Keine Dark Patterns.</p>
-            </div>
-        </div>
+    <footer>
+        <p>&copy; 2026 OverCloud. Transparente Preise. Keine Überraschungen.</p>
     </footer>
 
     <script type="module" src="/js/pages/pricing.js"></script>

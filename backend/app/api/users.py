@@ -49,10 +49,10 @@ def get_user_repository(table=Depends(get_dynamodb_table)) -> UserRepository:
 @limiter.limit("1000/minute" if settings.TESTING else "100/minute")
 async def list_users(
     request: Request,  # Required for rate limiting
+    current_user: Annotated[dict, Depends(get_current_user)],
+    user_repo: UserRepository = Depends(get_user_repository),
     skip: int = Query(0, ge=0, description="Number of items to skip"),
-    limit: int = Query(100, ge=1, le=1000, description="Max items to return"),
-    current_user: Annotated[dict, Depends(get_current_user)] = None,
-    user_repo: UserRepository = Depends(get_user_repository)
+    limit: int = Query(100, ge=1, le=1000, description="Max items to return")
 ):
     """List all users (Admin only in production).
 
@@ -75,7 +75,7 @@ async def list_users(
 async def get_user(
     request: Request,  # Required for rate limiting
     user_id: UUID,
-    current_user: Annotated[dict, Depends(get_current_user)] = None,
+    current_user: Annotated[dict, Depends(get_current_user)],
     user_repo: UserRepository = Depends(get_user_repository)
 ):
     """Get user by ID - FIXED: Authorization check (IDOR prevention).
@@ -84,6 +84,15 @@ async def get_user(
     SECURITY: Users können nur ihr eigenes Profil sehen.
     Ausnahme: SuperAdmins können alle Profile sehen.
     """
+    # SECURITY FIX: Check if user exists first (prevent user enumeration)
+    user = user_repo.get(user_id)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
     # SECURITY FIX: Prevent IDOR - users can only view their own profile
     if str(user_id) != str(current_user["id"]):
         # Check if SuperAdmin (admins can view all profiles)
@@ -92,14 +101,6 @@ async def get_user(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Not authorized to view this user"
             )
-
-    user = user_repo.get(user_id)
-
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
 
     return UserResponse(**user)
 
@@ -110,7 +111,7 @@ async def update_user(
     request: Request,  # Required for rate limiting
     user_id: UUID,
     user_update: UserUpdate,
-    current_user: Annotated[dict, Depends(get_current_user)] = None,
+    current_user: Annotated[dict, Depends(get_current_user)],
     user_repo: UserRepository = Depends(get_user_repository)
 ):
     """Update user profile - FIXED: Authorization check.
@@ -119,6 +120,14 @@ async def update_user(
     SECURITY: Users können nur ihr eigenes Profil ändern.
     Ausnahme: SuperAdmins können alle Profile ändern.
     """
+    # SECURITY FIX: Check if user exists first (prevent user enumeration)
+    existing_user = user_repo.get(user_id)
+    if not existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
     # SECURITY FIX: Check if user is updating their own profile or is SuperAdmin
     if str(user_id) != str(current_user["id"]):
         if current_user.get("system_role") != "superadmin":
@@ -152,7 +161,7 @@ async def update_user(
 async def delete_user(
     request: Request,  # Required for rate limiting
     user_id: UUID,
-    current_user: Annotated[dict, Depends(get_current_user)] = None,
+    current_user: Annotated[dict, Depends(get_current_user)],
     user_repo: UserRepository = Depends(get_user_repository)
 ):
     """Delete user account (soft delete) - FIXED: Authorization check.
@@ -161,6 +170,14 @@ async def delete_user(
     SECURITY: Users können nur ihr eigenes Konto löschen.
     Ausnahme: SuperAdmins können alle Konten löschen.
     """
+    # SECURITY FIX: Check if user exists first (prevent user enumeration)
+    existing_user = user_repo.get(user_id)
+    if not existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
     # SECURITY FIX: Check if user is deleting their own account or is SuperAdmin
     if str(user_id) != str(current_user["id"]):
         if current_user.get("system_role") != "superadmin":
@@ -190,7 +207,7 @@ async def delete_user(
 async def get_user_organisations(
     request: Request,  # Required for rate limiting
     user_id: UUID,
-    current_user: Annotated[dict, Depends(get_current_user)] = None,
+    current_user: Annotated[dict, Depends(get_current_user)],
     user_repo: UserRepository = Depends(get_user_repository)
 ):
     """Get all organisations user is member of - FIXED: Authorization check.
@@ -199,6 +216,14 @@ async def get_user_organisations(
     SECURITY: Users können nur ihre eigenen Organisationen sehen.
     Ausnahme: SuperAdmins können alle Organisationen sehen.
     """
+    # SECURITY FIX: Check if user exists first (prevent user enumeration)
+    existing_user = user_repo.get(user_id)
+    if not existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
     # SECURITY FIX: Check if user is requesting their own organisations or is SuperAdmin
     if str(user_id) != str(current_user["id"]):
         if current_user.get("system_role") != "superadmin":
@@ -218,7 +243,7 @@ async def update_password(
     request: Request,  # Required for rate limiting
     user_id: UUID,
     password_update: UserPasswordUpdate,
-    current_user: Annotated[dict, Depends(get_current_user)] = None,
+    current_user: Annotated[dict, Depends(get_current_user)],
     user_repo: UserRepository = Depends(get_user_repository)
 ):
     """Update user password - FIXED: Authorization check.

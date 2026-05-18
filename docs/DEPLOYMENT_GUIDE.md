@@ -872,10 +872,309 @@ git push origin main
 
 ---
 
+---
+
+## 💳 Billing & Voucher System Deployment
+
+### Voucher-System Setup
+
+**DynamoDB GSI erstellen (für Voucher-Listing):**
+
+Vouchers nutzen einen Global Secondary Index für schnelles Listing:
+
+```hcl
+# infrastructure/terraform/modules/database/dynamodb.tf
+
+resource "aws_dynamodb_table" "main" {
+  name           = "overcloud-${var.environment}-main"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "PK"
+  range_key      = "SK"
+  
+  # ... existing attributes ...
+  
+  # GSI für Voucher-Listing
+  global_secondary_index {
+    name               = "GSI1"
+    hash_key           = "GSI1PK"
+    range_key          = "GSI1SK"
+    projection_type    = "ALL"
+  }
+}
+```
+
+**Terraform Apply:**
+
+```bash
+cd infrastructure/terraform/environments/prod
+terraform plan   # Prüfen
+terraform apply  # GSI wird erstellt (~5 Minuten)
+```
+
+**Wichtig:** GSI-Erstellung dauert einige Minuten. Warte bis Status = `ACTIVE`.
+
+**Prüfen:**
+```bash
+aws dynamodb describe-table \
+  --table-name overcloud-prod-main \
+  --query "Table.GlobalSecondaryIndexes[?IndexName=='GSI1'].IndexStatus" \
+  --output text
+# Output: ACTIVE (✅ Ready)
+```
+
+### Stripe Integration (Optional für MVP)
+
+**Stripe Secrets in AWS Secrets Manager:**
+
+```bash
+# Stripe API Keys (von Stripe Dashboard)
+aws secretsmanager create-secret \
+  --name overcloud-prod-stripe-secret-key \
+  --secret-string "sk_live_xyz..."
+
+aws secretsmanager create-secret \
+  --name overcloud-prod-stripe-webhook-secret \
+  --secret-string "whsec_xyz..."
+```
+
+**Environment Variables (ECS Task Definition):**
+
+```json
+{
+  "environment": [
+    {"name": "STRIPE_SECRET_KEY", "value": "from-secrets-manager"},
+    {"name": "STRIPE_WEBHOOK_SECRET", "value": "from-secrets-manager"},
+    {"name": "STRIPE_PRICE_STARTER", "value": "price_xyz..."},
+    {"name": "STRIPE_PRICE_PRO", "value": "price_abc..."},
+    {"name": "STRIPE_PRICE_ENTERPRISE", "value": "price_def..."}
+  ]
+}
+```
+
+**Stripe Products & Prices erstellen:**
+
+```bash
+# STARTER Plan
+stripe prices create \
+  --product prod_starter \
+  --unit_amount 1000 \
+  --currency eur \
+  --recurring interval=month
+
+# PRO Plan
+stripe prices create \
+  --product prod_pro \
+  --unit_amount 5000 \
+  --currency eur \
+  --recurring interval=month
+
+# ENTERPRISE Plan
+stripe prices create \
+  --product prod_enterprise \
+  --unit_amount 25000 \
+  --currency eur \
+  --recurring interval=month
+```
+
+**Webhook Endpoint registrieren:**
+
+```bash
+# In Stripe Dashboard: Developers → Webhooks → Add Endpoint
+# URL: https://api.overcloud.com/api/v1/webhooks/stripe
+# Events:
+#   - customer.subscription.created
+#   - customer.subscription.updated
+#   - customer.subscription.deleted
+#   - invoice.payment_succeeded
+#   - invoice.payment_failed
+```
+
+### Admin UI freischalten
+
+**SuperAdmin User erstellen:**
+
+```bash
+# Via Backend API (nach Deployment)
+curl -X POST https://api.overcloud.com/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@overcloud.com",
+    "password": "secure-password-here",
+    "name": "SuperAdmin"
+  }'
+
+# User ID aus Response notieren
+# → USER_ID="uuid-hier"
+
+# Manuell SuperAdmin-Rolle setzen (via DynamoDB Console oder Script)
+aws dynamodb update-item \
+  --table-name overcloud-prod-main \
+  --key '{"PK": {"S": "USER#'$USER_ID'"}, "SK": {"S": "METADATA"}}' \
+  --update-expression "SET system_role = :role" \
+  --expression-attribute-values '{":role": {"S": "superadmin"}}'
+```
+
+**Admin-Dashboard Access:**
+
+```bash
+# Login als SuperAdmin
+# → Frontend: https://app.overcloud.com/admin-vouchers.html
+# → Vouchers erstellen, verwalten, Stats einsehen
+```
+
+### Deployment-Reihenfolge
+
+**1. Database Migration (DynamoDB GSI):**
+```bash
+cd infrastructure/terraform/environments/prod
+terraform apply  # GSI1 erstellen
+```
+
+**2. Backend Deployment (mit Voucher API):**
+```bash
+git push origin main  # CI/CD deployed automatisch
+# → Backend inkl. Voucher-Endpoints wird deployed
+```
+
+**3. Frontend Deployment (Billing & Admin UI):**
+```bash
+# Bereits in CI/CD enthalten
+# → Pricing-Page, Billing-Page, Admin-Vouchers-Page werden deployed
+```
+
+**4. SuperAdmin User erstellen:**
+```bash
+# Via API (siehe oben)
+# → Manuell system_role = superadmin setzen
+```
+
+**5. Test:**
+```bash
+# Pricing-Page öffnen
+curl https://app.overcloud.com/pricing.html
+# → Tiers anzeigen, Kostenrechner testen
+
+# Voucher erstellen (als SuperAdmin)
+curl -X POST https://api.overcloud.com/api/v1/admin/vouchers \
+  -H "Authorization: Bearer SUPERADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "LAUNCH100",
+    "discount_type": "percentage",
+    "discount_value": 100,
+    "applies_to": "both",
+    "max_uses": 100,
+    "valid_until": "2026-12-31T23:59:59Z"
+  }'
+
+# Voucher validieren (als normaler User)
+curl -X POST https://api.overcloud.com/api/v1/voucher/validate \
+  -H "Authorization: Bearer USER_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"code": "LAUNCH100"}'
+# → {"valid": true, "discount_value": 100, ...}
+```
+
+### Monitoring
+
+**CloudWatch Dashboards erstellen:**
+
+```hcl
+# infrastructure/terraform/modules/monitoring/cloudwatch_dashboard.tf
+
+resource "aws_cloudwatch_dashboard" "vouchers" {
+  dashboard_name = "overcloud-vouchers-${var.environment}"
+
+  dashboard_body = jsonencode({
+    widgets = [
+      {
+        type = "metric"
+        properties = {
+          title = "Voucher Redemptions"
+          metrics = [
+            ["OverCloud/Vouchers", "VoucherRedemptions", { stat = "Sum" }]
+          ]
+        }
+      },
+      {
+        type = "metric"
+        properties = {
+          title = "Total Discount (EUR)"
+          metrics = [
+            ["OverCloud/Billing", "VoucherDiscount", { stat = "Sum" }]
+          ]
+        }
+      }
+    ]
+  })
+}
+```
+
+**Alarms für High Usage:**
+
+```hcl
+resource "aws_cloudwatch_metric_alarm" "high_voucher_usage" {
+  alarm_name          = "overcloud-high-voucher-usage"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "VoucherRedemptions"
+  namespace           = "OverCloud/Vouchers"
+  period              = 3600  # 1 hour
+  statistic           = "Sum"
+  threshold           = 50
+  alarm_description   = "Alert when >50 voucher redemptions per hour"
+  
+  alarm_actions = [aws_sns_topic.alerts.arn]
+}
+```
+
+### Troubleshooting
+
+**Problem: Voucher API gibt 500 Error**
+
+```bash
+# Check Backend Logs
+aws logs tail /ecs/overcloud-backend-prod --follow
+
+# Häufige Ursache: DynamoDB GSI nicht vorhanden
+aws dynamodb describe-table \
+  --table-name overcloud-prod-main \
+  --query "Table.GlobalSecondaryIndexes[?IndexName=='GSI1']"
+```
+
+**Problem: SuperAdmin kann keine Vouchers erstellen**
+
+```bash
+# Check system_role
+aws dynamodb get-item \
+  --table-name overcloud-prod-main \
+  --key '{"PK": {"S": "USER#'$USER_ID'"}, "SK": {"S": "METADATA"}}' \
+  --query "Item.system_role.S"
+# Output: superadmin (erwartet)
+```
+
+**Problem: Voucher-Rabatt nicht in Invoice**
+
+```bash
+# Check Subscription hat voucher_code
+aws dynamodb query \
+  --table-name overcloud-prod-main \
+  --key-condition-expression "PK = :pk AND SK = :sk" \
+  --expression-attribute-values '{
+    ":pk": {"S": "ORG#'$ORG_ID'"},
+    ":sk": {"S": "SUBSCRIPTION"}
+  }' \
+  --query "Items[0].voucher_code.S"
+# Output: FRIEND2026 (erwartet)
+```
+
+---
+
 **Nächste Schritte:**
 1. Bootstrap ausführen (`terraform apply` in bootstrap/)
 2. GitHub Secret setzen
 3. Code pushen → CI/CD deployed automatisch
 4. Nach 10 Minuten: App ist live! 🎉
+5. **NEU:** SuperAdmin erstellen + Gutscheinsystem testen
 
-Bei Fragen: Schau in `docs/AWS_SETUP.md` oder frag mich!
+Bei Fragen: Schau in `docs/AWS_SETUP.md`, `docs/billing-system.md`, `VOUCHER_SYSTEM.md` oder frag mich!

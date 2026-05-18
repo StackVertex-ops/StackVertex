@@ -129,7 +129,16 @@ export function getReturnUrl() {
 /**
  * Logout user
  */
-export function logout() {
+export async function logout() {
+    try {
+        // Call backend to clear cookie
+        await authAPI.logout();
+    } catch (error) {
+        console.error('Logout API call failed:', error);
+        // Continue with client-side logout even if API fails
+    }
+
+    // Clear local auth data
     clearAuthData();
     window.location.href = '/src/login.html';
 }

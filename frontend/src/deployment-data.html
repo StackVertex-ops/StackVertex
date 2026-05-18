@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Application Data - OverCloud</title>
+    <link rel="stylesheet" href="/src/css/main.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/dashboard.html" class="text-xl font-bold text-blue-600">OverCloud</a>
+                    <span class="ml-4 text-gray-500">/ Upload Application Data</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/deployments.html" class="text-gray-600 hover:text-gray-900">Deployments</a>
+                    <button id="logout-btn" class="text-red-600 hover:text-red-800">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Upload Application Data</h1>
+            <p class="text-gray-600">Upload Docker Images und Static Files für dein Deployment</p>
+        </div>
+
+        <!-- Deployment Info -->
+        <div id="deployment-info" class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-2">Deployment Details</h2>
+            <div class="text-sm text-gray-600">
+                <p>Loading...</p>
+            </div>
+        </div>
+
+        <!-- Docker Image Section -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">Docker Image</h2>
+
+            <!-- Source Selection -->
+            <div class="space-y-4 mb-4">
+                <!-- Option 1: Upload File -->
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <label class="flex items-center cursor-pointer">
+                        <input type="radio" name="image-source" value="upload" checked class="mr-3">
+                        <span class="font-medium">Upload .tar.gz File</span>
+                    </label>
+                    <div id="upload-section" class="mt-4 ml-6">
+                        <input
+                            type="file"
+                            id="docker-image-file"
+                            accept=".tar.gz,.tar"
+                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        >
+                        <button id="upload-image-btn" class="mt-3 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                            Upload Image
+                        </button>
+                        <div id="upload-progress" class="hidden mt-4">
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                            <p id="progress-text" class="text-sm text-gray-600 mt-1">0%</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Option 2: DockerHub -->
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <label class="flex items-center cursor-pointer">
+                        <input type="radio" name="image-source" value="dockerhub" class="mr-3">
+                        <span class="font-medium">Import from DockerHub</span>
+                    </label>
+                    <div id="dockerhub-section" class="hidden mt-4 ml-6">
+                        <input
+                            type="text"
+                            id="dockerhub-image"
+                            placeholder="nginx:latest"
+                            class="w-full px-3 py-2 border border-gray-300 rounded mb-2"
+                        >
+                        <input
+                            type="text"
+                            id="dockerhub-username"
+                            placeholder="Username (optional)"
+                            class="w-full px-3 py-2 border border-gray-300 rounded mb-2"
+                        >
+                        <input
+                            type="password"
+                            id="dockerhub-token"
+                            placeholder="Access Token (optional)"
+                            class="w-full px-3 py-2 border border-gray-300 rounded mb-2"
+                        >
+                        <button id="import-dockerhub-btn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                            Import from DockerHub
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Static Files Section -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">Static Files</h2>
+
+            <!-- Drag & Drop Zone -->
+            <div
+                id="dropzone"
+                class="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-blue-500 transition-colors cursor-pointer bg-gray-50"
+            >
+                <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <p class="text-gray-600 mb-2">Drag & Drop files here oder click to browse</p>
+                <p class="text-sm text-gray-400">Unterstützt: alle Dateitypen</p>
+                <input type="file" id="static-files-input" multiple class="hidden">
+            </div>
+
+            <!-- File List -->
+            <div id="file-list" class="mt-4 space-y-2">
+                <!-- Files werden hier gelistet -->
+            </div>
+
+            <button id="upload-files-btn" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                Upload Files
+            </button>
+        </div>
+
+        <!-- Uploaded Files Overview -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">Hochgeladene Dateien</h2>
+            <div id="uploaded-files-list">
+                <p class="text-gray-500 text-sm">Lade...</p>
+            </div>
+        </div>
+
+        <!-- Deploy Button -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-lg font-semibold mb-4">Ready to Deploy?</h2>
+            <p class="text-gray-600 mb-4">Alle Daten hochgeladen. Du kannst jetzt deine Infrastruktur deployen.</p>
+            <button id="deploy-btn" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold">
+                Deploy to AWS
+            </button>
+        </div>
+    </main>
+
+    <script type="module" src="/src/js/pages/deployment-data.js"></script>
+</body>
+</html>

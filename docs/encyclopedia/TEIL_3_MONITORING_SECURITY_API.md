@@ -16,6 +16,7 @@
 4. [API Reference](#4-api-reference)
 5. [Datenmodelle & Schemas](#5-datenmodelle--schemas)
 6. [Entwickler-Workflows](#6-entwickler-workflows)
+7. [Billing & Gutscheinsystem](#7-billing--gutscheinsystem)
 
 ---
 
@@ -1385,6 +1386,894 @@ localStorage.setItem('debug', 'true');
 // In Code:
 if (localStorage.getItem('debug') === 'true') {
   console.log('Debug Info:', data);
+}
+```
+
+---
+
+## 7. Billing & Gutscheinsystem
+
+### 7.1 Pricing-Modell
+
+**Hybrid Pricing:** Base Fee + AWS Cost Markup
+
+OverCloud verwendet ein transparentes hybrides Preismodell:
+
+```
+Total Cost = Base Subscription Fee + (AWS Costs × Markup Percentage)
+```
+
+**Pricing Tiers:**
+
+| Tier | Base Fee (Monatlich) | AWS Markup | Deployments | Organisationen |
+|------|---------------------|------------|-------------|----------------|
+| **PAY-AS-YOU-GO** | €0 | 20% | Unlimited | 1 |
+| **STARTER** | €10 | 15% | 3 | 1 |
+| **PRO** | €50 | 10% | 20 | 3 |
+| **ENTERPRISE** | €250 | 5% | Unlimited | Unlimited |
+
+**Beispiel-Rechnung (PRO Tier):**
+
+```python
+# AWS Infrastructure Costs: €200/Monat
+# PRO Tier: €50 Base + 10% AWS Markup
+
+base_price = 50.00         # Base Subscription Fee
+aws_costs = 200.00         # Actual AWS Costs
+aws_markup_pct = 0.10      # 10% Markup
+
+aws_markup = aws_costs * aws_markup_pct  # = €20
+subtotal = base_price + aws_markup       # = €70
+tax = subtotal * 0.19                    # = €13.30 (19% VAT)
+total = subtotal + tax                   # = €83.30
+
+# Invoice Line Items:
+# 1. Base Fee (PRO):      €50.00
+# 2. AWS Markup (10%):    €20.00
+# 3. Subtotal:            €70.00
+# 4. Tax (19%):           €13.30
+# 5. Total:               €83.30
+```
+
+**Implementierung:**
+
+```python
+# backend/app/services/billing.py
+
+def calculate_subscription_price(
+    tier: str,
+    aws_costs: float,
+    voucher: Optional[dict] = None
+) -> dict:
+    """Berechnet Subscription-Preis mit optionalem Voucher-Rabatt.
+    
+    Args:
+        tier: Subscription Tier (PAYG, STARTER, PRO, ENTERPRISE)
+        aws_costs: Tatsächliche AWS Infrastructure Costs (€)
+        voucher: Optional Voucher dict
+    
+    Returns:
+        dict mit Preis-Details:
+            - base_price: Base Subscription Fee
+            - aws_markup: AWS Markup Fee
+            - subtotal: Gesamt vor Rabatt
+            - discount: Rabatt-Betrag (negativ)
+            - final_subtotal: Gesamt nach Rabatt
+            - tax: VAT (19%)
+            - total: Endbetrag
+    """
+    # Tier-Konfiguration
+    TIER_CONFIG = {
+        "PAYG": {"base": 0, "markup_pct": 0.20},
+        "STARTER": {"base": 10, "markup_pct": 0.15},
+        "PRO": {"base": 50, "markup_pct": 0.10},
+        "ENTERPRISE": {"base": 250, "markup_pct": 0.05}
+    }
+    
+    config = TIER_CONFIG[tier]
+    base_price = config["base"]
+    aws_markup = aws_costs * config["markup_pct"]
+    subtotal = base_price + aws_markup
+    
+    # Voucher-Rabatt anwenden
+    discount = 0
+    if voucher:
+        discount = VoucherService.calculate_discount(
+            voucher=voucher,
+            base_price=base_price,
+            aws_markup=aws_markup
+        )
+    
+    final_subtotal = subtotal - discount
+    tax = final_subtotal * 0.19
+    total = final_subtotal + tax
+    
+    return {
+        "base_price": base_price,
+        "aws_markup": aws_markup,
+        "subtotal": subtotal,
+        "discount": discount,
+        "final_subtotal": final_subtotal,
+        "tax": tax,
+        "total": total
+    }
+```
+
+### 7.2 Gutscheinsystem
+
+**Features:**
+- Flexible Rabatte (Percentage oder Fixed Amount)
+- Granulare Anwendung (Base Fee, AWS Markup, oder Beide)
+- Verwendungslimits (Einmalig, n-mal, unbegrenzt)
+- Zeitsteuerung (valid_from, valid_until)
+- User-Limitierung (Jeder User kann jeden Voucher nur 1x verwenden)
+- Audit Trail für Compliance
+
+#### 7.2.1 Voucher Repository
+
+**DynamoDB Schema:**
+
+```python
+# backend/app/repositories/voucher.py
+
+# Voucher Item
+{
+    "PK": "VOUCHER#{code}",           # Partition Key
+    "SK": "METADATA",                 # Sort Key
+    "code": "FRIEND2026",             # Uppercase
+    "discount_type": "percentage",    # percentage | fixed
+    "discount_value": 50,             # 50% oder €50
+    "applies_to": "both",             # base_fee | aws_percentage | both
+    "max_uses": 100,                  # -1 = unlimited
+    "current_uses": 42,
+    "used_by": ["user-uuid-1", "user-uuid-2"],
+    "is_active": true,
+    "valid_from": "2026-01-01T00:00:00Z",
+    "valid_until": "2026-12-31T23:59:59Z",
+    "created_at": "2026-05-17T10:00:00Z",
+    "created_by": "superadmin-uuid",
+    "GSI1PK": "VOUCHERS",             # GSI für Listing
+    "GSI1SK": "FRIEND2026"
+}
+```
+
+**Access Patterns:**
+
+```python
+# 1. Get Voucher by Code (Case-Insensitive)
+PK = "VOUCHER#{code.upper()}"
+SK = "METADATA"
+
+# 2. List all Vouchers (Admin)
+GSI1: GSI1PK = "VOUCHERS"
+      GSI1SK begins_with "A"  # Sortiert nach Code
+
+# 3. Validate Voucher
+# → get_by_code() + check is_active + valid_until + current_uses
+
+# 4. Redeem Voucher
+# → Atomic increment current_uses
+# → Append user_id to used_by array
+```
+
+**Repository Methoden:**
+
+```python
+class VoucherRepository(BaseRepository):
+    """Repository für Voucher-Management."""
+    
+    def create(self, voucher_data: dict) -> dict:
+        """Erstellt neuen Voucher.
+        
+        Validiert:
+        - Code ist unique (4-32 Zeichen, nur A-Z0-9)
+        - discount_value > 0
+        - percentage max 100%
+        - valid_until > now (wenn gesetzt)
+        """
+    
+    def get_by_code(self, code: str) -> Optional[dict]:
+        """Lädt Voucher by Code (case-insensitive)."""
+    
+    def validate(self, code: str, user_id: str) -> tuple[bool, Optional[str]]:
+        """Validiert ob Voucher verwendbar ist.
+        
+        Prüft:
+        - Existiert
+        - is_active = true
+        - valid_from <= now <= valid_until
+        - current_uses < max_uses
+        - user_id not in used_by (User hat nicht bereits verwendet)
+        
+        Returns:
+            (is_valid: bool, error_message: Optional[str])
+        """
+    
+    def redeem(self, code: str, user_id: str) -> dict:
+        """Löst Voucher ein (atomic operation).
+        
+        - Increment current_uses
+        - Append user_id to used_by
+        - Return updated voucher
+        """
+    
+    def list_all(self, include_inactive: bool = False) -> List[dict]:
+        """Liste alle Vouchers (Admin only)."""
+    
+    def deactivate(self, code: str) -> dict:
+        """Deaktiviert Voucher (Soft Delete)."""
+    
+    def reactivate(self, code: str) -> dict:
+        """Reaktiviert Voucher."""
+    
+    def get_usage_stats(self, code: str) -> dict:
+        """Gibt Usage-Statistiken zurück."""
+```
+
+#### 7.2.2 Voucher Service
+
+**Discount-Berechnung:**
+
+```python
+# backend/app/services/voucher_service.py
+
+class VoucherService:
+    """Business Logic für Voucher-Rabatte."""
+    
+    @staticmethod
+    def calculate_discount(
+        voucher: dict,
+        base_price: float,
+        aws_markup: float
+    ) -> float:
+        """Berechnet Rabatt-Betrag basierend auf Voucher-Konfiguration.
+        
+        Args:
+            voucher: Voucher dict mit discount_type, discount_value, applies_to
+            base_price: Base Subscription Fee
+            aws_markup: AWS Markup Fee
+        
+        Returns:
+            Discount amount (positiv) in EUR
+        
+        Beispiele:
+            # 50% auf "both"
+            voucher = {"discount_type": "percentage", "discount_value": 50, "applies_to": "both"}
+            base = 50, aws = 20
+            → discount = (50 + 20) * 0.50 = 35 EUR
+            
+            # €25 fixed auf "base_fee"
+            voucher = {"discount_type": "fixed", "discount_value": 25, "applies_to": "base_fee"}
+            base = 50, aws = 20
+            → discount = min(25, 50) = 25 EUR (begrenzt auf base_price)
+            
+            # 100% auf "both" (kostenfrei)
+            voucher = {"discount_type": "percentage", "discount_value": 100, "applies_to": "both"}
+            base = 50, aws = 20
+            → discount = (50 + 20) * 1.0 = 70 EUR (Total = 0)
+        """
+        discount_type = voucher["discount_type"]
+        discount_value = voucher["discount_value"]
+        applies_to = voucher["applies_to"]
+        
+        # Target Amount ermitteln
+        if applies_to == "base_fee":
+            target_amount = base_price
+        elif applies_to == "aws_percentage":
+            target_amount = aws_markup
+        else:  # "both"
+            target_amount = base_price + aws_markup
+        
+        # Rabatt berechnen
+        if discount_type == "percentage":
+            discount = target_amount * (discount_value / 100)
+        else:  # "fixed"
+            discount = min(discount_value, target_amount)  # Nie höher als Target
+        
+        return discount
+    
+    def validate_voucher(self, code: str, user_id: str) -> dict:
+        """Validiert Voucher und gibt Details zurück."""
+    
+    def redeem_voucher(self, code: str, org_id: UUID, user_id: str) -> dict:
+        """Löst Voucher ein und wendet auf Subscription an.
+        
+        Flow:
+        1. Validate Voucher
+        2. Check User ist Org-Member
+        3. Get Subscription by org_id
+        4. Redeem Voucher (increment uses)
+        5. Update Subscription mit voucher_code
+        6. Log Audit Event
+        7. Return success
+        """
+    
+    def remove_voucher_from_subscription(self, org_id: UUID, user_id: str):
+        """Entfernt Voucher von Subscription (User-initiated)."""
+```
+
+#### 7.2.3 Voucher API Endpoints
+
+**Public Endpoints (Authenticated Users):**
+
+```bash
+# 1. Validate Voucher
+POST /api/v1/voucher/validate
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "code": "FRIEND2026"
+}
+
+# Response (200 OK - Valid)
+{
+  "valid": true,
+  "code": "FRIEND2026",
+  "discount_type": "percentage",
+  "discount_value": 50,
+  "applies_to": "both",
+  "remaining_uses": 58,
+  "message": "Voucher is valid and can be used"
+}
+
+# Response (400 Bad Request - Invalid)
+{
+  "detail": "Voucher expired on 2026-01-01"
+}
+
+# 2. Redeem Voucher
+POST /api/v1/voucher/redeem
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "code": "FRIEND2026",
+  "org_id": "uuid-of-org"
+}
+
+# Response (200 OK)
+{
+  "success": true,
+  "message": "Voucher FRIEND2026 successfully applied to subscription",
+  "voucher_code": "FRIEND2026",
+  "org_id": "uuid-of-org",
+  "subscription": {
+    "id": "sub-uuid",
+    "tier": "pro",
+    "base_price": 50.0,
+    "voucher_code": "FRIEND2026",
+    "voucher_discount_type": "percentage",
+    "voucher_discount_value": 50,
+    "voucher_applies_to": "both"
+  }
+}
+
+# 3. Remove Voucher
+DELETE /api/v1/voucher/remove/{org_id}
+Authorization: Bearer {token}
+
+# Response (200 OK)
+{
+  "success": true,
+  "message": "Voucher removed from subscription"
+}
+```
+
+**Admin Endpoints (SuperAdmin only):**
+
+```bash
+# 1. Create Voucher
+POST /api/v1/admin/vouchers
+Authorization: Bearer {superadmin_token}
+Content-Type: application/json
+
+{
+  "code": "BETA100",
+  "discount_type": "percentage",
+  "discount_value": 100,
+  "applies_to": "both",
+  "max_uses": 50,
+  "valid_until": "2026-06-30T23:59:59Z"
+}
+
+# Response (201 Created)
+{
+  "code": "BETA100",
+  "discount_type": "percentage",
+  "discount_value": 100,
+  "applies_to": "both",
+  "max_uses": 50,
+  "current_uses": 0,
+  "is_active": true,
+  "valid_until": "2026-06-30T23:59:59",
+  "created_at": "2026-05-17T12:00:00",
+  "created_by": "superadmin-uuid"
+}
+
+# 2. List Vouchers
+GET /api/v1/admin/vouchers?include_inactive=false
+Authorization: Bearer {superadmin_token}
+
+# Response (200 OK)
+{
+  "vouchers": [
+    {
+      "code": "FRIEND2026",
+      "discount_type": "percentage",
+      "discount_value": 50,
+      "current_uses": 42,
+      "max_uses": 100,
+      "is_active": true,
+      "valid_until": "2026-12-31T23:59:59"
+    },
+    // ...
+  ],
+  "total": 5
+}
+
+# 3. Get Voucher Stats
+GET /api/v1/admin/vouchers/{code}/stats
+Authorization: Bearer {superadmin_token}
+
+# Response (200 OK)
+{
+  "code": "FRIEND2026",
+  "current_uses": 42,
+  "max_uses": 100,
+  "usage_percentage": 42.0,
+  "unique_users": 42,
+  "is_active": true,
+  "days_remaining": 228,
+  "created_at": "2026-01-01T00:00:00"
+}
+
+# 4. Deactivate Voucher
+DELETE /api/v1/admin/vouchers/{code}
+Authorization: Bearer {superadmin_token}
+
+# Response (200 OK)
+{
+  "success": true,
+  "message": "Voucher FRIEND2026 deactivated"
+}
+
+# 5. Reactivate Voucher
+POST /api/v1/admin/vouchers/{code}/reactivate
+Authorization: Bearer {superadmin_token}
+
+# Response (200 OK)
+{
+  "success": true,
+  "message": "Voucher FRIEND2026 reactivated"
+}
+```
+
+#### 7.2.4 Invoice Generation mit Rabatten
+
+**Invoice Line Items:**
+
+```python
+# backend/app/services/invoice_generator.py
+
+class InvoiceGenerator:
+    """Generiert Invoices mit Voucher-Rabatten."""
+    
+    def generate_invoice(
+        self,
+        subscription: dict,
+        aws_costs: float,
+        period_start: datetime,
+        period_end: datetime
+    ) -> dict:
+        """Generiert Invoice für Subscription.
+        
+        Returns:
+            {
+                "invoice_id": "inv-uuid",
+                "subscription_id": "sub-uuid",
+                "period": {"start": ..., "end": ...},
+                "line_items": [
+                    {
+                        "description": "Base Fee (PRO)",
+                        "amount": 50.00
+                    },
+                    {
+                        "description": "AWS Markup (10% of €200)",
+                        "amount": 20.00
+                    },
+                    {
+                        "description": "Discount (FRIEND2026): 50% off",
+                        "amount": -35.00  # Negative = Rabatt
+                    }
+                ],
+                "subtotal": 35.00,
+                "tax": 6.65,
+                "total": 41.65,
+                "currency": "EUR"
+            }
+        """
+        tier = subscription["tier"]
+        voucher_code = subscription.get("voucher_code")
+        
+        # Base Price + AWS Markup
+        base_price = TIER_CONFIG[tier]["base"]
+        aws_markup = aws_costs * TIER_CONFIG[tier]["markup_pct"]
+        
+        line_items = [
+            {"description": f"Base Fee ({tier.upper()})", "amount": base_price},
+            {"description": f"AWS Markup ({aws_costs:.2f} × {markup_pct}%)", "amount": aws_markup}
+        ]
+        
+        subtotal = base_price + aws_markup
+        
+        # Voucher-Rabatt
+        if voucher_code:
+            voucher = voucher_repo.get_by_code(voucher_code)
+            if voucher:
+                discount = VoucherService.calculate_discount(
+                    voucher=voucher,
+                    base_price=base_price,
+                    aws_markup=aws_markup
+                )
+                
+                line_items.append({
+                    "description": f"Discount ({voucher_code}): {voucher['discount_value']}{' %' if voucher['discount_type'] == 'percentage' else ' EUR'} off",
+                    "amount": -discount  # Negativ!
+                })
+                
+                subtotal -= discount
+        
+        tax = subtotal * 0.19
+        total = subtotal + tax
+        
+        return {
+            "invoice_id": str(uuid.uuid4()),
+            "subscription_id": subscription["id"],
+            "period": {"start": period_start, "end": period_end},
+            "line_items": line_items,
+            "subtotal": subtotal,
+            "tax": tax,
+            "total": total,
+            "currency": "EUR"
+        }
+```
+
+#### 7.2.5 Admin UI für Gutschein-Verwaltung
+
+**Frontend: Admin Voucher Management**
+
+```javascript
+// frontend/src/js/pages/admin-vouchers.js
+
+class AdminVouchersPage {
+    constructor() {
+        this.voucherAPI = new VoucherAPI();
+        this.vouchers = [];
+    }
+    
+    async loadVouchers() {
+        const response = await this.voucherAPI.listVouchers(includeInactive=false);
+        this.vouchers = response.vouchers;
+        this.renderVouchersTable();
+    }
+    
+    renderVouchersTable() {
+        const tbody = document.getElementById('vouchers-table-body');
+        tbody.innerHTML = this.vouchers.map(voucher => `
+            <tr>
+                <td>${voucher.code}</td>
+                <td>${voucher.discount_value}${voucher.discount_type === 'percentage' ? '%' : '€'}</td>
+                <td>${voucher.current_uses} / ${voucher.max_uses === -1 ? '∞' : voucher.max_uses}</td>
+                <td>${voucher.is_active ? '🟢 Active' : '🔴 Inactive'}</td>
+                <td>
+                    <button onclick="viewStats('${voucher.code}')">📊 Stats</button>
+                    <button onclick="deactivate('${voucher.code}')">🚫 Deactivate</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+    
+    async createVoucher(formData) {
+        const payload = {
+            code: formData.code.toUpperCase(),
+            discount_type: formData.discountType,
+            discount_value: parseFloat(formData.discountValue),
+            applies_to: formData.appliesTo,
+            max_uses: parseInt(formData.maxUses) || -1,
+            valid_until: formData.validUntil || null
+        };
+        
+        await this.voucherAPI.createVoucher(payload);
+        this.loadVouchers();  // Refresh
+    }
+    
+    async viewVoucherStats(code) {
+        const stats = await this.voucherAPI.getVoucherStats(code);
+        
+        showModal('Voucher Statistics', `
+            <h3>${code}</h3>
+            <p>Uses: ${stats.current_uses} / ${stats.max_uses}</p>
+            <p>Unique Users: ${stats.unique_users}</p>
+            <p>Usage: ${stats.usage_percentage.toFixed(1)}%</p>
+            <p>Days Remaining: ${stats.days_remaining}</p>
+        `);
+    }
+    
+    async deactivateVoucher(code) {
+        if (!confirm(`Deactivate voucher ${code}?`)) return;
+        
+        await this.voucherAPI.deactivateVoucher(code);
+        this.loadVouchers();  // Refresh
+    }
+}
+```
+
+**Billing Page Integration:**
+
+```javascript
+// frontend/src/js/pages/billing.js
+
+class BillingPage {
+    async handleValidateVoucher() {
+        const code = document.getElementById('voucher-code-input').value.trim();
+        if (!code) return;
+        
+        try {
+            const result = await this.voucherAPI.validateVoucher(code);
+            
+            if (result.valid) {
+                showSuccess(`✅ Voucher valid: ${result.discount_value}${result.discount_type === 'percentage' ? '%' : '€'} off`);
+                document.getElementById('redeem-voucher-btn').disabled = false;
+            }
+        } catch (error) {
+            showError(`❌ ${error.detail}`);
+        }
+    }
+    
+    async handleRedeemVoucher() {
+        const code = document.getElementById('voucher-code-input').value.trim();
+        const orgId = this.currentOrgId;
+        
+        const result = await this.voucherAPI.redeemVoucher(code, orgId);
+        
+        if (result.success) {
+            showSuccess(`🎉 Voucher ${code} applied! Your next invoice will include the discount.`);
+            this.renderVoucherStatus(result.voucher_code);
+        }
+    }
+    
+    renderVoucherStatus(voucherCode) {
+        const container = document.getElementById('active-voucher-container');
+        container.innerHTML = `
+            <div class="active-voucher">
+                <span>🎟️ Active Voucher: <strong>${voucherCode}</strong></span>
+                <button onclick="removeVoucher()">Remove</button>
+            </div>
+        `;
+    }
+}
+```
+
+#### 7.2.6 Security Considerations
+
+**Voucher-spezifische Security-Maßnahmen:**
+
+1. **SuperAdmin-Only Creation:**
+   ```python
+   @router.post("/admin/vouchers")
+   async def create_voucher(
+       data: VoucherCreateRequest,
+       current_admin: dict = Depends(get_current_superadmin)  # ✅ SuperAdmin Check
+   ):
+       ...
+   ```
+
+2. **Code Injection Prevention:**
+   ```python
+   class VoucherCreateRequest(BaseModel):
+       code: str = Field(
+           ...,
+           min_length=4,
+           max_length=32,
+           pattern="^[A-Z0-9]+$"  # ✅ Nur Alphanumerisch
+       )
+   ```
+
+3. **Atomic Redemption:**
+   ```python
+   # DynamoDB Conditional Update verhindert Race Conditions
+   table.update_item(
+       Key={"PK": f"VOUCHER#{code}", "SK": "METADATA"},
+       UpdateExpression="SET current_uses = current_uses + :inc, used_by = list_append(used_by, :user)",
+       ConditionExpression="current_uses < max_uses AND NOT contains(used_by, :user_id)",
+       ExpressionAttributeValues={
+           ":inc": 1,
+           ":user": [user_id],
+           ":user_id": user_id
+       }
+   )
+   ```
+
+4. **Audit Logging:**
+   ```python
+   # Alle Voucher-Aktionen werden geloggt
+   log_audit(
+       user_id=user_id,
+       event_type="VOUCHER_REDEEM",
+       resource_type="VOUCHER",
+       resource_id=voucher_code,
+       action=f"User redeemed voucher {voucher_code} for org {org_id}",
+       metadata={"org_id": str(org_id), "voucher_code": voucher_code}
+   )
+   ```
+
+#### 7.2.7 Monitoring & Analytics
+
+**CloudWatch Metriken:**
+
+```python
+# Beispiel: Voucher Usage Rate
+cloudwatch.put_metric_data(
+    Namespace='OverCloud/Vouchers',
+    MetricData=[
+        {
+            'MetricName': 'VoucherRedemptions',
+            'Value': 1,
+            'Unit': 'Count',
+            'Dimensions': [
+                {'Name': 'VoucherCode', 'Value': voucher_code},
+                {'Name': 'DiscountType', 'Value': voucher['discount_type']}
+            ]
+        }
+    ]
+)
+```
+
+**Analytics Queries:**
+
+```sql
+-- Top 10 Most Used Vouchers
+SELECT code, current_uses, max_uses, 
+       (current_uses / max_uses * 100) as usage_pct
+FROM vouchers
+WHERE is_active = true
+ORDER BY current_uses DESC
+LIMIT 10;
+
+-- Average Discount per Voucher
+SELECT AVG(discount_value) as avg_discount,
+       discount_type,
+       COUNT(*) as count
+FROM vouchers
+GROUP BY discount_type;
+
+-- Revenue Impact (geschätzter Rabatt-Betrag)
+SELECT SUM(discount_amount) as total_discount,
+       COUNT(*) as redemption_count
+FROM invoices
+WHERE voucher_code IS NOT NULL
+  AND invoice_date >= '2026-05-01';
+```
+
+### 7.3 Pricing-Page
+
+**Frontend: Pricing Calculator**
+
+```html
+<!-- frontend/src/pricing.html -->
+
+<div class="pricing-tiers">
+    <div class="tier-card">
+        <h3>STARTER</h3>
+        <p class="price">€10/Monat</p>
+        <ul>
+            <li>15% AWS Markup</li>
+            <li>Max 3 Deployments</li>
+            <li>1 Organisation</li>
+        </ul>
+        <button onclick="selectTier('STARTER')">Auswählen</button>
+    </div>
+    
+    <div class="tier-card recommended">
+        <span class="badge">Empfohlen</span>
+        <h3>PRO</h3>
+        <p class="price">€50/Monat</p>
+        <ul>
+            <li>10% AWS Markup</li>
+            <li>Max 20 Deployments</li>
+            <li>3 Organisationen</li>
+        </ul>
+        <button onclick="selectTier('PRO')">Auswählen</button>
+    </div>
+    
+    <!-- ENTERPRISE, PAYG ... -->
+</div>
+
+<!-- Cost Calculator -->
+<div class="cost-calculator">
+    <h3>Kostenrechner</h3>
+    <label>Erwartete AWS Costs (€/Monat):</label>
+    <input type="number" id="aws-cost-input" value="200" />
+    
+    <div id="cost-breakdown">
+        <!-- Dynamisch generiert -->
+    </div>
+</div>
+
+<!-- Voucher Input -->
+<div class="voucher-section">
+    <label>Gutscheincode (optional):</label>
+    <input type="text" id="voucher-input" placeholder="FRIEND2026" />
+    <button onclick="validateVoucher()">Validieren</button>
+</div>
+```
+
+**JavaScript Controller:**
+
+```javascript
+// frontend/src/js/pages/pricing.js
+
+class PricingPage {
+    constructor() {
+        this.selectedTier = null;
+        this.awsCosts = 200;
+        this.voucher = null;
+    }
+    
+    calculatePrice(tier, awsCosts, voucher = null) {
+        const config = TIER_CONFIG[tier];
+        const basePrice = config.base;
+        const awsMarkup = awsCosts * config.markup_pct;
+        let subtotal = basePrice + awsMarkup;
+        
+        let discount = 0;
+        if (voucher) {
+            discount = this.calculateDiscount(voucher, basePrice, awsMarkup);
+            subtotal -= discount;
+        }
+        
+        const tax = subtotal * 0.19;
+        const total = subtotal + tax;
+        
+        return { basePrice, awsMarkup, discount, subtotal, tax, total };
+    }
+    
+    renderCostBreakdown() {
+        const tier = this.selectedTier || 'PRO';
+        const awsCosts = parseFloat(document.getElementById('aws-cost-input').value);
+        
+        const price = this.calculatePrice(tier, awsCosts, this.voucher);
+        
+        document.getElementById('cost-breakdown').innerHTML = `
+            <div class="line-item">
+                <span>Base Fee (${tier}):</span>
+                <span>€${price.basePrice.toFixed(2)}</span>
+            </div>
+            <div class="line-item">
+                <span>AWS Markup (${awsCosts} × ${TIER_CONFIG[tier].markup_pct * 100}%):</span>
+                <span>€${price.awsMarkup.toFixed(2)}</span>
+            </div>
+            ${price.discount > 0 ? `
+                <div class="line-item discount">
+                    <span>Rabatt (${this.voucher.code}):</span>
+                    <span>-€${price.discount.toFixed(2)}</span>
+                </div>
+            ` : ''}
+            <div class="line-item subtotal">
+                <span>Zwischensumme:</span>
+                <span>€${price.subtotal.toFixed(2)}</span>
+            </div>
+            <div class="line-item">
+                <span>MwSt. (19%):</span>
+                <span>€${price.tax.toFixed(2)}</span>
+            </div>
+            <div class="line-item total">
+                <span>Gesamt:</span>
+                <span>€${price.total.toFixed(2)}/Monat</span>
+            </div>
+        `;
+    }
 }
 ```
 

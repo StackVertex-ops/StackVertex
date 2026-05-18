@@ -31,7 +31,7 @@ def authenticated_user(client):
         json={
             "email": "testuser@example.com",
             "name": "Test User",
-            "password": "password123"
+            "password": "SecurePass123!"
         }
     )
     data = response.json()
@@ -61,6 +61,9 @@ class TestUsersGet:
     def test_get_user_unauthenticated(self, client, authenticated_user):
         """Test getting user without authentication."""
         _, user_id = authenticated_user
+
+        # Clear cookies to test unauthenticated request
+        client.cookies.clear()
 
         response = client.get(f"/api/v1/users/{user_id}")
 
@@ -106,7 +109,7 @@ class TestUsersUpdate:
             json={
                 "email": "user1@example.com",
                 "name": "User 1",
-                "password": "password123"
+                "password": "SecurePass123!"
             }
         )
         token1 = response1.json()["access_token"]
@@ -117,10 +120,13 @@ class TestUsersUpdate:
             json={
                 "email": "user2@example.com",
                 "name": "User 2",
-                "password": "password123"
+                "password": "SecurePass123!"
             }
         )
         user2_id = response2.json()["user"]["id"]
+
+        # Clear cookies so we only use token1 (not user2's cookie)
+        client.cookies.clear()
 
         # User 1 tries to update User 2
         response = client.patch(
@@ -163,8 +169,8 @@ class TestUsersUpdatePassword:
             f"/api/v1/users/{user_id}/password",
             headers={"Authorization": f"Bearer {token}"},
             json={
-                "current_password": "password123",
-                "new_password": "newsecurepassword123"
+                "current_password": "SecurePass123!",
+                "new_password": "NewSecure456!"
             }
         )
 
@@ -175,7 +181,7 @@ class TestUsersUpdatePassword:
             "/api/v1/auth/login",
             data={
                 "username": "testuser@example.com",
-                "password": "newsecurepassword123"
+                "password": "NewSecure456!"
             }
         )
 
@@ -191,8 +197,8 @@ class TestUsersUpdatePassword:
             f"/api/v1/users/{user_id}/password",
             headers={"Authorization": f"Bearer {token}"},
             json={
-                "current_password": "password123",
-                "new_password": "newpassword123"
+                "current_password": "SecurePass123!",
+                "new_password": "NewSecure456!"
             }
         )
 
@@ -201,7 +207,7 @@ class TestUsersUpdatePassword:
             "/api/v1/auth/login",
             data={
                 "username": "testuser@example.com",
-                "password": "password123"  # Old password
+                "password": "SecurePass123!"  # Old password
             }
         )
 
@@ -216,7 +222,7 @@ class TestUsersUpdatePassword:
             json={
                 "email": "user1@example.com",
                 "name": "User 1",
-                "password": "password123"
+                "password": "SecurePass123!"
             }
         )
         token1 = response1.json()["access_token"]
@@ -226,7 +232,7 @@ class TestUsersUpdatePassword:
             json={
                 "email": "user2@example.com",
                 "name": "User 2",
-                "password": "password123"
+                "password": "SecurePass123!"
             }
         )
         user2_id = response2.json()["user"]["id"]
@@ -236,8 +242,8 @@ class TestUsersUpdatePassword:
             f"/api/v1/users/{user2_id}/password",
             headers={"Authorization": f"Bearer {token1}"},
             json={
-                "current_password": "password123",
-                "new_password": "hacked"
+                "current_password": "SecurePass123!",
+                "new_password": "HackedPass456!"
             }
         )
 
@@ -274,7 +280,7 @@ class TestUsersDelete:
             json={
                 "email": "deleter@example.com",
                 "name": "Deleter",
-                "password": "password123"
+                "password": "SecurePass123!"
             }
         )
         token1 = response1.json()["access_token"]
@@ -284,10 +290,13 @@ class TestUsersDelete:
             json={
                 "email": "victim@example.com",
                 "name": "Victim",
-                "password": "password123"
+                "password": "SecurePass123!"
             }
         )
         user2_id = response2.json()["user"]["id"]
+
+        # Clear cookies so we only use token1 (not user2's cookie)
+        client.cookies.clear()
 
         # User 1 tries to delete User 2
         response = client.delete(
@@ -329,7 +338,7 @@ class TestUsersOrganisations:
             json={
                 "email": "spy@example.com",
                 "name": "Spy",
-                "password": "password123"
+                "password": "SecurePass123!"
             }
         )
         token1 = response1.json()["access_token"]
@@ -339,10 +348,13 @@ class TestUsersOrganisations:
             json={
                 "email": "target@example.com",
                 "name": "Target",
-                "password": "password123"
+                "password": "SecurePass123!"
             }
         )
         user2_id = response2.json()["user"]["id"]
+
+        # Clear cookies so we only use token1 (not user2's cookie)
+        client.cookies.clear()
 
         # User 1 tries to get User 2's orgs
         response = client.get(

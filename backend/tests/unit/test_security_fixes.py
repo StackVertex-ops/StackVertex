@@ -138,11 +138,11 @@ class TestConfigSecurity:
         assert settings.DEBUG is False
 
     def test_access_token_reduced(self):
-        """Access token expiry should be 60 minutes."""
+        """Access token expiry should be 15 minutes (short-lived for security)."""
         from app.config import Settings
 
         settings = Settings(_env_file=None, SECRET_KEY="test-secret-key-minimum-32-characters-long")
-        assert settings.ACCESS_TOKEN_EXPIRE_MINUTES == 60
+        assert settings.ACCESS_TOKEN_EXPIRE_MINUTES == 15
 
 
 if __name__ == "__main__":

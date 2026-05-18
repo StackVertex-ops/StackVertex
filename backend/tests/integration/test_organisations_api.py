@@ -31,7 +31,7 @@ def owner_user(client):
         json={
             "email": "owner@example.com",
             "name": "Owner User",
-            "password": "password123"
+            "password": "SecurePass123!"
         }
     )
     data = response.json()
@@ -46,7 +46,7 @@ def member_user(client):
         json={
             "email": "member@example.com",
             "name": "Member User",
-            "password": "password123"
+            "password": "SecurePass123!"
         }
     )
     data = response.json()
@@ -170,10 +170,23 @@ class TestOrganisationsUpdate:
 class TestOrganisationMembers:
     """Tests für member management endpoints."""
 
-    def test_add_member_as_owner(self, client, owner_user, member_user):
+    def test_add_member_as_owner(self, client, owner_user):
         """Test adding member to organisation as owner."""
         owner_token, _, _ = owner_user
-        _, member_id = member_user
+
+        # Create a fresh member user for this test
+        member_response = client.post(
+            "/api/v1/auth/register",
+            json={
+                "email": "fresh_member@example.com",
+                "name": "Fresh Member",
+                "password": "SecurePass123!"
+            }
+        )
+        member_id = member_response.json()["user"]["id"]
+
+        # Clear cookies after member creation
+        client.cookies.clear()
 
         # Create team org (personal org has max_members=1)
         create_response = client.post(
@@ -194,11 +207,14 @@ class TestOrganisationMembers:
             json={"new_plan": "pro"}
         )
 
+        # Clear cookies to ensure clean state
+        client.cookies.clear()
+
         response = client.post(
             f"/api/v1/organisations/{org_id}/members",
             headers={"Authorization": f"Bearer {owner_token}"},
             json={
-                "email": "member@example.com",
+                "email": "fresh_member@example.com",
                 "role": "member"
             }
         )
@@ -249,7 +265,7 @@ class TestOrganisationMembers:
             json={
                 "email": "user3@example.com",
                 "name": "User 3",
-                "password": "password123"
+                "password": "SecurePass123!"
             }
         )
         user3_id = response3.json()["user"]["id"]
@@ -287,10 +303,23 @@ class TestOrganisationMembers:
         assert len(owner_members) == 1
         assert owner_members[0]["role"] == "owner"
 
-    def test_remove_member_as_owner(self, client, owner_user, member_user):
+    def test_remove_member_as_owner(self, client, owner_user):
         """Test removing member as owner."""
         owner_token, _, _ = owner_user
-        _, member_id = member_user
+
+        # Create a fresh member user for this test
+        member_response = client.post(
+            "/api/v1/auth/register",
+            json={
+                "email": "removable_member@example.com",
+                "name": "Removable Member",
+                "password": "SecurePass123!"
+            }
+        )
+        member_id = member_response.json()["user"]["id"]
+
+        # Clear cookies
+        client.cookies.clear()
 
         # Create team org (personal org has max_members=1)
         create_response = client.post(
@@ -311,15 +340,21 @@ class TestOrganisationMembers:
             json={"new_plan": "pro"}
         )
 
+        # Clear cookies
+        client.cookies.clear()
+
         # Add member
         client.post(
             f"/api/v1/organisations/{org_id}/members",
             headers={"Authorization": f"Bearer {owner_token}"},
             json={
-                "email": "member@example.com",
+                "email": "removable_member@example.com",
                 "role": "member"
             }
         )
+
+        # Clear cookies
+        client.cookies.clear()
 
         # Remove member
         response = client.delete(
@@ -329,10 +364,23 @@ class TestOrganisationMembers:
 
         assert response.status_code == 204
 
-    def test_update_member_role(self, client, owner_user, member_user):
+    def test_update_member_role(self, client, owner_user):
         """Test updating member role."""
         owner_token, _, _ = owner_user
-        _, member_id = member_user
+
+        # Create a fresh member user for this test
+        member_response = client.post(
+            "/api/v1/auth/register",
+            json={
+                "email": "promotable_member@example.com",
+                "name": "Promotable Member",
+                "password": "SecurePass123!"
+            }
+        )
+        member_id = member_response.json()["user"]["id"]
+
+        # Clear cookies
+        client.cookies.clear()
 
         # Create team org (personal org has max_members=1)
         create_response = client.post(
@@ -353,15 +401,21 @@ class TestOrganisationMembers:
             json={"new_plan": "pro"}
         )
 
+        # Clear cookies
+        client.cookies.clear()
+
         # Add member
         client.post(
             f"/api/v1/organisations/{org_id}/members",
             headers={"Authorization": f"Bearer {owner_token}"},
             json={
-                "email": "member@example.com",
+                "email": "promotable_member@example.com",
                 "role": "member"
             }
         )
+
+        # Clear cookies
+        client.cookies.clear()
 
         # Promote to admin
         response = client.patch(
@@ -438,10 +492,23 @@ class TestOrganisationAWSCredentials:
         assert data["connected"] is True
         assert data["aws_account_id"] == "123456789012"
 
-    def test_update_aws_credentials_as_member_forbidden(self, client, owner_user, member_user):
+    def test_update_aws_credentials_as_member_forbidden(self, client, owner_user):
         """Test that members cannot update AWS credentials."""
         owner_token, _, _ = owner_user
-        member_token, member_id = member_user
+
+        # Create a fresh member user for this test
+        member_response = client.post(
+            "/api/v1/auth/register",
+            json={
+                "email": "aws_test_member@example.com",
+                "name": "AWS Test Member",
+                "password": "SecurePass123!"
+            }
+        )
+        member_token = member_response.json()["access_token"]
+
+        # Clear cookies
+        client.cookies.clear()
 
         # Create team org (personal org has max_members=1)
         create_response = client.post(
@@ -462,15 +529,21 @@ class TestOrganisationAWSCredentials:
             json={"new_plan": "pro"}
         )
 
+        # Clear cookies
+        client.cookies.clear()
+
         # Add member
         client.post(
             f"/api/v1/organisations/{org_id}/members",
             headers={"Authorization": f"Bearer {owner_token}"},
             json={
-                "email": "member@example.com",
+                "email": "aws_test_member@example.com",
                 "role": "member"
             }
         )
+
+        # Clear cookies so we only use member_token
+        client.cookies.clear()
 
         # Member tries to update AWS credentials
         response = client.post(
@@ -518,10 +591,23 @@ class TestOrganisationDelete:
 
         assert get_response.status_code == 404
 
-    def test_delete_organisation_as_member_forbidden(self, client, owner_user, member_user):
+    def test_delete_organisation_as_member_forbidden(self, client, owner_user):
         """Test that members cannot delete organisation."""
         owner_token, _, _ = owner_user
-        member_token, member_id = member_user
+
+        # Create a fresh admin user for this test
+        admin_response = client.post(
+            "/api/v1/auth/register",
+            json={
+                "email": "delete_test_admin@example.com",
+                "name": "Delete Test Admin",
+                "password": "SecurePass123!"
+            }
+        )
+        admin_token = admin_response.json()["access_token"]
+
+        # Clear cookies
+        client.cookies.clear()
 
         # Create team org (personal org has max_members=1)
         create_response = client.post(
@@ -542,20 +628,26 @@ class TestOrganisationDelete:
             json={"new_plan": "pro"}
         )
 
-        # Add member
+        # Clear cookies
+        client.cookies.clear()
+
+        # Add admin member
         client.post(
             f"/api/v1/organisations/{org_id}/members",
             headers={"Authorization": f"Bearer {owner_token}"},
             json={
-                "email": "member@example.com",
+                "email": "delete_test_admin@example.com",
                 "role": "admin"  # Even admin can't delete
             }
         )
 
-        # Member tries to delete
+        # Clear cookies so we only use admin_token
+        client.cookies.clear()
+
+        # Admin tries to delete (should fail - only owner can delete)
         response = client.delete(
             f"/api/v1/organisations/{org_id}",
-            headers={"Authorization": f"Bearer {member_token}"}
+            headers={"Authorization": f"Bearer {admin_token}"}
         )
 
         assert response.status_code == 403

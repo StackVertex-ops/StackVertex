@@ -44,7 +44,13 @@ resource "aws_instance" "{{ comp.id }}" {
   {% endif %}
 
   tags = {
-    Name = "{{ comp.name }}"
+    Name                        = "{{ comp.name }}"
+    # OverCloud Cost Tracking Tags
+    "overcloud:deployment_id"   = "{{ deployment_id }}"
+    "overcloud:org_id"          = "{{ org_id }}"
+    "overcloud:managed"         = "true"
+    "overcloud:component_type"  = "{{ comp.type }}"
+    "overcloud:component_id"    = "{{ comp.id }}"
   }
 }
 

@@ -5,9 +5,11 @@
  */
 
 import { billingAPI } from '../api/billing.js';
+import { voucherAPI } from '../api/voucher.js';
 import { requireAuth, getAccessToken, getOrgId } from '../lib/auth.js';
 
 let subscriptionData = null;
+let validatedVoucher = null;
 
 /**
  * Initialize billing page
@@ -48,6 +50,9 @@ async function loadSubscription(orgId, token) {
 
         // Render subscription details
         renderSubscription(subscriptionData);
+
+        // Render voucher status
+        renderVoucherStatus(subscriptionData);
 
     } catch (error) {
         console.error('Failed to load subscription:', error);
@@ -174,6 +179,32 @@ function setupEventListeners(orgId, token) {
         });
     }
 
+    // Voucher Validation Button
+    const validateVoucherBtn = document.getElementById('validateVoucherBtn');
+    if (validateVoucherBtn) {
+        validateVoucherBtn.addEventListener('click', async () => {
+            await handleValidateVoucher(orgId, token);
+        });
+    }
+
+    // Voucher Input - Enter key
+    const voucherInput = document.getElementById('voucherCodeInput');
+    if (voucherInput) {
+        voucherInput.addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter') {
+                await handleValidateVoucher(orgId, token);
+            }
+        });
+    }
+
+    // Remove Voucher Button
+    const removeVoucherBtn = document.getElementById('removeVoucherBtn');
+    if (removeVoucherBtn) {
+        removeVoucherBtn.addEventListener('click', async () => {
+            await handleRemoveVoucher(orgId, token);
+        });
+    }
+
     // Enable Auto-Renewal Button (dynamically added)
     document.addEventListener('click', async (e) => {
         if (e.target.id === 'enableAutoRenewalBtn') {
@@ -282,6 +313,230 @@ function showError(message) {
 
     errorMessage.textContent = message;
     errorState.classList.remove('hidden');
+}
+
+/**
+ * Render voucher status
+ * @param {Object} data - Subscription data
+ */
+function renderVoucherStatus(data) {
+    const activeVoucherDisplay = document.getElementById('activeVoucherDisplay');
+    const activeVoucherDetails = document.getElementById('activeVoucherDetails');
+    const voucherInputForm = document.getElementById('voucherInputForm');
+
+    // Check if subscription has active voucher
+    if (data.subscription && data.subscription.voucher_code) {
+        const voucher = data.subscription;
+
+        // Show active voucher display
+        activeVoucherDisplay.classList.remove('hidden');
+        voucherInputForm.classList.add('hidden');
+
+        // Format discount text
+        let discountText = '';
+        if (voucher.voucher_discount_type === 'percentage') {
+            discountText = `${voucher.voucher_discount_value}% Rabatt`;
+        } else {
+            discountText = `€${voucher.voucher_discount_value} Rabatt`;
+        }
+
+        let appliesText = '';
+        if (voucher.voucher_applies_to === 'base_fee') {
+            appliesText = 'auf Base Fee';
+        } else if (voucher.voucher_applies_to === 'aws_percentage') {
+            appliesText = 'auf AWS Markup';
+        } else {
+            appliesText = 'auf Gesamt';
+        }
+
+        activeVoucherDetails.textContent = `Code: ${voucher.voucher_code} - ${discountText} ${appliesText}`;
+    } else {
+        // Show voucher input form
+        activeVoucherDisplay.classList.add('hidden');
+        voucherInputForm.classList.remove('hidden');
+    }
+}
+
+/**
+ * Handle voucher validation
+ * @param {string} orgId - Organisation ID
+ * @param {string} token - Access token
+ */
+async function handleValidateVoucher(orgId, token) {
+    const input = document.getElementById('voucherCodeInput');
+    const validateBtn = document.getElementById('validateVoucherBtn');
+    const resultDiv = document.getElementById('voucherValidationResult');
+
+    const code = input.value.trim().toUpperCase();
+
+    if (!code) {
+        showVoucherResult('error', 'Bitte gib einen Gutscheincode ein.');
+        return;
+    }
+
+    // Disable button
+    const originalText = validateBtn.textContent;
+    validateBtn.disabled = true;
+    validateBtn.textContent = 'Prüfe...';
+
+    try {
+        // Validate voucher
+        validatedVoucher = await voucherAPI.validateVoucher(code, token);
+
+        // Show success with details
+        let discountText = '';
+        if (validatedVoucher.discount_type === 'percentage') {
+            discountText = `${validatedVoucher.discount_value}%`;
+        } else {
+            discountText = `€${validatedVoucher.discount_value}`;
+        }
+
+        const appliesText = validatedVoucher.applies_to === 'both' ? 'Gesamt' :
+                           validatedVoucher.applies_to === 'base_fee' ? 'Base Fee' : 'AWS Markup';
+
+        showVoucherResult('success',
+            `Gültiger Gutschein! ${discountText} Rabatt auf ${appliesText}`,
+            true
+        );
+
+    } catch (error) {
+        console.error('Voucher validation failed:', error);
+        showVoucherResult('error', error.message || 'Ungültiger Gutscheincode');
+        validatedVoucher = null;
+    } finally {
+        validateBtn.disabled = false;
+        validateBtn.textContent = originalText;
+    }
+}
+
+/**
+ * Show voucher validation result
+ * @param {string} type - 'success' or 'error'
+ * @param {string} message - Result message
+ * @param {boolean} showRedeemButton - Show redeem button
+ */
+function showVoucherResult(type, message, showRedeemButton = false) {
+    const resultDiv = document.getElementById('voucherValidationResult');
+
+    if (type === 'success') {
+        resultDiv.innerHTML = `
+            <div class="flex items-start p-4 bg-green-50 border border-green-200 rounded-lg">
+                <svg class="w-5 h-5 text-green-600 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <div class="flex-1">
+                    <p class="text-green-900 font-medium">${message}</p>
+                    ${showRedeemButton ? `
+                        <button id="redeemVoucherBtn" class="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition">
+                            Gutschein einlösen
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+
+        // Add redeem button listener
+        if (showRedeemButton) {
+            setTimeout(() => {
+                const redeemBtn = document.getElementById('redeemVoucherBtn');
+                if (redeemBtn) {
+                    redeemBtn.addEventListener('click', async () => {
+                        const orgId = getOrgId();
+                        const token = getAccessToken();
+                        await handleRedeemVoucher(orgId, token);
+                    });
+                }
+            }, 0);
+        }
+    } else {
+        resultDiv.innerHTML = `
+            <div class="flex items-start p-4 bg-red-50 border border-red-200 rounded-lg">
+                <svg class="w-5 h-5 text-red-600 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                <p class="text-red-900">${message}</p>
+            </div>
+        `;
+    }
+
+    resultDiv.classList.remove('hidden');
+}
+
+/**
+ * Handle voucher redemption
+ * @param {string} orgId - Organisation ID
+ * @param {string} token - Access token
+ */
+async function handleRedeemVoucher(orgId, token) {
+    if (!validatedVoucher) {
+        showVoucherResult('error', 'Bitte validiere den Gutscheincode zuerst.');
+        return;
+    }
+
+    const redeemBtn = document.getElementById('redeemVoucherBtn');
+    if (redeemBtn) {
+        redeemBtn.disabled = true;
+        redeemBtn.textContent = 'Löse ein...';
+    }
+
+    try {
+        await voucherAPI.redeemVoucher(validatedVoucher.code, orgId, token);
+
+        // Success!
+        alert(`Gutschein ${validatedVoucher.code} erfolgreich eingelöst!`);
+
+        // Reset
+        validatedVoucher = null;
+        document.getElementById('voucherCodeInput').value = '';
+        document.getElementById('voucherValidationResult').classList.add('hidden');
+
+        // Reload subscription
+        await loadSubscription(orgId, token);
+
+    } catch (error) {
+        console.error('Voucher redemption failed:', error);
+        showVoucherResult('error', error.message || 'Gutschein konnte nicht eingelöst werden.');
+    } finally {
+        if (redeemBtn) {
+            redeemBtn.disabled = false;
+            redeemBtn.textContent = 'Gutschein einlösen';
+        }
+    }
+}
+
+/**
+ * Handle voucher removal
+ * @param {string} orgId - Organisation ID
+ * @param {string} token - Access token
+ */
+async function handleRemoveVoucher(orgId, token) {
+    if (!confirm('Möchtest du den Gutschein wirklich entfernen?\n\nHinweis: Der Gutschein bleibt als "verwendet" markiert und kann nicht erneut eingelöst werden.')) {
+        return;
+    }
+
+    const removeBtn = document.getElementById('removeVoucherBtn');
+    if (removeBtn) {
+        removeBtn.disabled = true;
+        removeBtn.textContent = 'Entferne...';
+    }
+
+    try {
+        await voucherAPI.removeVoucher(orgId, token);
+
+        alert('Gutschein erfolgreich entfernt!');
+
+        // Reload subscription
+        await loadSubscription(orgId, token);
+
+    } catch (error) {
+        console.error('Failed to remove voucher:', error);
+        alert('Gutschein konnte nicht entfernt werden. Bitte versuche es erneut.');
+    } finally {
+        if (removeBtn) {
+            removeBtn.disabled = false;
+            removeBtn.textContent = 'Entfernen';
+        }
+    }
 }
 
 // Initialize page when DOM is ready

@@ -35,7 +35,7 @@ class TestAuthRegister:
             json={
                 "email": "newuser@example.com",
                 "name": "New User",
-                "password": "securepassword123"
+                "password": "SecurePass123!"
             }
         )
 
@@ -66,7 +66,7 @@ class TestAuthRegister:
             json={
                 "email": "duplicate@example.com",
                 "name": "First User",
-                "password": "password123"
+                "password": "SecurePass123!"
             }
         )
 
@@ -76,7 +76,7 @@ class TestAuthRegister:
             json={
                 "email": "duplicate@example.com",
                 "name": "Second User",
-                "password": "password456"
+                "password": "SecurePass456!"
             }
         )
 
@@ -90,7 +90,7 @@ class TestAuthRegister:
             json={
                 "email": "not-an-email",
                 "name": "User",
-                "password": "password123"
+                "password": "SecurePass123!"
             }
         )
 
@@ -133,7 +133,7 @@ class TestAuthLogin:
             json={
                 "email": "loginuser@example.com",
                 "name": "Login User",
-                "password": "mypassword123"
+                "password": "MyPassword123!"
             }
         )
 
@@ -142,7 +142,7 @@ class TestAuthLogin:
             "/api/v1/auth/login",
             data={
                 "username": "loginuser@example.com",  # OAuth2PasswordRequestForm uses 'username'
-                "password": "mypassword123"
+                "password": "MyPassword123!"
             }
         )
 
@@ -162,7 +162,7 @@ class TestAuthLogin:
             json={
                 "email": "user@example.com",
                 "name": "User",
-                "password": "correctpassword"
+                "password": "CorrectPass123!"
             }
         )
 
@@ -171,7 +171,7 @@ class TestAuthLogin:
             "/api/v1/auth/login",
             data={
                 "username": "user@example.com",
-                "password": "wrongpassword"
+                "password": "WrongPass456!"
             }
         )
 
@@ -198,7 +198,7 @@ class TestAuthLogin:
             json={
                 "email": "user@example.com",
                 "name": "User",
-                "password": "password123"
+                "password": "SecurePass123!"
             }
         )
 
@@ -207,7 +207,7 @@ class TestAuthLogin:
             "/api/v1/auth/login",
             data={
                 "username": "USER@EXAMPLE.COM",
-                "password": "password123"
+                "password": "SecurePass123!"
             }
         )
 
@@ -225,7 +225,7 @@ class TestAuthMe:
             json={
                 "email": "me@example.com",
                 "name": "Me User",
-                "password": "password123"
+                "password": "SecurePass123!"
             }
         )
         token = response.json()["access_token"]
@@ -270,7 +270,7 @@ class TestAuthRefresh:
             json={
                 "email": "refresh@example.com",
                 "name": "Refresh User",
-                "password": "password123"
+                "password": "SecurePass123!"
             }
         )
         old_token = response.json()["access_token"]
@@ -307,7 +307,7 @@ class TestAuthWorkflow:
             json={
                 "email": "workflow@example.com",
                 "name": "Workflow User",
-                "password": "securepass123"
+                "password": "SecurePass123!"
             }
         )
         assert register_response.status_code == 201
@@ -319,7 +319,7 @@ class TestAuthWorkflow:
             "/api/v1/auth/login",
             data={
                 "username": "workflow@example.com",
-                "password": "securepass123"
+                "password": "SecurePass123!"
             }
         )
         assert login_response.status_code == 200
@@ -357,7 +357,7 @@ class TestAuthWorkflow:
             json={
                 "email": "crossendpoint@example.com",
                 "name": "Cross User",
-                "password": "password123"
+                "password": "SecurePass123!"
             }
         )
         assert response.status_code == 201

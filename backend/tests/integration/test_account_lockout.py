@@ -38,7 +38,7 @@ class TestAccountLockout:
             json={
                 "email": "locktest@example.com",
                 "name": "Lock Test",
-                "password": "correct_password"
+                "password": "CorrectPass123!"
             }
         )
 
@@ -48,7 +48,7 @@ class TestAccountLockout:
                 "/api/v1/auth/login",
                 data={
                     "username": "locktest@example.com",
-                    "password": "wrong_password"
+                    "password": "WrongPass456!"
                 }
             )
 
@@ -69,7 +69,7 @@ class TestAccountLockout:
             json={
                 "email": "lockeduser@example.com",
                 "name": "Locked User",
-                "password": "correct_password"
+                "password": "CorrectPass123!"
             }
         )
 
@@ -79,7 +79,7 @@ class TestAccountLockout:
                 "/api/v1/auth/login",
                 data={
                     "username": "lockeduser@example.com",
-                    "password": "wrong_password"
+                    "password": "WrongPass456!"
                 }
             )
 
@@ -88,7 +88,7 @@ class TestAccountLockout:
             "/api/v1/auth/login",
             data={
                 "username": "lockeduser@example.com",
-                "password": "correct_password"
+                "password": "CorrectPass123!"
             }
         )
 
@@ -103,7 +103,7 @@ class TestAccountLockout:
             json={
                 "email": "resettest@example.com",
                 "name": "Reset Test",
-                "password": "correct_password"
+                "password": "CorrectPass123!"
             }
         )
 
@@ -113,7 +113,7 @@ class TestAccountLockout:
                 "/api/v1/auth/login",
                 data={
                     "username": "resettest@example.com",
-                    "password": "wrong_password"
+                    "password": "WrongPass456!"
                 }
             )
 
@@ -122,7 +122,7 @@ class TestAccountLockout:
             "/api/v1/auth/login",
             data={
                 "username": "resettest@example.com",
-                "password": "correct_password"
+                "password": "CorrectPass123!"
             }
         )
 
@@ -134,7 +134,7 @@ class TestAccountLockout:
                 "/api/v1/auth/login",
                 data={
                     "username": "resettest@example.com",
-                    "password": "wrong_password"
+                    "password": "WrongPass456!"
                 }
             )
 
@@ -151,7 +151,7 @@ class TestAccountLockout:
             json={
                 "email": "counttest@example.com",
                 "name": "Count Test",
-                "password": "correct_password"
+                "password": "CorrectPass123!"
             }
         )
 
@@ -160,7 +160,7 @@ class TestAccountLockout:
             "/api/v1/auth/login",
             data={
                 "username": "counttest@example.com",
-                "password": "wrong_password"
+                "password": "WrongPass456!"
             }
         )
 
@@ -173,7 +173,7 @@ class TestAccountLockout:
             "/api/v1/auth/login",
             data={
                 "username": "counttest@example.com",
-                "password": "wrong_password"
+                "password": "WrongPass456!"
             }
         )
 
@@ -187,7 +187,7 @@ class TestAccountLockout:
             json={
                 "email": "durationtest@example.com",
                 "name": "Duration Test",
-                "password": "correct_password"
+                "password": "CorrectPass123!"
             }
         )
 
@@ -197,7 +197,7 @@ class TestAccountLockout:
                 "/api/v1/auth/login",
                 data={
                     "username": "durationtest@example.com",
-                    "password": "wrong_password"
+                    "password": "WrongPass456!"
                 }
             )
 
@@ -206,7 +206,7 @@ class TestAccountLockout:
             "/api/v1/auth/login",
             data={
                 "username": "durationtest@example.com",
-                "password": "correct_password"
+                "password": "CorrectPass123!"
             }
         )
 
@@ -230,7 +230,7 @@ class TestRateLimiting:
             json={
                 "email": "ratetest@example.com",
                 "name": "Rate Test",
-                "password": "password123"
+                "password": "SecurePass123!"
             }
         )
 

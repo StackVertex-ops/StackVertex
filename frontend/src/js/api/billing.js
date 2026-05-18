@@ -103,6 +103,23 @@ export class BillingAPI {
             }
         });
     }
+
+    /**
+     * Validate voucher code (public endpoint, no auth required)
+     * @param {string} code - Voucher code
+     * @returns {Promise<Object>} Voucher details with discount percentage
+     */
+    async validateVoucher(code) {
+        return this.client.post('/api/v1/voucher/validate', { code });
+    }
+
+    /**
+     * Get list of pricing tiers (public endpoint)
+     * @returns {Promise<Array>} List of tiers with pricing details
+     */
+    async getTiers() {
+        return this.client.get('/api/v1/billing/tiers');
+    }
 }
 
 // Export singleton instance
