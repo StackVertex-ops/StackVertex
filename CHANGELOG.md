@@ -6,6 +6,71 @@ Format: `[Komponente] Typ: Beschreibung`
 
 ---
 
+## 2026-05-19
+
+### 🌟 Startpage Features - Review System, Feedback & FAQ ✅
+
+**✨ Neue Features:**
+
+- **[backend] Review System (5-Sterne-Bewertungen)**
+  - Public API: Submit Review (POST /api/v1/reviews)
+  - Admin API: Moderation (Approve/Reject/Delete), Bulk Actions
+  - Features: Spam Detection (URLs, ALL CAPS), Rating Stats, Email Lowercase
+  - Repository: DynamoDB Single Table Design (GSI1: status, GSI2: rating)
+  - Tests: 89 Tests (88 passing, 1 skipped)
+  - Dateien: `app/api/reviews.py`, `app/repositories/review.py`, `app/services/review_service.py`
+
+- **[backend] Feedback System (Anonyme Bug Reports)**
+  - Public API: Submit Feedback mit optionalem Screenshot-Upload
+  - Admin API: List, Update, Add Notes, Resolve
+  - Features: S3 Screenshot Upload, Metadata (Browser, Device, URL)
+  - Repository: DynamoDB (GSI1: status filtering)
+  - Tests: 58 Tests (100% passing)
+  - Dateien: `app/api/feedback.py`, `app/repositories/feedback.py`, `app/services/feedback_service.py`
+
+- **[backend] FAQ System (Hilfe-Center)**
+  - Public API: List FAQs, Search, Track Views
+  - Admin API: CRUD, Reorder (Drag&Drop), Categories, Analytics
+  - Features: Kategorien, Full-Text Search, View Counter, Display Order
+  - Repository: DynamoDB (GSI1: category, GSI2: search by question)
+  - Tests: 98 Tests (100% passing)
+  - Dateien: `app/api/faq.py`, `app/repositories/faq.py`, `app/services/faq_service.py`
+
+- **[frontend] UI Components**
+  - `StarRating.js`: Reusable 5-Star Component (clickable & readonly)
+  - `FeedbackWidget.js`: Fixed bottom-right Button mit Modal
+  - `FaqAccordion.js`: Accordion mit Search & Categories
+  - Admin Dashboards: `admin-reviews.html`, `admin-feedback.html`, `admin-faq.html`
+
+**🐛 Bugfixes & Improvements:**
+
+- **[tests] Test Suite komplett (245 Tests → 244 passing, 1 skipped)**
+  - authenticated_client Fixture für Admin-Tests in conftest.py
+  - Repository.delete() idempotent (natives DynamoDB-Verhalten)
+  - Service.delete_review() idempotent (REST best practice)
+  - API DELETE gibt 204 auch wenn Item nicht existiert
+  - Pydantic Validation: 400 → 422 Status Codes (Pydantic Standard)
+  - Rating Stats String-Keys statt Int-Keys
+  - Rate-Limit-Test übersprungen (benötigt Redis-Setup)
+
+- **[backend] Import Fixes**
+  - `app/services/background_tasks.py`: `from __future__ import annotations` (Python 3.11)
+  - `app/api/dsgvo.py`: Korrekter Import-Pfad für Auth
+  - `app/repositories/feedback.py`: GSI1PK fix (status statt feedback_type)
+
+**📝 Dokumentation:**
+
+- Manual Testing Checklist erweitert (50 → 70+ Tests)
+- README.md: DynamoDB erwähnt, neue Features in "Completed"
+- CHANGELOG.md: Dieser Eintrag
+
+**📊 Statistik:**
+- **+5.399 Zeilen** Test-Code
+- **245 Tests** gesamt (244 passing, 1 skipped)
+- **Test Coverage:** Reviews 98%, Feedback 100%, FAQ 100%
+
+---
+
 ## 2026-05-17
 
 ### Test Suite - COMPLETE FIX (12 → 0 Failures) ✅

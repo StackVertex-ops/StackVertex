@@ -71,11 +71,11 @@ No black boxes. Users see:
 ### Backend (Python)
 - **Runtime:** Python 3.11+
 - **Framework:** FastAPI (async, modern, type-safe)
-- **Database:** PostgreSQL (AWS RDS or Supabase)
-- **ORM:** SQLAlchemy 2.0 + Alembic
+- **Database:** DynamoDB (primary), PostgreSQL (legacy migrations)
+- **ORM:** Custom DynamoDB repositories + SQLAlchemy 2.0 (legacy)
 - **Validation:** Pydantic v2
-- **AWS SDK:** Boto3
-- **Testing:** pytest + pytest-asyncio + httpx
+- **AWS SDK:** Boto3 (DynamoDB, S3, Lambda)
+- **Testing:** pytest + pytest-asyncio + httpx + moto (AWS mocking)
 - **Code Quality:** Black, Ruff, mypy
 - **Dependency Management:** Poetry
 
@@ -136,7 +136,11 @@ See [.claude/CLAUDE.md](./.claude/CLAUDE.md) for complete development guidelines
 - [x] Voucher/Gutscheinsystem (10%-100% Rabatt)
 - [x] Pricing-Page mit Kostenrechner
 - [x] Billing System mit Invoice Generation
-- [x] 161 Unit Tests (100% bestanden)
+- [x] **DynamoDB Migration** (Single Table Design für neue Features)
+- [x] **Review System** (5-Sterne-Bewertungen mit Spam Detection & Admin Moderation)
+- [x] **Feedback System** (Anonyme Bug Reports mit Screenshot-Upload zu S3)
+- [x] **FAQ System** (Kategorien, Search, Drag&Drop-Reordering, View Tracking)
+- [x] **245 Tests** (244 passing, 1 skipped) - Reviews, Feedback, FAQ vollständig getestet
 
 ### 🔄 In Progress
 - [ ] Stripe Payment Integration

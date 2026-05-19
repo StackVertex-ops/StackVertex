@@ -404,9 +404,177 @@
 
 ---
 
+## 🌟 11. Startpage Features (NEU)
+
+### 11.1 Review System - Submit Review
+- [ ] **5-Sterne Bewertung abgeben**
+  - **Test:** Startpage → Review Section → Submit Review
+  - **Input:**
+    - Name: "Max Mustermann"
+    - Email: "max@example.com"
+    - Rating: 5 Sterne
+    - Comment: "Tolles Tool, sehr übersichtlich!"
+  - **Erwartung:** 201 Created, "Review wird geprüft" Message
+  - **Ergebnis:** [ ] ✅ Pass / [ ] ❌ Fail
+  - **Notes:** 
+
+### 11.2 Review System - Spam Detection
+- [ ] **Spam-Review blockieren**
+  - **Test:** Submit Review mit vielen URLs oder ALL CAPS
+  - **Input:** "BUY NOW!!! http://spam.com http://scam.com CLICK HERE!!!"
+  - **Erwartung:** 400 Bad Request, "Spam detected"
+  - **Ergebnis:** [ ] ✅ Pass / [ ] ❌ Fail
+  - **Notes:** 
+
+### 11.3 Review System - Public Reviews anzeigen
+- [ ] **Genehmigte Reviews sehen**
+  - **Test:** Startpage → Reviews Section
+  - **Erwartung:** Nur approved Reviews sichtbar, keine Email/IP
+  - **Ergebnis:** [ ] ✅ Pass / [ ] ❌ Fail
+  - **Notes:** 
+
+### 11.4 Review System - Admin Moderation
+- [ ] **Review genehmigen**
+  - **Test:** Admin Panel → Reviews → Pending Tab
+  - **Action:** Approve "Max Mustermann" Review
+  - **Erwartung:** Status → approved, auf Startpage sichtbar
+  - **Ergebnis:** [ ] ✅ Pass / [ ] ❌ Fail
+  - **Notes:** 
+
+- [ ] **Review ablehnen**
+  - **Test:** Admin Panel → Reviews → Pending Tab
+  - **Action:** Reject spam review
+  - **Erwartung:** Status → rejected, NICHT auf Startpage
+  - **Ergebnis:** [ ] ✅ Pass / [ ] ❌ Fail
+  - **Notes:** 
+
+- [ ] **Bulk-Approve**
+  - **Test:** Select 3 reviews → Bulk Approve
+  - **Erwartung:** Alle 3 approved in einem Request
+  - **Ergebnis:** [ ] ✅ Pass / [ ] ❌ Fail
+  - **Notes:** 
+
+### 11.5 Review System - Rating Stats
+- [ ] **Rating-Statistik anzeigen**
+  - **Test:** Startpage → Review Section
+  - **Check:** 
+    - Average Rating (z.B. 4.5/5)
+    - Total Count (z.B. "12 Reviews")
+    - Distribution (5★: 8, 4★: 2, 3★: 1, 2★: 1, 1★: 0)
+  - **Erwartung:** Korrekte Berechnung nur aus approved reviews
+  - **Ergebnis:** [ ] ✅ Pass / [ ] ❌ Fail
+  - **Notes:** 
+
+### 11.6 Feedback System - Anonymes Feedback senden
+- [ ] **Feedback Widget öffnen**
+  - **Test:** Klick auf Feedback-Button (unten rechts)
+  - **Erwartung:** Modal öffnet sich
+  - **Ergebnis:** [ ] ✅ Pass / [ ] ❌ Fail
+  - **Notes:** 
+
+- [ ] **Feedback ohne Screenshot**
+  - **Test:** Feedback Modal
+  - **Input:**
+    - Type: "Bug"
+    - Message: "Login Button funktioniert nicht auf iOS Safari"
+  - **Erwartung:** 201 Created, "Danke für dein Feedback"
+  - **Ergebnis:** [ ] ✅ Pass / [ ] ❌ Fail
+  - **Notes:** 
+
+- [ ] **Feedback mit Screenshot**
+  - **Test:** Feedback Modal
+  - **Input:**
+    - Type: "Feature Request"
+    - Message: "Bitte Dark Mode hinzufügen"
+    - Screenshot: Upload PNG
+  - **Erwartung:** 201 Created, Screenshot in S3 hochgeladen
+  - **Ergebnis:** [ ] ✅ Pass / [ ] ❌ Fail
+  - **Notes:** 
+
+### 11.7 Feedback System - Admin Dashboard
+- [ ] **Feedback-Liste anzeigen**
+  - **Test:** Admin Panel → Feedback Tab
+  - **Erwartung:** Liste aller Feedback-Items mit Status
+  - **Ergebnis:** [ ] ✅ Pass / [ ] ❌ Fail
+  - **Notes:** 
+
+- [ ] **Feedback-Details öffnen**
+  - **Test:** Klick auf Feedback-Item
+  - **Erwartung:** Details-View mit Message, Screenshot, Metadata
+  - **Ergebnis:** [ ] ✅ Pass / [ ] ❌ Fail
+  - **Notes:** 
+
+- [ ] **Admin-Notizen hinzufügen**
+  - **Test:** Feedback Details → Add Note
+  - **Input:** "Bug confirmed, assigned to Frontend Team"
+  - **Erwartung:** Notiz gespeichert, sichtbar in Admin Panel
+  - **Ergebnis:** [ ] ✅ Pass / [ ] ❌ Fail
+  - **Notes:** 
+
+- [ ] **Feedback als resolved markieren**
+  - **Test:** Feedback → Mark as Resolved
+  - **Erwartung:** Status → resolved, Checkbox aktiviert
+  - **Ergebnis:** [ ] ✅ Pass / [ ] ❌ Fail
+  - **Notes:** 
+
+### 11.8 FAQ System - FAQ anzeigen
+- [ ] **FAQ Section auf Startpage**
+  - **Test:** Startpage → FAQ Accordion
+  - **Erwartung:** FAQs nach Kategorien gruppiert, Accordion öffnet/schließt
+  - **Ergebnis:** [ ] ✅ Pass / [ ] ❌ Fail
+  - **Notes:** 
+
+### 11.9 FAQ System - FAQ Search
+- [ ] **FAQ durchsuchen**
+  - **Test:** FAQ Search Bar → "pricing"
+  - **Erwartung:** Nur FAQs mit "pricing" im Text angezeigt
+  - **Ergebnis:** [ ] ✅ Pass / [ ] ❌ Fail
+  - **Notes:** 
+
+### 11.10 FAQ System - Admin CRUD
+- [ ] **FAQ erstellen**
+  - **Test:** Admin Panel → FAQ → Create FAQ
+  - **Input:**
+    - Question: "Wie funktioniert Billing?"
+    - Answer: "Wir rechnen monatlich ab..."
+    - Category: "Billing"
+  - **Erwartung:** 201 Created, FAQ in Liste
+  - **Ergebnis:** [ ] ✅ Pass / [ ] ❌ Fail
+  - **Notes:** 
+
+- [ ] **FAQ bearbeiten**
+  - **Test:** FAQ → Edit
+  - **Change:** Answer Text ändern
+  - **Erwartung:** 200 OK, Änderung gespeichert
+  - **Ergebnis:** [ ] ✅ Pass / [ ] ❌ Fail
+  - **Notes:** 
+
+- [ ] **FAQ löschen**
+  - **Test:** FAQ → Delete
+  - **Erwartung:** 204 No Content, FAQ verschwunden
+  - **Ergebnis:** [ ] ✅ Pass / [ ] ❌ Fail
+  - **Notes:** 
+
+### 11.11 FAQ System - Reordering (Drag & Drop)
+- [ ] **FAQ-Reihenfolge ändern**
+  - **Test:** Admin Panel → FAQ → Drag FAQ nach oben
+  - **Erwartung:** Neue Reihenfolge gespeichert, auf Startpage aktualisiert
+  - **Ergebnis:** [ ] ✅ Pass / [ ] ❌ Fail
+  - **Notes:** 
+
+### 11.12 FAQ System - View Tracking
+- [ ] **FAQ Views zählen**
+  - **Test:** Öffne FAQ 3× in verschiedenen Sessions
+  - **Check:** Admin Panel → FAQ Analytics
+  - **Erwartung:** View Count = 3
+  - **Ergebnis:** [ ] ✅ Pass / [ ] ❌ Fail
+  - **Notes:** 
+
+---
+
 ## ✅ Summary
 
-**Total Tests:** 50+
+**Total Tests:** 70+
 **Passed:** _____ / _____
 **Failed:** _____ / _____
 **Completion:** _____ %
@@ -427,4 +595,5 @@
 ---
 
 **Version History:**
+- 1.1.0 (2026-05-19) - Add Startpage Features (Reviews, Feedback, FAQ)
 - 1.0.0 (2026-05-18) - Initial Checklist
