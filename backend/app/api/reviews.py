@@ -417,8 +417,8 @@ async def delete_review(
         current_user: Current authenticated admin
         review_service: ReviewService instance
 
-    Raises:
-        HTTPException: 404 if review not found
+    Note:
+        Returns 204 even if review doesn't exist (idempotent delete)
     """
     try:
         review_uuid = UUID(review_id)

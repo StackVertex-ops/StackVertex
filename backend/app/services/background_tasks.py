@@ -4,12 +4,14 @@ Simple threading-based background task execution for deployments.
 Future: Migrate to Celery for production.
 """
 
+from __future__ import annotations
+
 import logging
 import threading
 from collections.abc import Callable
 from concurrent.futures import Future, ThreadPoolExecutor
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional
 from uuid import UUID
 
 logger = logging.getLogger(__name__)
@@ -18,7 +20,7 @@ logger = logging.getLogger(__name__)
 class BackgroundTaskRunner:
     """Manages background task execution using thread pool."""
 
-    _instance: 'BackgroundTaskRunner' | None = None
+    _instance: Optional['BackgroundTaskRunner'] = None
     _lock = threading.Lock()
 
     def __new__(cls):

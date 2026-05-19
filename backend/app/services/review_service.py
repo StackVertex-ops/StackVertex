@@ -290,22 +290,17 @@ class ReviewService:
             admin_user_id: Admin user performing action
 
         Returns:
-            True if deleted
-
-        Raises:
-            ValueError: If review not found
+            True (idempotent - returns True even if review doesn't exist)
         """
-        deleted = self.review_repo.delete(review_id)
-
-        if not deleted:
-            raise ValueError(f"Review {review_id} nicht gefunden")
+        # DynamoDB delete ist idempotent - keine Existenz-Prüfung nötig
+        self.review_repo.delete(review_id)
 
         logger.info(
             f"Review deleted: {review_id}",
             extra={"review_id": str(review_id), "admin_id": admin_user_id}
         )
 
-        return deleted
+        return True
 
     async def get_rating_summary(self) -> dict:
         """Get rating summary statistics.

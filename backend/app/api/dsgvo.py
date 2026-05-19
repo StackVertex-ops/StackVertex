@@ -19,7 +19,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, EmailStr
 from mypy_boto3_dynamodb.service_resource import Table
 
-from app.core.auth import get_current_user
+from app.api.auth import get_current_user
 from app.db.dynamodb import get_dynamodb_table
 from app.repositories.dsgvo import DsgvoRepository
 from app.repositories.user import UserRepository

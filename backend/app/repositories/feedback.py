@@ -92,7 +92,7 @@ class FeedbackRepository(BaseRepository):
             "notes": [],
             "entity_type": "feedback",
             # GSI1: Query by status
-            "GSI1PK": f"feedback_status#{feedback_type}",
+            "GSI1PK": "feedback_status#new",  # Initial status is always "new"
             "GSI1SK": now,
             # GSI2: Query by type
             "GSI2PK": f"feedback_type#{feedback_type}",

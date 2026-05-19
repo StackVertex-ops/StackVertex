@@ -289,7 +289,7 @@ def update_feedback_status(
 
     feedback = service.update_feedback_status(
         feedback_id=feedback_id,
-        admin_id=str(current_user.user_id),
+        admin_id=str(current_user.id),
         admin_email=current_user.email,
         status=request.status,
         note=request.note,
@@ -319,7 +319,7 @@ def add_note(
     """Add note to feedback (admin only)."""
     feedback = service.add_note(
         feedback_id=feedback_id,
-        admin_id=str(current_user.user_id),
+        admin_id=str(current_user.id),
         admin_email=current_user.email,
         note=request.note,
     )
@@ -348,7 +348,7 @@ def resolve_feedback(
     """Resolve feedback (admin only)."""
     feedback = service.resolve_feedback(
         feedback_id=feedback_id,
-        admin_id=str(current_user.user_id),
+        admin_id=str(current_user.id),
         admin_email=current_user.email,
         resolution_note=request.resolution_note,
     )

@@ -38,6 +38,35 @@ def client(mock_dynamodb_table) -> TestClient:
     app.dependency_overrides.clear()
 
 
+@pytest.fixture
+def mock_superadmin_user():
+    """Mock SuperAdmin User für Admin-Tests."""
+    return {
+        "id": "admin-123",
+        "email": "admin@overcloud.com",
+        "role": "superadmin"
+    }
+
+
+@pytest.fixture
+def authenticated_client(mock_dynamodb_table, mock_superadmin_user) -> TestClient:
+    """Provide FastAPI test client with SuperAdmin authentication.
+
+    Automatically overrides both get_dynamodb_table and get_current_superadmin.
+    """
+    from app.db.dynamodb import get_dynamodb_table
+    from app.api.auth import get_current_superadmin
+
+    # Override dependencies
+    app.dependency_overrides[get_dynamodb_table] = lambda: mock_dynamodb_table
+    app.dependency_overrides[get_current_superadmin] = lambda: mock_superadmin_user
+
+    yield TestClient(app)
+
+    # Cleanup
+    app.dependency_overrides.clear()
+
+
 # =============================================================================
 # Sample Data Fixtures
 # =============================================================================

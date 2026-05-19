@@ -291,8 +291,9 @@ class ReviewRepository(BaseRepository):
             review_id: Review UUID
 
         Returns:
-            True if deleted
+            True (DynamoDB delete is idempotent)
         """
+        # DynamoDB delete_item ist idempotent - wirft keine Exception wenn Item nicht existiert
         deleted = self._delete_item(f"REVIEW#{str(review_id)}", "METADATA")
 
         if deleted:
@@ -301,7 +302,7 @@ class ReviewRepository(BaseRepository):
                 extra={"review_id": str(review_id)}
             )
 
-        return deleted
+        return True  # Idempotent
 
     # ========================================================================
     # Spam Detection
