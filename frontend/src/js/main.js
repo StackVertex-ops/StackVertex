@@ -10,6 +10,9 @@ import { renderArchitecturesPage } from './pages/architectures.js';
 import { renderArchitectureBuilder } from './pages/architecture-builder.js';
 import { renderArchitectureDetail } from './pages/architecture-detail.js';
 
+// Import FeedbackWidget (auto-initializes on non-admin pages)
+import './components/FeedbackWidget.js';
+
 // Initialize API client - SECURITY FIX: No hardcoded URL
 // APIClient now uses import.meta.env.VITE_API_URL
 const api = new APIClient();

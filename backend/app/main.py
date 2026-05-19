@@ -192,7 +192,10 @@ from app.api import (
     data_upload,
     deployments,
     designer,
+    faq,
+    feedback,
     organisations,
+    reviews,
     terraform,
     users,
     validation,
@@ -234,6 +237,15 @@ app.include_router(designer.router, prefix="/api/v1", tags=["designer"])
 
 # DSGVO / GDPR Endpoints
 app.include_router(dsgvo.router, tags=["dsgvo"])
+
+# Feedback (Public + Admin)
+app.include_router(feedback.router, prefix="/api/v1", tags=["feedback"])
+
+# Reviews / Testimonials (Public + Admin)
+app.include_router(reviews.router, prefix="/api/v1", tags=["reviews"])
+
+# FAQ (Public + Admin)
+app.include_router(faq.router, prefix="/api/v1", tags=["faq"])
 
 # Webhooks (no auth required)
 app.include_router(webhooks_module.router, prefix="/webhooks", tags=["webhooks"])

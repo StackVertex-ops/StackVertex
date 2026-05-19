@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Management - OverCloud Admin</title>
+    <link rel="stylesheet" href="/src/css/main.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center gap-6">
+                    <h1 class="text-xl font-bold text-gray-900">OverCloud Admin</h1>
+                    <div class="flex items-center gap-4">
+                        <a href="/src/admin.html" class="text-sm text-gray-600 hover:text-gray-900">Dashboard</a>
+                        <a href="/src/admin-feedback.html" class="text-sm font-semibold text-blue-600 hover:text-blue-700">Feedback</a>
+                        <a href="/src/admin-vouchers.html" class="text-sm text-gray-600 hover:text-gray-900">Vouchers</a>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span id="admin-email" class="text-sm text-gray-600"></span>
+                    <button id="logout-btn" class="btn btn-secondary">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+            <div class="card">
+                <h3 class="text-sm font-medium text-gray-500">Total</h3>
+                <p id="stat-total" class="text-3xl font-bold text-gray-900 mt-2">-</p>
+            </div>
+            <div class="card">
+                <h3 class="text-sm font-medium text-gray-500">New</h3>
+                <p id="stat-new" class="text-3xl font-bold text-red-600 mt-2">-</p>
+            </div>
+            <div class="card">
+                <h3 class="text-sm font-medium text-gray-500">In Progress</h3>
+                <p id="stat-in-progress" class="text-3xl font-bold text-yellow-600 mt-2">-</p>
+            </div>
+            <div class="card">
+                <h3 class="text-sm font-medium text-gray-500">Resolved</h3>
+                <p id="stat-resolved" class="text-3xl font-bold text-green-600 mt-2">-</p>
+            </div>
+            <div class="card">
+                <h3 class="text-sm font-medium text-gray-500">Unresolved</h3>
+                <p id="stat-unresolved" class="text-3xl font-bold text-gray-900 mt-2">-</p>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select id="filter-status" class="input">
+                        <option value="">Alle</option>
+                        <option value="new">New</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Typ</label>
+                    <select id="filter-type" class="input">
+                        <option value="">Alle</option>
+                        <option value="bug">Bug</option>
+                        <option value="feature">Feature Request</option>
+                        <option value="feedback">Feedback</option>
+                        <option value="other">Sonstiges</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button id="apply-filters-btn" class="btn btn-primary w-full">Filter anwenden</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback List -->
+        <div class="bg-white rounded-lg shadow">
+            <div class="p-6">
+                <div id="feedback-loading" class="text-center py-8 text-gray-500">
+                    Lade Feedback...
+                </div>
+                <div id="feedback-list" class="hidden space-y-4">
+                    <!-- Rendered by JS -->
+                </div>
+                <div id="feedback-empty" class="hidden text-center py-8 text-gray-500">
+                    Kein Feedback gefunden
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Detail Modal -->
+    <div id="detail-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+                <h2 class="text-xl font-semibold text-gray-900">Feedback Detail</h2>
+                <button id="close-detail-modal" class="text-gray-400 hover:text-gray-600">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div id="detail-content" class="p-6">
+                <!-- Rendered by JS -->
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .btn {
+            @apply px-4 py-2 rounded-md font-medium transition;
+        }
+        .btn-primary {
+            @apply bg-blue-600 text-white hover:bg-blue-700;
+        }
+        .btn-secondary {
+            @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+        }
+        .btn-success {
+            @apply bg-green-600 text-white hover:bg-green-700;
+        }
+        .btn-danger {
+            @apply bg-red-600 text-white hover:bg-red-700;
+        }
+        .card {
+            @apply bg-white rounded-lg shadow p-6;
+        }
+        .input {
+            @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500;
+        }
+        .badge {
+            @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+        }
+        .badge-new {
+            @apply bg-red-100 text-red-800;
+        }
+        .badge-in-progress {
+            @apply bg-yellow-100 text-yellow-800;
+        }
+        .badge-resolved {
+            @apply bg-green-100 text-green-800;
+        }
+        .badge-closed {
+            @apply bg-gray-100 text-gray-800;
+        }
+        .badge-bug {
+            @apply bg-red-100 text-red-800;
+        }
+        .badge-feature {
+            @apply bg-purple-100 text-purple-800;
+        }
+        .badge-feedback {
+            @apply bg-blue-100 text-blue-800;
+        }
+        .badge-other {
+            @apply bg-gray-100 text-gray-800;
+        }
+    </style>
+
+    <script type="module">
+        import { api } from './js/lib/api.js';
+
+        let currentFeedback = [];
+        let selectedFeedback = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+            await loadStats();
+            await loadFeedback();
+            setupEventListeners();
+        });
+
+        // Check authentication
+        async function checkAuth() {
+            try {
+                const user = await api.get('/auth/me');
+                document.getElementById('admin-email').textContent = user.email;
+
+                // Check if superadmin
+                if (user.system_role !== 'superadmin') {
+                    alert('Nur SuperAdmins haben Zugriff auf diese Seite');
+                    window.location.href = '/src/dashboard.html';
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                window.location.href = '/src/login.html';
+            }
+        }
+
+        // Load statistics
+        async function loadStats() {
+            try {
+                const stats = await api.get('/feedback-stats');
+                document.getElementById('stat-total').textContent = stats.total;
+                document.getElementById('stat-new').textContent = stats.by_status.new;
+                document.getElementById('stat-in-progress').textContent = stats.by_status.in_progress;
+                document.getElementById('stat-resolved').textContent = stats.by_status.resolved;
+                document.getElementById('stat-unresolved').textContent = stats.unresolved;
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        // Load feedback list
+        async function loadFeedback(status = null, type = null) {
+            const loading = document.getElementById('feedback-loading');
+            const list = document.getElementById('feedback-list');
+            const empty = document.getElementById('feedback-empty');
+
+            loading.classList.remove('hidden');
+            list.classList.add('hidden');
+            empty.classList.add('hidden');
+
+            try {
+                const params = new URLSearchParams();
+                if (status) params.append('status', status);
+                if (type) params.append('type', type);
+
+                const response = await api.get(`/feedback?${params.toString()}`);
+                currentFeedback = response.items;
+
+                loading.classList.add('hidden');
+
+                if (currentFeedback.length === 0) {
+                    empty.classList.remove('hidden');
+                } else {
+                    renderFeedbackList();
+                    list.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Failed to load feedback:', error);
+                loading.textContent = 'Fehler beim Laden';
+            }
+        }
+
+        // Render feedback list
+        function renderFeedbackList() {
+            const list = document.getElementById('feedback-list');
+            list.innerHTML = currentFeedback.map(item => `
+                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer" data-feedback-id="${item.feedback_id}">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="badge badge-${item.type}">${getTypeIcon(item.type)} ${item.type}</span>
+                            <span class="badge badge-${item.status.replace('_', '-')}">${item.status.replace('_', ' ')}</span>
+                            ${item.is_resolved ? '<span class="badge badge-success">✓ Erledigt</span>' : ''}
+                        </div>
+                        <span class="text-xs text-gray-500">${formatDate(item.created_at)}</span>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-1">${escapeHtml(item.title)}</h3>
+                    <p class="text-sm text-gray-600 line-clamp-2 mb-2">${escapeHtml(item.description)}</p>
+                    <div class="flex items-center justify-between text-xs text-gray-500">
+                        <div class="flex items-center gap-4">
+                            ${item.email ? `<span>📧 ${escapeHtml(item.email)}</span>` : '<span>📧 Anonym</span>'}
+                            ${item.screenshot_s3_key ? '<span>📷 Screenshot vorhanden</span>' : ''}
+                            ${item.notes.length > 0 ? `<span>💬 ${item.notes.length} Notiz(en)</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Attach click listeners
+            list.querySelectorAll('[data-feedback-id]').forEach(el => {
+                el.addEventListener('click', () => {
+                    showDetail(el.dataset.feedbackId);
+                });
+            });
+        }
+
+        // Show detail modal
+        async function showDetail(feedbackId) {
+            try {
+                selectedFeedback = await api.get(`/feedback/${feedbackId}`);
+                renderDetail();
+                document.getElementById('detail-modal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Failed to load feedback detail:', error);
+                alert('Fehler beim Laden der Details');
+            }
+        }
+
+        // Render detail modal
+        function renderDetail() {
+            const content = document.getElementById('detail-content');
+            const f = selectedFeedback;
+
+            content.innerHTML = `
+                <!-- Header Info -->
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="badge badge-${f.type}">${getTypeIcon(f.type)} ${f.type}</span>
+                    <span class="badge badge-${f.status.replace('_', '-')}">${f.status.replace('_', ' ')}</span>
+                    ${f.is_resolved ? '<span class="badge badge-success">✓ Erledigt</span>' : ''}
+                </div>
+
+                <!-- Title & Description -->
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">${escapeHtml(f.title)}</h3>
+                <p class="text-gray-700 mb-4 whitespace-pre-wrap">${escapeHtml(f.description)}</p>
+
+                <!-- Meta Info -->
+                <div class="bg-gray-50 rounded p-4 mb-4 text-sm space-y-1">
+                    <div><strong>Email:</strong> ${f.email ? escapeHtml(f.email) : 'Anonym'}</div>
+                    <div><strong>URL:</strong> <a href="${escapeHtml(f.url || '')}" target="_blank" class="text-blue-600 hover:underline">${escapeHtml(f.url || 'N/A')}</a></div>
+                    <div><strong>User Agent:</strong> ${escapeHtml(f.user_agent || 'N/A')}</div>
+                    <div><strong>Browser:</strong> ${f.browser_info ? `${f.browser_info.platform}, ${f.browser_info.language}, ${f.browser_info.viewport}` : 'N/A'}</div>
+                    <div><strong>Erstellt:</strong> ${formatDate(f.created_at)}</div>
+                    ${f.resolved_at ? `<div><strong>Gelöst:</strong> ${formatDate(f.resolved_at)}</div>` : ''}
+                </div>
+
+                <!-- Screenshot -->
+                ${f.screenshot_url ? `
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-900 mb-2">Screenshot:</h4>
+                        <img src="${f.screenshot_url}" alt="Screenshot" class="max-w-full border rounded">
+                    </div>
+                ` : ''}
+
+                <!-- Status Change -->
+                <div class="border-t border-gray-200 pt-4 mb-4">
+                    <h4 class="font-medium text-gray-900 mb-2">Status ändern:</h4>
+                    <div class="flex gap-2">
+                        <select id="new-status" class="input flex-1">
+                            <option value="new" ${f.status === 'new' ? 'selected' : ''}>New</option>
+                            <option value="in_progress" ${f.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
+                            <option value="resolved" ${f.status === 'resolved' ? 'selected' : ''}>Resolved</option>
+                            <option value="closed" ${f.status === 'closed' ? 'selected' : ''}>Closed</option>
+                        </select>
+                        <button id="update-status-btn" class="btn btn-primary">Update</button>
+                    </div>
+                </div>
+
+                <!-- Add Note -->
+                <div class="border-t border-gray-200 pt-4 mb-4">
+                    <h4 class="font-medium text-gray-900 mb-2">Notiz hinzufügen:</h4>
+                    <textarea id="new-note" class="input mb-2" rows="3" placeholder="Notiz eingeben..."></textarea>
+                    <button id="add-note-btn" class="btn btn-primary">Notiz speichern</button>
+                </div>
+
+                <!-- Resolve -->
+                ${!f.is_resolved ? `
+                    <div class="border-t border-gray-200 pt-4 mb-4">
+                        <h4 class="font-medium text-gray-900 mb-2">Als gelöst markieren:</h4>
+                        <textarea id="resolution-note" class="input mb-2" rows="2" placeholder="Lösung beschreiben..." minlength="10"></textarea>
+                        <button id="resolve-btn" class="btn btn-success">Als gelöst markieren</button>
+                    </div>
+                ` : ''}
+
+                <!-- Notes History -->
+                <div class="border-t border-gray-200 pt-4">
+                    <h4 class="font-medium text-gray-900 mb-2">Notizen (${f.notes.length}):</h4>
+                    ${f.notes.length === 0 ? '<p class="text-sm text-gray-500">Noch keine Notizen</p>' : `
+                        <div class="space-y-3">
+                            ${f.notes.map(note => `
+                                <div class="bg-gray-50 rounded p-3 text-sm">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <strong class="text-gray-900">${escapeHtml(note.admin_email)}</strong>
+                                        <span class="text-xs text-gray-500">${formatDate(note.created_at)}</span>
+                                    </div>
+                                    <p class="text-gray-700 whitespace-pre-wrap">${escapeHtml(note.note)}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `}
+                </div>
+            `;
+
+            // Attach event listeners
+            document.getElementById('update-status-btn')?.addEventListener('click', updateStatus);
+            document.getElementById('add-note-btn')?.addEventListener('click', addNote);
+            document.getElementById('resolve-btn')?.addEventListener('click', resolveFeedback);
+        }
+
+        // Update status
+        async function updateStatus() {
+            const newStatus = document.getElementById('new-status').value;
+            const note = prompt('Optional: Notiz zur Status-Änderung');
+
+            try {
+                await api.patch(`/feedback/${selectedFeedback.feedback_id}`, {
+                    status: newStatus,
+                    note: note || undefined,
+                });
+                alert('Status aktualisiert');
+                await showDetail(selectedFeedback.feedback_id);
+                await loadStats();
+                await loadFeedback();
+            } catch (error) {
+                console.error('Failed to update status:', error);
+                alert('Fehler beim Aktualisieren');
+            }
+        }
+
+        // Add note
+        async function addNote() {
+            const note = document.getElementById('new-note').value.trim();
+            if (!note) {
+                alert('Bitte eine Notiz eingeben');
+                return;
+            }
+
+            try {
+                await api.post(`/feedback/${selectedFeedback.feedback_id}/notes`, { note });
+                alert('Notiz hinzugefügt');
+                document.getElementById('new-note').value = '';
+                await showDetail(selectedFeedback.feedback_id);
+            } catch (error) {
+                console.error('Failed to add note:', error);
+                alert('Fehler beim Hinzufügen der Notiz');
+            }
+        }
+
+        // Resolve feedback
+        async function resolveFeedback() {
+            const note = document.getElementById('resolution-note').value.trim();
+            if (note.length < 10) {
+                alert('Bitte eine aussagekräftige Lösung eingeben (min. 10 Zeichen)');
+                return;
+            }
+
+            try {
+                await api.post(`/feedback/${selectedFeedback.feedback_id}/resolve`, {
+                    resolution_note: note,
+                });
+                alert('Feedback als gelöst markiert');
+                await showDetail(selectedFeedback.feedback_id);
+                await loadStats();
+                await loadFeedback();
+            } catch (error) {
+                console.error('Failed to resolve:', error);
+                alert('Fehler beim Auflösen');
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('logout-btn').addEventListener('click', async () => {
+                await api.post('/auth/logout');
+                window.location.href = '/src/login.html';
+            });
+
+            document.getElementById('apply-filters-btn').addEventListener('click', () => {
+                const status = document.getElementById('filter-status').value || null;
+                const type = document.getElementById('filter-type').value || null;
+                loadFeedback(status, type);
+            });
+
+            document.getElementById('close-detail-modal').addEventListener('click', () => {
+                document.getElementById('detail-modal').classList.add('hidden');
+            });
+        }
+
+        // Utility functions
+        function getTypeIcon(type) {
+            const icons = {
+                bug: '🐛',
+                feature: '💡',
+                feedback: '💬',
+                other: '📝',
+            };
+            return icons[type] || '📝';
+        }
+
+        function formatDate(isoString) {
+            return new Date(isoString).toLocaleString('de-DE');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

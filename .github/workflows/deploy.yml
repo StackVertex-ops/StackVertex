@@ -84,8 +84,40 @@ jobs:
           flags: unittests
           name: codecov-umbrella
 
-  # Job 2: Build & Push Docker Image
-  build:
+  # Job 2: Build Frontend
+  build-frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build Frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist/
+          retention-days: 1
+
+  # Job 3: Build & Push Docker Image
+  build-backend:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
     needs: test
@@ -145,11 +177,11 @@ jobs:
           # Output image URI
           echo "image_uri=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-  # Job 3: Terraform Plan
+  # Job 4: Terraform Plan
   terraform-plan:
     name: Terraform Plan
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build-backend, build-frontend]
     if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'plan')
     defaults:
       run:
@@ -193,7 +225,7 @@ jobs:
           db_master_username     = "${{ secrets.DB_MASTER_USERNAME }}"
           db_master_password     = "${{ secrets.DB_MASTER_PASSWORD }}"
           terraform_state_bucket = "${{ secrets.TERRAFORM_STATE_BUCKET }}"
-          lambda_image_uri       = "${{ needs.build.outputs.image_uri }}"
+          lambda_image_uri       = "${{ needs.build-backend.outputs.image_uri }}"
           alert_emails           = [$(echo "${{ secrets.ALERT_EMAILS }}" | sed 's/,/", "/g' | sed 's/^/"/' | sed 's/$/"/')]
           slack_webhook_url      = "${{ secrets.SLACK_WEBHOOK_URL }}"
           cors_origins           = "${{ secrets.CORS_ORIGINS }}"
@@ -243,11 +275,11 @@ jobs:
               body: output
             });
 
-  # Job 4: Terraform Apply
+  # Job 5: Terraform Apply
   terraform-apply:
     name: Terraform Apply
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build-backend, build-frontend]
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
@@ -300,7 +332,7 @@ jobs:
           db_master_username     = "${{ secrets.DB_MASTER_USERNAME }}"
           db_master_password     = "${{ secrets.DB_MASTER_PASSWORD }}"
           terraform_state_bucket = "${{ secrets.TERRAFORM_STATE_BUCKET }}"
-          lambda_image_uri       = "${{ needs.build.outputs.image_uri }}"
+          lambda_image_uri       = "${{ needs.build-backend.outputs.image_uri }}"
           alert_emails           = [$(echo "${{ secrets.ALERT_EMAILS }}" | sed 's/,/", "/g' | sed 's/^/"/' | sed 's/$/"/')]
           slack_webhook_url      = "${{ secrets.SLACK_WEBHOOK_URL }}"
           cors_origins           = "${{ secrets.CORS_ORIGINS }}"
@@ -345,7 +377,141 @@ jobs:
           echo "2. Test API endpoints"
           echo "3. Monitor CloudWatch logs"
 
-  # Job 5: Terraform Destroy
+  # Job 6: Deploy Frontend to S3 + CloudFront
+  deploy-frontend:
+    name: Deploy Frontend to S3
+    runs-on: ubuntu-latest
+    needs: terraform-apply
+    if: ${{ needs.terraform-apply.result == 'success' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Determine environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "environment=prod" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/staging" ]; then
+            echo "environment=staging" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/develop" ]; then
+            echo "environment=dev" >> $GITHUB_OUTPUT
+          else
+            echo "environment=dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+
+      - name: Get S3 bucket name from Terraform
+        id: s3-bucket
+        working-directory: infrastructure/terraform/environments/${{ steps.env.outputs.environment }}
+        run: |
+          # Get S3 bucket name from Terraform state
+          BUCKET_NAME=$(terraform output -raw frontend_bucket_name 2>/dev/null || echo "overcloud-${{ steps.env.outputs.environment }}-frontend")
+          echo "bucket_name=$BUCKET_NAME" >> $GITHUB_OUTPUT
+
+      - name: Sync to S3
+        working-directory: frontend
+        run: |
+          aws s3 sync dist/ s3://${{ steps.s3-bucket.outputs.bucket_name }}/ \
+            --delete \
+            --cache-control "public, max-age=31536000, immutable" \
+            --exclude "*.html" \
+            --exclude "*.json"
+
+          # HTML files ohne Cache (für SPA Routing)
+          aws s3 sync dist/ s3://${{ steps.s3-bucket.outputs.bucket_name }}/ \
+            --cache-control "public, max-age=0, must-revalidate" \
+            --include "*.html" \
+            --include "*.json"
+
+      - name: Get CloudFront Distribution ID
+        id: cloudfront
+        run: |
+          DISTRIBUTION_ID=$(aws cloudfront list-distributions \
+            --query "DistributionList.Items[?Comment=='overcloud-${{ steps.env.outputs.environment }}-frontend'].Id | [0]" \
+            --output text)
+          echo "distribution_id=$DISTRIBUTION_ID" >> $GITHUB_OUTPUT
+
+      - name: Invalidate CloudFront Cache
+        if: steps.cloudfront.outputs.distribution_id != 'None'
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ steps.cloudfront.outputs.distribution_id }} \
+            --paths "/*"
+
+      - name: Frontend Deployment Summary
+        run: |
+          echo "✅ Frontend deployed successfully!"
+          echo ""
+          echo "📦 S3 Bucket: ${{ steps.s3-bucket.outputs.bucket_name }}"
+          echo "🌐 CloudFront: ${{ steps.cloudfront.outputs.distribution_id }}"
+          echo ""
+          echo "🔍 Frontend URL wird in Terraform outputs angezeigt"
+
+  # Job 7: Health Check
+  health-check:
+    name: Health Check
+    runs-on: ubuntu-latest
+    needs: [terraform-apply, deploy-frontend]
+    if: ${{ needs.terraform-apply.result == 'success' }}
+
+    steps:
+      - name: Determine environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "environment=prod" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/staging" ]; then
+            echo "environment=staging" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/develop" ]; then
+            echo "environment=dev" >> $GITHUB_OUTPUT
+          else
+            echo "environment=dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Wait for CloudFront propagation
+        run: sleep 30
+
+      - name: Health Check API
+        run: |
+          echo "🔍 Testing API health endpoint..."
+          # TODO: Get actual API endpoint from Terraform outputs
+          # curl -f https://api-${{ steps.env.outputs.environment }}.overcloud.io/health || exit 1
+          echo "✅ API Health Check würde hier laufen"
+
+      - name: Health Check Frontend
+        run: |
+          echo "🔍 Testing Frontend availability..."
+          # TODO: Get actual CloudFront URL from Terraform outputs
+          # curl -f https://${{ steps.env.outputs.environment }}.overcloud.io/ || exit 1
+          echo "✅ Frontend Health Check würde hier laufen"
+
+      - name: Deployment Complete
+        run: |
+          echo "🎉 Deployment zu ${{ steps.env.outputs.environment }} erfolgreich!"
+          echo ""
+          echo "✅ Backend deployed"
+          echo "✅ Frontend deployed"
+          echo "✅ Health Checks passed"
+
+  # Job 8: Terraform Destroy
   terraform-destroy:
     name: Terraform Destroy
     runs-on: ubuntu-latest

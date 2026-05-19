@@ -1,0 +1,158 @@
+name: Bootstrap Terraform State Backend
+
+# Nur EINMALIG ausführen pro AWS Account
+# Erstellt S3 Buckets + DynamoDB Tables für Terraform State
+
+on:
+  workflow_dispatch:
+    inputs:
+      aws_account_id:
+        description: 'AWS Account ID (12 Stellen)'
+        required: true
+        type: string
+      aws_region:
+        description: 'AWS Region (z.B. eu-central-1)'
+        required: true
+        default: 'eu-central-1'
+        type: string
+      project_name:
+        description: 'Projekt Name (lowercase)'
+        required: true
+        default: 'overcloud'
+        type: string
+
+env:
+  TERRAFORM_VERSION: 1.5.7
+
+jobs:
+  bootstrap:
+    name: Bootstrap Terraform State Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infrastructure/terraform/bootstrap
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ github.event.inputs.aws_region }}
+
+      - name: Create terraform.tfvars
+        run: |
+          cat > terraform.tfvars <<EOF
+          project_name   = "${{ github.event.inputs.project_name }}"
+          aws_region     = "${{ github.event.inputs.aws_region }}"
+          aws_account_id = "${{ github.event.inputs.aws_account_id }}"
+          EOF
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+
+      - name: Get Outputs
+        id: outputs
+        run: |
+          TERRAFORM_STATE_BUCKET=$(terraform output -raw terraform_state_bucket)
+          TERRAFORM_LOCKS_TABLE=$(terraform output -raw terraform_locks_table)
+          DEPLOYMENT_STATES_BUCKET=$(terraform output -raw deployment_states_bucket)
+
+          echo "terraform_state_bucket=$TERRAFORM_STATE_BUCKET" >> $GITHUB_OUTPUT
+          echo "terraform_locks_table=$TERRAFORM_LOCKS_TABLE" >> $GITHUB_OUTPUT
+          echo "deployment_states_bucket=$DEPLOYMENT_STATES_BUCKET" >> $GITHUB_OUTPUT
+
+      - name: Bootstrap Summary
+        run: |
+          echo "✅ Terraform State Backend erfolgreich erstellt!"
+          echo ""
+          echo "📦 S3 Buckets:"
+          echo "  - Terraform State: ${{ steps.outputs.outputs.terraform_state_bucket }}"
+          echo "  - Deployment States: ${{ steps.outputs.outputs.deployment_states_bucket }}"
+          echo ""
+          echo "🔒 DynamoDB Lock Table:"
+          echo "  - ${{ steps.outputs.outputs.terraform_locks_table }}"
+          echo ""
+          echo "📋 WICHTIG: Füge dieses Secret zu GitHub hinzu:"
+          echo "  TERRAFORM_STATE_BUCKET = ${{ steps.outputs.outputs.terraform_state_bucket }}"
+          echo ""
+          echo "🚀 Nächster Schritt:"
+          echo "  1. GitHub Secret 'TERRAFORM_STATE_BUCKET' setzen"
+          echo "  2. Push zu develop/main → Automatisches Deployment startet"
+
+      - name: Generate backend.tf for dev
+        run: |
+          mkdir -p ../environments/dev
+          cat > ../environments/dev/backend.tf <<EOF
+          # Automatisch generiert durch bootstrap Workflow
+          terraform {
+            backend "s3" {
+              bucket         = "${{ steps.outputs.outputs.terraform_state_bucket }}"
+              key            = "dev/terraform.tfstate"
+              region         = "${{ github.event.inputs.aws_region }}"
+              dynamodb_table = "${{ steps.outputs.outputs.terraform_locks_table }}"
+              encrypt        = true
+            }
+          }
+          EOF
+
+      - name: Generate backend.tf for staging
+        run: |
+          mkdir -p ../environments/staging
+          cat > ../environments/staging/backend.tf <<EOF
+          # Automatisch generiert durch bootstrap Workflow
+          terraform {
+            backend "s3" {
+              bucket         = "${{ steps.outputs.outputs.terraform_state_bucket }}"
+              key            = "staging/terraform.tfstate"
+              region         = "${{ github.event.inputs.aws_region }}"
+              dynamodb_table = "${{ steps.outputs.outputs.terraform_locks_table }}"
+              encrypt        = true
+            }
+          }
+          EOF
+
+      - name: Generate backend.tf for prod
+        run: |
+          mkdir -p ../environments/prod
+          cat > ../environments/prod/backend.tf <<EOF
+          # Automatisch generiert durch bootstrap Workflow
+          terraform {
+            backend "s3" {
+              bucket         = "${{ steps.outputs.outputs.terraform_state_bucket }}"
+              key            = "prod/terraform.tfstate"
+              region         = "${{ github.event.inputs.aws_region }}"
+              dynamodb_table = "${{ steps.outputs.outputs.terraform_locks_table }}"
+              encrypt        = true
+            }
+          }
+          EOF
+
+      - name: Commit backend.tf files
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          git add ../environments/dev/backend.tf
+          git add ../environments/staging/backend.tf
+          git add ../environments/prod/backend.tf
+
+          git commit -m "[infra] Bootstrap: Generate backend.tf for all environments
+
+          Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+
+          git push

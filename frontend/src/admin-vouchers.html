@@ -7,19 +7,25 @@
     <link rel="stylesheet" href="/css/main.css">
 </head>
 <body class="bg-gray-50">
-    <!-- Header -->
-    <header class="bg-white shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div class="flex justify-between items-center">
-                <a href="/index.html" class="text-2xl font-bold text-gray-900 hover:opacity-80 transition" style="text-decoration: none;">OverCloud Admin</a>
-                <nav class="flex gap-6">
-                    <a href="/admin.html" class="text-gray-600 hover:text-gray-900">Dashboard</a>
-                    <a href="/admin-vouchers.html" class="text-blue-600 font-medium">Vouchers</a>
-                    <a href="/index.html" class="text-gray-600 hover:text-gray-900">Zurück</a>
-                </nav>
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center gap-6">
+                    <h1 class="text-xl font-bold text-gray-900">OverCloud Admin</h1>
+                    <div class="flex items-center gap-4">
+                        <a href="/src/admin.html" class="text-sm text-gray-600 hover:text-gray-900">Dashboard</a>
+                        <a href="/src/admin-feedback.html" class="text-sm text-gray-600 hover:text-gray-900">Feedback</a>
+                        <a href="/src/admin-vouchers.html" class="text-sm font-semibold text-blue-600 hover:text-blue-700">Vouchers</a>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span id="admin-email" class="text-sm text-gray-600"></span>
+                    <button id="logout-btn" class="btn btn-secondary">Logout</button>
+                </div>
             </div>
         </div>
-    </header>
+    </nav>
 
     <!-- Admin Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">

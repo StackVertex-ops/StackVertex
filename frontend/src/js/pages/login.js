@@ -7,6 +7,9 @@
 import { authAPI } from '../api/auth.js';
 import { saveAuthData, redirectIfAuthenticated, getReturnUrl } from '../lib/auth.js';
 
+// Import FeedbackWidget (auto-initializes on non-admin pages)
+import '../components/FeedbackWidget.js';
+
 /**
  * Initialize login page
  */

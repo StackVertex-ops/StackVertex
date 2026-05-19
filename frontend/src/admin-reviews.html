@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review-Moderation - OverCloud Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --secondary: #764ba2;
+            --dark: #1a1a2e;
+            --gray: #4a5568;
+            --light-gray: #f7fafc;
+            --success: #48bb78;
+            --warning: #ed8936;
+            --danger: #e53e3e;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: var(--light-gray);
+        }
+
+        /* Header */
+        header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header nav a {
+            margin-left: 1.5rem;
+            text-decoration: none;
+            color: var(--gray);
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        header nav a:hover {
+            color: var(--primary);
+        }
+
+        /* Main Content */
+        main {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        /* Tabs */
+        .tabs {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .tabs-header {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 1rem;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .tab-button:hover {
+            background: var(--light-gray);
+        }
+
+        .tab-button.active {
+            color: var(--primary);
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+
+        .tab-badge {
+            display: inline-block;
+            background: var(--warning);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+
+        .tab-badge.success {
+            background: var(--success);
+        }
+
+        .tab-badge.danger {
+            background: var(--danger);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 2rem;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Bulk Actions */
+        .bulk-actions {
+            background: var(--light-gray);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: none;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .bulk-actions.active {
+            display: flex;
+        }
+
+        .bulk-actions-text {
+            flex: 1;
+            font-weight: 600;
+            color: var(--gray);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.5rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            display: inline-block;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c53030;
+        }
+
+        .btn-secondary {
+            background: var(--gray);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #2d3748;
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        /* Review Cards */
+        .reviews-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .review-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+
+        .review-card:hover {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .review-card.pending {
+            border-left-color: var(--warning);
+        }
+
+        .review-card.approved {
+            border-left-color: var(--success);
+        }
+
+        .review-card.rejected {
+            border-left-color: var(--danger);
+        }
+
+        .review-card.spam {
+            border-left-color: #718096;
+            opacity: 0.8;
+        }
+
+        .review-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .review-card-select {
+            margin-right: 1rem;
+        }
+
+        .review-card-select input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .review-card-info {
+            flex: 1;
+        }
+
+        .review-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .review-meta {
+            font-size: 0.85rem;
+            color: var(--gray);
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .review-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .review-rating {
+            font-size: 1.2rem;
+        }
+
+        .review-comment {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: var(--light-gray);
+            border-radius: 8px;
+            line-height: 1.6;
+        }
+
+        .review-technical {
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .review-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-badge.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-badge.approved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-badge.rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-badge.spam {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--gray);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Star Rating */
+        .star-rating {
+            display: inline-flex;
+            gap: 0.2rem;
+            font-size: 1.2rem;
+        }
+
+        .stars-inline {
+            color: #fbbf24;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-footer {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header .container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .tabs-header {
+                flex-direction: column;
+            }
+
+            .review-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .review-actions {
+                flex-wrap: wrap;
+            }
+
+            .bulk-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <h1>Review-Moderation</h1>
+            <nav>
+                <a href="/admin.html">Admin Dashboard</a>
+                <a href="/">Startseite</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tabs-header">
+                <button class="tab-button active" data-tab="pending">
+                    Ausstehend <span class="tab-badge" id="badge-pending">0</span>
+                </button>
+                <button class="tab-button" data-tab="approved">
+                    Freigegeben <span class="tab-badge success" id="badge-approved">0</span>
+                </button>
+                <button class="tab-button" data-tab="rejected">
+                    Abgelehnt <span class="tab-badge danger" id="badge-rejected">0</span>
+                </button>
+                <button class="tab-button" data-tab="spam">
+                    Spam <span class="tab-badge" id="badge-spam">0</span>
+                </button>
+            </div>
+
+            <!-- Pending Tab -->
+            <div class="tab-content active" id="tab-pending">
+                <!-- Bulk Actions -->
+                <div class="bulk-actions" id="bulk-actions-pending">
+                    <span class="bulk-actions-text">
+                        <span id="selected-count-pending">0</span> ausgewählt
+                    </span>
+                    <button class="btn btn-success btn-sm" id="bulk-approve-btn">Alle freigeben</button>
+                    <button class="btn btn-danger btn-sm" id="bulk-reject-btn">Alle ablehnen</button>
+                    <button class="btn btn-secondary btn-sm" id="bulk-spam-btn">Als Spam markieren</button>
+                </div>
+
+                <!-- Reviews -->
+                <div id="reviews-pending" class="reviews-grid">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Lade Reviews...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Approved Tab -->
+            <div class="tab-content" id="tab-approved">
+                <div id="reviews-approved" class="reviews-grid">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Lade Reviews...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rejected Tab -->
+            <div class="tab-content" id="tab-rejected">
+                <div id="reviews-rejected" class="reviews-grid">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Lade Reviews...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Spam Tab -->
+            <div class="tab-content" id="tab-spam">
+                <div id="reviews-spam" class="reviews-grid">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Lade Reviews...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Reject Modal -->
+    <div class="modal" id="reject-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Review ablehnen</h2>
+                <p style="color: var(--gray);">Möchtest du einen Grund für die Ablehnung angeben?</p>
+            </div>
+            <div class="form-group">
+                <label for="reject-reason">Grund (optional)</label>
+                <textarea id="reject-reason" placeholder="z.B. Unangemessener Inhalt, Spam, etc."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="reject-cancel-btn">Abbrechen</button>
+                <button class="btn btn-danger" id="reject-confirm-btn">Ablehnen</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { renderStarsInline } from './js/components/StarRating.js';
+        import {
+            getAdminReviews,
+            approveReview,
+            rejectReview,
+            markSpam,
+            bulkApproveReviews,
+            deleteReview
+        } from './js/lib/api-reviews.js';
+
+        // ====================================================================
+        // State
+        // ====================================================================
+
+        let reviews = {
+            pending: [],
+            approved: [],
+            rejected: [],
+            spam: []
+        };
+
+        let selectedReviews = new Set();
+        let currentRejectReviewId = null;
+
+        // ====================================================================
+        // Tab Switching
+        // ====================================================================
+
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const tab = button.dataset.tab;
+
+                // Update buttons
+                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                button.classList.add('active');
+
+                // Update content
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.getElementById(`tab-${tab}`).classList.add('active');
+
+                // Clear selection
+                selectedReviews.clear();
+                updateBulkActionsUI();
+            });
+        });
+
+        // ====================================================================
+        // Load Reviews
+        // ====================================================================
+
+        async function loadAllReviews() {
+            try {
+                const statuses = ['pending', 'approved', 'rejected', 'spam'];
+
+                for (const status of statuses) {
+                    const data = await getAdminReviews(status, 100);
+                    reviews[status] = data;
+                    renderReviews(status, data);
+                    updateBadge(status, data.length);
+                }
+
+            } catch (error) {
+                console.error('Error loading reviews:', error);
+                alert('Fehler beim Laden der Reviews: ' + error.message);
+            }
+        }
+
+        // ====================================================================
+        // Render Reviews
+        // ====================================================================
+
+        function renderReviews(status, data) {
+            const container = document.getElementById(`reviews-${status}`);
+
+            if (data.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <h3>Keine Reviews</h3>
+                        <p>Hier sind noch keine Reviews vorhanden.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = '';
+
+            data.forEach(review => {
+                const card = createReviewCard(review, status);
+                container.appendChild(card);
+            });
+        }
+
+        // ====================================================================
+        // Create Review Card
+        // ====================================================================
+
+        function createReviewCard(review, status) {
+            const card = document.createElement('div');
+            card.className = `review-card ${status}`;
+            card.dataset.reviewId = review.id;
+
+            // Format date
+            const createdAt = new Date(review.created_at);
+            const dateStr = createdAt.toLocaleDateString('de-DE', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            // Actions based on status
+            let actions = '';
+            if (status === 'pending') {
+                actions = `
+                    <button class="btn btn-success btn-sm approve-btn" data-id="${review.id}">Freigeben</button>
+                    <button class="btn btn-danger btn-sm reject-btn" data-id="${review.id}">Ablehnen</button>
+                    <button class="btn btn-secondary btn-sm spam-btn" data-id="${review.id}">Spam</button>
+                    <button class="btn btn-danger btn-sm delete-btn" data-id="${review.id}">Löschen</button>
+                `;
+            } else {
+                actions = `<button class="btn btn-danger btn-sm delete-btn" data-id="${review.id}">Löschen</button>`;
+            }
+
+            // Checkbox (nur für pending)
+            const checkbox = status === 'pending'
+                ? `<div class="review-card-select">
+                       <input type="checkbox" class="review-checkbox" data-id="${review.id}">
+                   </div>`
+                : '';
+
+            card.innerHTML = `
+                <div class="review-card-header">
+                    ${checkbox}
+                    <div class="review-card-info">
+                        <div class="review-name">${escapeHtml(review.name)}</div>
+                        <div class="review-meta">
+                            <span>${renderStarsInline(review.rating)}</span>
+                            <span>📧 ${escapeHtml(review.email)}</span>
+                            <span>📅 ${dateStr}</span>
+                            <span class="status-badge ${status}">${getStatusText(status)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="review-comment">${escapeHtml(review.comment)}</div>
+
+                <div class="review-technical">
+                    <div>
+                        <strong>IP:</strong> ${review.ip_address || 'N/A'} |
+                        <strong>User Agent:</strong> ${review.user_agent || 'N/A'} |
+                        <strong>Spam-Check:</strong> ${review.is_spam ? '⚠️ Ja' : '✅ Nein'}
+                    </div>
+                    ${review.rejected_reason ? `<div style="margin-top: 0.5rem;"><strong>Ablehnungsgrund:</strong> ${escapeHtml(review.rejected_reason)}</div>` : ''}
+                </div>
+
+                <div class="review-actions">
+                    ${actions}
+                </div>
+            `;
+
+            // Attach event listeners
+            if (status === 'pending') {
+                card.querySelector('.review-checkbox').addEventListener('change', handleCheckboxChange);
+            }
+
+            const approveBtn = card.querySelector('.approve-btn');
+            if (approveBtn) {
+                approveBtn.addEventListener('click', () => handleApprove(review.id));
+            }
+
+            const rejectBtn = card.querySelector('.reject-btn');
+            if (rejectBtn) {
+                rejectBtn.addEventListener('click', () => handleReject(review.id));
+            }
+
+            const spamBtn = card.querySelector('.spam-btn');
+            if (spamBtn) {
+                spamBtn.addEventListener('click', () => handleMarkSpam(review.id));
+            }
+
+            const deleteBtn = card.querySelector('.delete-btn');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', () => handleDelete(review.id));
+            }
+
+            return card;
+        }
+
+        // ====================================================================
+        // Helper Functions
+        // ====================================================================
+
+        function getStatusText(status) {
+            const map = {
+                pending: 'Ausstehend',
+                approved: 'Freigegeben',
+                rejected: 'Abgelehnt',
+                spam: 'Spam'
+            };
+            return map[status] || status;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function updateBadge(status, count) {
+            const badge = document.getElementById(`badge-${status}`);
+            if (badge) {
+                badge.textContent = count;
+            }
+        }
+
+        // ====================================================================
+        // Checkbox Handling
+        // ====================================================================
+
+        function handleCheckboxChange(e) {
+            const reviewId = e.target.dataset.id;
+
+            if (e.target.checked) {
+                selectedReviews.add(reviewId);
+            } else {
+                selectedReviews.delete(reviewId);
+            }
+
+            updateBulkActionsUI();
+        }
+
+        function updateBulkActionsUI() {
+            const bulkActions = document.getElementById('bulk-actions-pending');
+            const selectedCount = document.getElementById('selected-count-pending');
+
+            selectedCount.textContent = selectedReviews.size;
+
+            if (selectedReviews.size > 0) {
+                bulkActions.classList.add('active');
+            } else {
+                bulkActions.classList.remove('active');
+            }
+        }
+
+        // ====================================================================
+        // Action Handlers
+        // ====================================================================
+
+        async function handleApprove(reviewId) {
+            if (!confirm('Review freigeben?')) return;
+
+            try {
+                await approveReview(reviewId);
+                await loadAllReviews();
+            } catch (error) {
+                alert('Fehler: ' + error.message);
+            }
+        }
+
+        async function handleReject(reviewId) {
+            currentRejectReviewId = reviewId;
+            document.getElementById('reject-modal').classList.add('active');
+        }
+
+        async function handleMarkSpam(reviewId) {
+            if (!confirm('Review als Spam markieren?')) return;
+
+            try {
+                await markSpam(reviewId);
+                await loadAllReviews();
+            } catch (error) {
+                alert('Fehler: ' + error.message);
+            }
+        }
+
+        async function handleDelete(reviewId) {
+            if (!confirm('Review permanent löschen? Diese Aktion kann nicht rückgängig gemacht werden!')) return;
+
+            try {
+                await deleteReview(reviewId);
+                await loadAllReviews();
+            } catch (error) {
+                alert('Fehler: ' + error.message);
+            }
+        }
+
+        // ====================================================================
+        // Reject Modal
+        // ====================================================================
+
+        document.getElementById('reject-cancel-btn').addEventListener('click', () => {
+            document.getElementById('reject-modal').classList.remove('active');
+            document.getElementById('reject-reason').value = '';
+            currentRejectReviewId = null;
+        });
+
+        document.getElementById('reject-confirm-btn').addEventListener('click', async () => {
+            if (!currentRejectReviewId) return;
+
+            const reason = document.getElementById('reject-reason').value.trim();
+
+            try {
+                await rejectReview(currentRejectReviewId, reason || null);
+                document.getElementById('reject-modal').classList.remove('active');
+                document.getElementById('reject-reason').value = '';
+                currentRejectReviewId = null;
+                await loadAllReviews();
+            } catch (error) {
+                alert('Fehler: ' + error.message);
+            }
+        });
+
+        // ====================================================================
+        // Bulk Actions
+        // ====================================================================
+
+        document.getElementById('bulk-approve-btn').addEventListener('click', async () => {
+            if (selectedReviews.size === 0) return;
+
+            if (!confirm(`${selectedReviews.size} Reviews freigeben?`)) return;
+
+            try {
+                const reviewIds = Array.from(selectedReviews);
+                await bulkApproveReviews(reviewIds);
+                selectedReviews.clear();
+                updateBulkActionsUI();
+                await loadAllReviews();
+            } catch (error) {
+                alert('Fehler: ' + error.message);
+            }
+        });
+
+        document.getElementById('bulk-reject-btn').addEventListener('click', async () => {
+            if (selectedReviews.size === 0) return;
+
+            if (!confirm(`${selectedReviews.size} Reviews ablehnen?`)) return;
+
+            try {
+                const reviewIds = Array.from(selectedReviews);
+                for (const id of reviewIds) {
+                    await rejectReview(id);
+                }
+                selectedReviews.clear();
+                updateBulkActionsUI();
+                await loadAllReviews();
+            } catch (error) {
+                alert('Fehler: ' + error.message);
+            }
+        });
+
+        document.getElementById('bulk-spam-btn').addEventListener('click', async () => {
+            if (selectedReviews.size === 0) return;
+
+            if (!confirm(`${selectedReviews.size} Reviews als Spam markieren?`)) return;
+
+            try {
+                const reviewIds = Array.from(selectedReviews);
+                for (const id of reviewIds) {
+                    await markSpam(id);
+                }
+                selectedReviews.clear();
+                updateBulkActionsUI();
+                await loadAllReviews();
+            } catch (error) {
+                alert('Fehler: ' + error.message);
+            }
+        });
+
+        // ====================================================================
+        // Initialize
+        // ====================================================================
+
+        loadAllReviews();
+    </script>
+</body>
+</html>

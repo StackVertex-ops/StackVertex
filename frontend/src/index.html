@@ -534,6 +534,119 @@
             color: rgba(255, 255, 255, 0.6);
         }
 
+        /* FAQ Styles */
+        .faq-category-filter {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            background: white;
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .faq-category-filter:hover,
+        .faq-category-filter.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .faq-item {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .faq-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .faq-question {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .faq-question h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark);
+            flex: 1;
+        }
+
+        .faq-icon {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+
+        .faq-toggle {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s, background 0.3s;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .faq-item.active .faq-toggle {
+            transform: rotate(45deg);
+            background: var(--primary);
+            color: white;
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s;
+            padding: 0 1.5rem;
+        }
+
+        .faq-item.active .faq-answer {
+            max-height: 1000px;
+            padding: 0 1.5rem 1.5rem 1.5rem;
+        }
+
+        .faq-answer-content {
+            color: var(--gray);
+            line-height: 1.8;
+        }
+
+        .faq-answer-content p {
+            margin-bottom: 1rem;
+        }
+
+        .faq-answer-content ul,
+        .faq-answer-content ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .faq-answer-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .faq-answer-content code {
+            background: #f3f4f6;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             nav ul {
@@ -601,6 +714,73 @@
         .scroll-top:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Star Rating Component */
+        .star-rating {
+            display: inline-flex;
+            gap: 0.25rem;
+            align-items: center;
+        }
+
+        .star-rating.interactive .star {
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-size: 1.5rem;
+        }
+
+        .star-rating.interactive .star:hover {
+            transform: scale(1.2);
+        }
+
+        .star-rating.readonly .star {
+            font-size: 1.2rem;
+        }
+
+        .star-rating .rating-text {
+            margin-left: 0.5rem;
+            font-weight: 600;
+            color: var(--gray);
+        }
+
+        .stars-inline {
+            color: #fbbf24;
+        }
+
+        /* Review Card */
+        .review-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+
+        .review-card:hover {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .review-author {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .review-date {
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+
+        .review-comment {
+            color: var(--gray);
+            line-height: 1.6;
+            margin-top: 0.75rem;
         }
     </style>
 </head>
@@ -827,6 +1007,103 @@
         </div>
     </section>
 
+    <!-- Reviews / Testimonials Section -->
+    <section class="reviews-section" style="background: var(--light-gray); padding: 80px 2rem;">
+        <div class="container" style="max-width: 1200px; margin: 0 auto;">
+            <div class="section-title">
+                <h2>Was sagen unsere Kunden?</h2>
+                <div id="rating-summary" style="margin: 1rem 0; font-size: 1.2rem; color: var(--gray);">
+                    <span id="rating-stars"></span>
+                    <span id="rating-text"></span>
+                </div>
+            </div>
+
+            <!-- Review Form -->
+            <div class="review-form-container" style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); margin-bottom: 3rem;">
+                <h3 style="margin-bottom: 1.5rem;">Bewertung abgeben</h3>
+                <form id="review-form">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="review-name" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Name</label>
+                        <input type="text" id="review-name" name="name" required minlength="2" maxlength="100"
+                               style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="review-email" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Email (wird nicht öffentlich angezeigt)</label>
+                        <input type="email" id="review-email" name="email" required
+                               style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Bewertung</label>
+                        <div id="review-rating-input"></div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="review-comment" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Kommentar</label>
+                        <textarea id="review-comment" name="comment" required minlength="10" maxlength="500" rows="4"
+                                  style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
+                        <small style="color: var(--gray); display: block; margin-top: 0.25rem;">Mindestens 10, maximal 500 Zeichen</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Kommentar einreichen</button>
+                    <div id="review-form-message" style="margin-top: 1rem;"></div>
+                </form>
+            </div>
+
+            <!-- Reviews List -->
+            <div id="reviews-list" style="display: grid; gap: 1.5rem;">
+                <!-- Reviews werden hier dynamisch eingefügt -->
+            </div>
+
+            <div id="reviews-loading" style="text-align: center; padding: 2rem; color: var(--gray);">
+                Lade Bewertungen...
+            </div>
+
+            <div id="reviews-error" style="display: none; text-align: center; padding: 2rem; color: var(--warning);">
+                Fehler beim Laden der Bewertungen.
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section" style="background: white; padding: 80px 2rem;">
+        <div class="container" style="max-width: 1000px; margin: 0 auto;">
+            <div class="section-title">
+                <h2>Häufig gestellte Fragen</h2>
+                <p>Alles, was du über OverCloud wissen musst</p>
+            </div>
+
+            <!-- FAQ Search -->
+            <div style="margin-bottom: 2rem;">
+                <input
+                    type="text"
+                    id="faq-search"
+                    placeholder="FAQ durchsuchen..."
+                    style="width: 100%; padding: 1rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;"
+                >
+            </div>
+
+            <!-- FAQ Categories -->
+            <div id="faq-categories-filter" style="margin-bottom: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                <!-- Dynamisch befüllt -->
+            </div>
+
+            <!-- FAQ Accordion -->
+            <div id="faq-accordion">
+                <!-- FAQs werden hier dynamisch eingefügt -->
+            </div>
+
+            <div id="faq-loading" style="text-align: center; padding: 2rem; color: var(--gray);">
+                Lade FAQs...
+            </div>
+
+            <div id="faq-error" style="display: none; text-align: center; padding: 2rem; color: var(--warning);">
+                Fehler beim Laden der FAQs.
+            </div>
+
+            <div id="faq-empty" style="display: none; text-align: center; padding: 2rem; color: var(--gray);">
+                Keine FAQs gefunden.
+            </div>
+        </div>
+    </section>
+
     <!-- Final CTA -->
     <section class="cta-section">
         <div class="container">
@@ -891,8 +1168,205 @@
         ↑
     </div>
 
-    <script>
+    <script type="module">
+        // Import FeedbackWidget (auto-initializes)
+        import './js/components/FeedbackWidget.js';
+
+        // Import FAQ Accordion
+        import { FaqAccordion } from './js/components/FaqAccordion.js';
+
+        // Import StarRating component + API client
+        import { StarRating, renderStarsInline } from './js/components/StarRating.js';
+        import { submitReview, getPublicReviews, getRatingStats } from './js/lib/api-reviews.js';
+
+        // ====================================================================
+        // Initialize FAQ Accordion
+        // ====================================================================
+
+        const faqContainer = document.getElementById('faq-accordion');
+        if (faqContainer) {
+            new FaqAccordion(faqContainer, {
+                autoLoad: true,
+                allowMultiple: false,
+                trackViews: true,
+                animationDuration: 300,
+            });
+        }
+
+        // ====================================================================
+        // Initialize Star Rating Input
+        // ====================================================================
+
+        let selectedRating = 0;
+
+        const ratingInputContainer = document.getElementById('review-rating-input');
+        const ratingInput = new StarRating({
+            container: ratingInputContainer,
+            rating: 0,
+            readonly: false,
+            onChange: (rating) => {
+                selectedRating = rating;
+            }
+        });
+
+        // ====================================================================
+        // Load Reviews on Page Load
+        // ====================================================================
+
+        async function loadReviews() {
+            try {
+                const data = await getPublicReviews(20);
+
+                // Update rating summary
+                const { stats } = data;
+                document.getElementById('rating-stars').innerHTML = renderStarsInline(stats.average);
+                document.getElementById('rating-text').textContent =
+                    `${stats.average} von 5 - ${stats.count} Bewertungen`;
+
+                // Render reviews
+                const reviewsList = document.getElementById('reviews-list');
+                reviewsList.innerHTML = '';
+
+                if (data.reviews.length === 0) {
+                    reviewsList.innerHTML = '<p style="text-align: center; color: var(--gray);">Noch keine Bewertungen vorhanden.</p>';
+                } else {
+                    data.reviews.forEach(review => {
+                        const card = createReviewCard(review);
+                        reviewsList.appendChild(card);
+                    });
+                }
+
+                document.getElementById('reviews-loading').style.display = 'none';
+                document.getElementById('reviews-error').style.display = 'none';
+
+            } catch (error) {
+                console.error('Error loading reviews:', error);
+                document.getElementById('reviews-loading').style.display = 'none';
+                document.getElementById('reviews-error').style.display = 'block';
+            }
+        }
+
+        // ====================================================================
+        // Create Review Card
+        // ====================================================================
+
+        function createReviewCard(review) {
+            const card = document.createElement('div');
+            card.className = 'review-card';
+
+            // Format date (relative)
+            const createdAt = new Date(review.created_at);
+            const now = new Date();
+            const diffDays = Math.floor((now - createdAt) / (1000 * 60 * 60 * 24));
+            let dateText = '';
+            if (diffDays === 0) {
+                dateText = 'Heute';
+            } else if (diffDays === 1) {
+                dateText = 'Gestern';
+            } else if (diffDays < 30) {
+                dateText = `vor ${diffDays} Tagen`;
+            } else if (diffDays < 365) {
+                const months = Math.floor(diffDays / 30);
+                dateText = `vor ${months} ${months === 1 ? 'Monat' : 'Monaten'}`;
+            } else {
+                const years = Math.floor(diffDays / 365);
+                dateText = `vor ${years} ${years === 1 ? 'Jahr' : 'Jahren'}`;
+            }
+
+            card.innerHTML = `
+                <div class="review-header">
+                    <div>
+                        <div class="review-author">${escapeHtml(review.name)}</div>
+                        <div>${renderStarsInline(review.rating)}</div>
+                    </div>
+                    <div class="review-date">${dateText}</div>
+                </div>
+                <div class="review-comment">${escapeHtml(review.comment)}</div>
+            `;
+
+            return card;
+        }
+
+        // ====================================================================
+        // Submit Review Form
+        // ====================================================================
+
+        document.getElementById('review-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('review-name').value.trim();
+            const email = document.getElementById('review-email').value.trim();
+            const comment = document.getElementById('review-comment').value.trim();
+
+            const messageEl = document.getElementById('review-form-message');
+
+            // Validation
+            if (!selectedRating) {
+                messageEl.innerHTML = '<p style="color: var(--warning);">Bitte wähle eine Bewertung aus.</p>';
+                return;
+            }
+
+            if (comment.length < 10) {
+                messageEl.innerHTML = '<p style="color: var(--warning);">Kommentar muss mindestens 10 Zeichen lang sein.</p>';
+                return;
+            }
+
+            if (comment.length > 500) {
+                messageEl.innerHTML = '<p style="color: var(--warning);">Kommentar darf maximal 500 Zeichen lang sein.</p>';
+                return;
+            }
+
+            try {
+                messageEl.innerHTML = '<p style="color: var(--gray);">Sende...</p>';
+
+                await submitReview({
+                    name,
+                    email,
+                    rating: selectedRating,
+                    comment
+                });
+
+                messageEl.innerHTML = `
+                    <p style="color: var(--success); font-weight: 600;">
+                        Vielen Dank! Dein Kommentar wird nach Prüfung angezeigt.
+                    </p>
+                `;
+
+                // Reset form
+                document.getElementById('review-form').reset();
+                selectedRating = 0;
+                ratingInput.setRating(0);
+
+            } catch (error) {
+                console.error('Error submitting review:', error);
+                messageEl.innerHTML = `
+                    <p style="color: var(--warning);">
+                        Fehler: ${error.message}
+                    </p>
+                `;
+            }
+        });
+
+        // ====================================================================
+        // Utility: Escape HTML
+        // ====================================================================
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ====================================================================
+        // Load Reviews on Page Load
+        // ====================================================================
+
+        loadReviews();
+
+        // ====================================================================
         // Scroll to top functionality
+        // ====================================================================
+
         const scrollTopBtn = document.getElementById('scrollTop');
 
         window.addEventListener('scroll', () => {

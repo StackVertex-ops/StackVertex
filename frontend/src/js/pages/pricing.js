@@ -7,6 +7,9 @@
 import { billingAPI } from '../api/billing.js';
 import { getAccessToken, getOrgId } from '../lib/auth.js';
 
+// Import FeedbackWidget (auto-initializes on non-admin pages)
+import '../components/FeedbackWidget.js';
+
 let currentInterval = 'monthly';
 let pricingData = [];
 let hybridPricingData = [];
