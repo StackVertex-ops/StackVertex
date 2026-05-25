@@ -4,8 +4,6 @@
  * Fixed Button rechts unten + Modal für anonymes Feedback
  */
 
-import { api } from '../lib/api.js';
-
 export class FeedbackWidget {
     constructor() {
         this.isOpen = false;
