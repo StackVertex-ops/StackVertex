@@ -1,4 +1,4 @@
-# OverCloud Infrastructure Architecture
+# StackVertex Infrastructure Architecture
 
 Detaillierte Architektur-Dokumentation der AWS Serverless Infrastruktur.
 
@@ -152,7 +152,7 @@ User → CloudFront (optional) → API Gateway → Lambda → Aurora
 
 **Steps:**
 
-1. User macht HTTPS Request: `https://api.overcloud.com/api/v1/architectures`
+1. User macht HTTPS Request: `https://api.stackvertex.com/api/v1/architectures`
 2. CloudFront (optional) cached Response oder forwarded zu API Gateway
 3. API Gateway:
    - CORS Check
@@ -186,7 +186,7 @@ User ←→ WebSocket API ←→ Lambda ←→ Aurora
 **Steps:**
 
 1. **Connect:**
-   - User: `ws://api.overcloud.com/ws/deployments/123`
+   - User: `ws://api.stackvertex.com/ws/deployments/123`
    - WebSocket API → Lambda `$connect`
    - Lambda stores `connectionId` in DynamoDB
    - Returns 200 OK
@@ -264,7 +264,7 @@ s3 = boto3.client('s3')
 presigned_url = s3.generate_presigned_url(
     'put_object',
     Params={
-        'Bucket': 'overcloud-dev-customer-data-123456789012',
+        'Bucket': 'stackvertex-dev-customer-data-123456789012',
         'Key': f'customers/{customer_id}/uploads/{filename}',
         'ContentType': 'application/octet-stream'
     },
@@ -478,8 +478,8 @@ resource "aws_apigatewayv2_stage" "default" {
 ```bash
 # Restore to specific timestamp
 aws rds restore-db-cluster-to-point-in-time \
-  --source-db-cluster-identifier overcloud-prod-aurora \
-  --db-cluster-identifier overcloud-prod-aurora-restored \
+  --source-db-cluster-identifier stackvertex-prod-aurora \
+  --db-cluster-identifier stackvertex-prod-aurora-restored \
   --restore-to-time "2026-04-18T10:30:00Z" \
   --use-latest-restorable-time
 
@@ -491,7 +491,7 @@ aws rds restore-db-cluster-to-point-in-time \
 ```bash
 # List versions
 aws s3api list-object-versions \
-  --bucket overcloud-prod-customer-data-123456789012 \
+  --bucket stackvertex-prod-customer-data-123456789012 \
   --prefix customers/customer-123/important-file.pdf
 
 # Restore specific version

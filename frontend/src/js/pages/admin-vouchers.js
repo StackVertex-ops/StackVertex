@@ -1,5 +1,5 @@
 /**
- * OverCloud - Admin Voucher Management
+ * StackVertex - Admin Voucher Management
  *
  * SuperAdmin interface für Gutschein-Verwaltung.
  */

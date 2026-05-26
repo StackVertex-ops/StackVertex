@@ -1,5 +1,5 @@
 /**
- * OverCloud - Architecture Builder Entry Point
+ * StackVertex - Architecture Builder Entry Point
  *
  * Entry Point für die dedizierte Architecture Builder Page
  */

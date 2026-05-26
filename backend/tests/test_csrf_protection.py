@@ -10,7 +10,7 @@ import pytest
 def test_user_data():
     """Test user credentials."""
     return {
-        "email": "csrf-test@overcloud.dev",
+        "email": "csrf-test@stackvertex.dev",
         "password": "SecurePassword123!",
         "name": "CSRF Test User"
     }

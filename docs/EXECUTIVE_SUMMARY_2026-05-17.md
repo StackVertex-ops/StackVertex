@@ -1,6 +1,6 @@
 # Executive Summary - Test Suite Complete Fix
 **Datum:** 17. Mai 2026  
-**Projekt:** OverCloud  
+**Projekt:** StackVertex  
 **Sprint:** Test-Suite Bereinigung & Dokumentation
 
 ---

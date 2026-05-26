@@ -136,16 +136,16 @@ class AWSCredentialRepository(BaseRepository):
             secret_value["access_key_id"] = access_key_id
             secret_value["secret_access_key"] = secret_access_key
 
-        secret_name = f"overcloud/aws-credentials/{credential_id}"
+        secret_name = f"stackvertex/aws-credentials/{credential_id}"
 
         try:
             response = self.secrets_client.create_secret(
                 Name=secret_name,
-                Description=f"AWS Credentials für OverCloud Deployment {credential_id}",
+                Description=f"AWS Credentials für StackVertex Deployment {credential_id}",
                 SecretString=json.dumps(secret_value),
-                KmsKeyId=f"alias/overcloud-secrets-{settings.ENV}",
+                KmsKeyId=f"alias/stackvertex-secrets-{settings.ENV}",
                 Tags=[
-                    {"Key": "ManagedBy", "Value": "OverCloud"},
+                    {"Key": "ManagedBy", "Value": "StackVertex"},
                     {"Key": "CredentialId", "Value": credential_id}
                 ]
             )
@@ -219,7 +219,7 @@ class AWSCredentialRepository(BaseRepository):
 
                 assume_role_params = {
                     "RoleArn": creds["role_arn"],
-                    "RoleSessionName": "overcloud-verification",
+                    "RoleSessionName": "stackvertex-verification",
                     "DurationSeconds": 900
                 }
 

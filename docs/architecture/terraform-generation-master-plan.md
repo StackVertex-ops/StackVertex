@@ -386,7 +386,7 @@ jobs:
 **Setup:**
 ```
 ┌──────────────────────────────────────────────────────┐
-│  OverCloud Firmen-Account (AWS)                      │
+│  StackVertex Firmen-Account (AWS)                      │
 │                                                       │
 │  - Nur für Daten-Abfragen, KEIN Deployment          │
 │  - Terraform CLI installiert                         │
@@ -399,7 +399,7 @@ jobs:
                     │ aws ec2 describe-instance-types
                     ▼
 ┌──────────────────────────────────────────────────────┐
-│  OverCloud Backend (Python)                          │
+│  StackVertex Backend (Python)                          │
 │                                                       │
 │  - Empfängt Sync-Daten                               │
 │  - Speichert in PostgreSQL                           │
@@ -417,8 +417,8 @@ jobs:
 ```
 
 **Wichtig:**
-- OverCloud-Account wird **NUR** für Abfragen genutzt
-- Kein Deployment in OverCloud-Account
+- StackVertex-Account wird **NUR** für Abfragen genutzt
+- Kein Deployment in StackVertex-Account
 - Kunden deployen in **ihren eigenen** Accounts (mit ihren Credentials)
 
 ---
@@ -434,7 +434,7 @@ import json
 from app.database import SessionLocal
 from app.models import AWSInstanceType, AWSAMI
 
-# OverCloud Firmen-Account Credentials (aus Environment)
+# StackVertex Firmen-Account Credentials (aus Environment)
 AWS_ACCESS_KEY = os.environ['OVERCLOUD_AWS_ACCESS_KEY']
 AWS_SECRET_KEY = os.environ['OVERCLOUD_AWS_SECRET_KEY']
 AWS_REGION = 'eu-central-1'
@@ -566,7 +566,7 @@ if __name__ == '__main__':
 
 **Cronjob (täglich):**
 ```bash
-# Cronjob auf OverCloud-Server oder GitHub Actions
+# Cronjob auf StackVertex-Server oder GitHub Actions
 
 0 2 * * * cd /app/backend && python scripts/sync_aws_metadata.py
 ```
@@ -861,8 +861,8 @@ architecture
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://overcloud.io/schemas/architecture-v1.json",
-  "title": "OverCloud Architecture Schema",
+  "$id": "https://stackvertex.io/schemas/architecture-v1.json",
+  "title": "StackVertex Architecture Schema",
   "type": "object",
   "required": ["version", "metadata", "architecture"],
   "properties": {
@@ -924,7 +924,7 @@ from jinja2 import Environment, FileSystemLoader
 import json
 
 class TerraformGenerator:
-    """Generiert Terraform HCL aus OverCloud JSON"""
+    """Generiert Terraform HCL aus StackVertex JSON"""
 
     def __init__(self):
         self.env = Environment(loader=FileSystemLoader('templates/terraform'))
@@ -1303,7 +1303,7 @@ class KMSCredentialEncryption:
 - ✅ Key kann nicht geklaut werden
 
 **Nachteile:**
-- ⚠️ AWS-Abhängigkeit (für OverCloud selbst)
+- ⚠️ AWS-Abhängigkeit (für StackVertex selbst)
 - ⚠️ Kosten (minimal)
 
 **Entscheidung:** Fernet für MVP, KMS für Production

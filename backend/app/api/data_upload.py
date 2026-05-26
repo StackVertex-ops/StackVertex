@@ -1,6 +1,6 @@
 """Data Upload API - Docker Images, Static Files, DockerHub Import.
 
-Erlaubt Upload von User-Daten zu OverCloud S3 Bucket.
+Erlaubt Upload von User-Daten zu StackVertex S3 Bucket.
 """
 
 import logging
@@ -32,7 +32,7 @@ async def upload_docker_image(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user)
 ):
-    """Upload Docker Image (.tar/.tar.gz) zu OverCloud S3.
+    """Upload Docker Image (.tar/.tar.gz) zu StackVertex S3.
 
     Args:
         deployment_id: ID des Deployments

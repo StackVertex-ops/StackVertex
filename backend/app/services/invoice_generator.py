@@ -132,7 +132,7 @@ class InvoiceGenerator:
 
         # Line 1: Base subscription fee
         line_items.append({
-            "description": f"OverCloud {tier.value.upper()} - Base Fee",
+            "description": f"StackVertex {tier.value.upper()} - Base Fee",
             "amount": base_price,
             "currency": "EUR"
         })

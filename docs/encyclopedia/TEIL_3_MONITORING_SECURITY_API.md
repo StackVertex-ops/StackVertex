@@ -1,4 +1,4 @@
-# OverCloud Developer's Encyclopedia - Teil 3
+# StackVertex Developer's Encyclopedia - Teil 3
 
 **Monitoring, Security, Deployment & API Reference**
 
@@ -81,9 +81,9 @@ def setup_logging(
 
 **Log Groups:**
 ```
-/aws/lambda/overcloud-api-prod          # Lambda Logs
-/ecs/overcloud-backend-prod             # ECS Logs (wenn nicht Lambda)
-/overcloud/application-prod             # Custom Application Logs
+/aws/lambda/stackvertex-api-prod          # Lambda Logs
+/ecs/stackvertex-backend-prod             # ECS Logs (wenn nicht Lambda)
+/stackvertex/application-prod             # Custom Application Logs
 ```
 
 **CloudWatch Alarms:**
@@ -91,7 +91,7 @@ def setup_logging(
 # Konfiguriert in infrastructure/terraform/modules/monitoring/
 
 resource "aws_cloudwatch_metric_alarm" "api_errors" {
-  alarm_name          = "overcloud-api-5xx-errors"
+  alarm_name          = "stackvertex-api-5xx-errors"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "2"
   metric_name         = "5XXError"
@@ -607,7 +607,7 @@ handler = Mangum(app, lifespan="off")
 # infrastructure/terraform/modules/compute/ecs.tf
 
 resource "aws_ecs_service" "backend" {
-  name            = "overcloud-backend"
+  name            = "stackvertex-backend"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.backend.arn
   desired_count   = 2  # Min 2 Tasks für HA
@@ -636,7 +636,7 @@ cd frontend
 npm run build  # → dist/
 
 # Deploy zu S3
-aws s3 sync dist/ s3://overcloud-frontend-prod/ --delete
+aws s3 sync dist/ s3://stackvertex-frontend-prod/ --delete
 
 # Invalidate CloudFront Cache
 aws cloudfront create-invalidation \
@@ -652,7 +652,7 @@ aws cloudfront create-invalidation \
 resource "aws_cloudfront_distribution" "frontend" {
   origin {
     domain_name = aws_s3_bucket.frontend.bucket_regional_domain_name
-    origin_id   = "S3-overcloud-frontend"
+    origin_id   = "S3-stackvertex-frontend"
   }
   
   enabled             = true
@@ -661,7 +661,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   default_cache_behavior {
     allowed_methods  = ["GET", "HEAD", "OPTIONS"]
     cached_methods   = ["GET", "HEAD"]
-    target_origin_id = "S3-overcloud-frontend"
+    target_origin_id = "S3-stackvertex-frontend"
     
     forwarded_values {
       query_string = false
@@ -694,7 +694,7 @@ resource "aws_cloudfront_distribution" "frontend" {
 **Single Table Design:**
 
 ```
-Table: overcloud-prod-main
+Table: stackvertex-prod-main
 Partition Key: PK (String)
 Sort Key: SK (String)
 GSI1: GSI1PK (String), GSI1SK (String)
@@ -729,7 +729,7 @@ SK = "ARCH#arch-uuid"
 
 ```hcl
 resource "aws_dynamodb_table" "main" {
-  name           = "overcloud-prod-main"
+  name           = "stackvertex-prod-main"
   billing_mode   = "PAY_PER_REQUEST"  # On-Demand Pricing
   hash_key       = "PK"
   range_key      = "SK"
@@ -796,8 +796,8 @@ jobs:
       - name: Deploy to Lambda
         run: |
           aws lambda update-function-code \
-            --function-name overcloud-api-prod \
-            --image-uri ${{ secrets.ECR_REGISTRY }}/overcloud-backend:${{ github.sha }}
+            --function-name stackvertex-api-prod \
+            --image-uri ${{ secrets.ECR_REGISTRY }}/stackvertex-backend:${{ github.sha }}
   
   deploy-frontend:
     needs: [test]
@@ -812,7 +812,7 @@ jobs:
       
       - name: Deploy to S3
         run: |
-          aws s3 sync frontend/dist/ s3://overcloud-frontend-prod/ --delete
+          aws s3 sync frontend/dist/ s3://stackvertex-frontend-prod/ --delete
       
       - name: Invalidate CloudFront
         run: |
@@ -1327,7 +1327,7 @@ git push origin v1.0.0
 // Ursache: JWT Token fehlt oder abgelaufen
 
 // Lösung: Token aus localStorage laden
-const token = localStorage.getItem('overcloud-token');
+const token = localStorage.getItem('stackvertex-token');
 if (!token) {
   // Redirect zu Login
   window.location.href = '/login.html';
@@ -1397,7 +1397,7 @@ if (localStorage.getItem('debug') === 'true') {
 
 **Hybrid Pricing:** Base Fee + AWS Cost Markup
 
-OverCloud verwendet ein transparentes hybrides Preismodell:
+StackVertex verwendet ein transparentes hybrides Preismodell:
 
 ```
 Total Cost = Base Subscription Fee + (AWS Costs × Markup Percentage)
@@ -2115,7 +2115,7 @@ class BillingPage {
 ```python
 # Beispiel: Voucher Usage Rate
 cloudwatch.put_metric_data(
-    Namespace='OverCloud/Vouchers',
+    Namespace='StackVertex/Vouchers',
     MetricData=[
         {
             'MetricName': 'VoucherRedemptions',
@@ -2323,10 +2323,10 @@ Du kennst jetzt:
 
 ---
 
-**Ende Teil 3 - OverCloud Developer's Encyclopedia komplett!**
+**Ende Teil 3 - StackVertex Developer's Encyclopedia komplett!**
 
 Alle 3 Teile zusammen: ~250+ Seiten Dokumentation
 
 **Erstellt:** 2026-05-16  
 **Von:** Claude Code  
-**Für:** Andy (OverCloud Entwickler)
+**Für:** Andy (StackVertex Entwickler)

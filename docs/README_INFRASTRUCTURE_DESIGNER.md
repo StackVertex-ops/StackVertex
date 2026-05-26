@@ -317,12 +317,12 @@ frontend/
 
 Fehler gefunden? Verbesserungsvorschläge?
 
-**GitHub Issues:** https://github.com/overcloud/overcloud/issues  
+**GitHub Issues:** https://github.com/stackvertex/stackvertex/issues  
 **E-Mail:** schwarz23andy@gmail.com
 
 ---
 
 **Dokumentation erstellt am:** 2026-05-16  
 **Autor:** Claude Sonnet 4.5 (via Claude Code)  
-**Projekt:** OverCloud Infrastructure Designer  
+**Projekt:** StackVertex Infrastructure Designer  
 **Version:** 1.0.0

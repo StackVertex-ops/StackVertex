@@ -1,4 +1,4 @@
-# OverCloud Terraform Environments
+# StackVertex Terraform Environments
 
 Übersicht über die drei Deployment-Environments: dev, staging, und production.
 
@@ -41,7 +41,7 @@
 | **Security Hub** | ❌ Optional | ✅ Enabled | ✅ Enabled (Mandatory) |
 | **AWS Config** | ❌ Disabled | ❌ Disabled | ✅ Enabled (Compliance) |
 | | | | |
-| **CORS Origins** | `*` (Allow All) | `https://staging.overcloud.example.com` | `https://app.overcloud.io` |
+| **CORS Origins** | `*` (Allow All) | `https://staging.stackvertex.example.com` | `https://app.stackvertex.io` |
 | **API Rate Limiting** | Generous | Medium | Strict |
 | **Uptime SLA** | No SLA | No SLA | 99.9% |
 

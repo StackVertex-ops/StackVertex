@@ -57,7 +57,7 @@
 #### 1. Sentry Aktivierung (10 Min)
 ```bash
 # Account erstellen: sentry.io
-# Projekt: overcloud-backend
+# Projekt: stackvertex-backend
 # DSN kopieren → .env setzen
 
 ENABLE_SENTRY=true
@@ -68,7 +68,7 @@ SENTRY_DSN=https://xxx@sentry.io/xxx
 #### 2. Uptime Monitoring (30 Min)
 ```bash
 # Account erstellen: uptimerobot.com
-# Monitor: https://api.overcloud.io/health
+# Monitor: https://api.stackvertex.io/health
 # Interval: 5 Minuten
 # Alert: Email
 ```

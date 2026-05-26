@@ -1,3 +1,3 @@
-"""OverCloud Backend - FastAPI Application."""
+"""StackVertex Backend - FastAPI Application."""
 
 __version__ = "0.1.0"

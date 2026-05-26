@@ -1,4 +1,4 @@
-"""OverCloud Backend - Architecture API Endpoints.
+"""StackVertex Backend - Architecture API Endpoints.
 
 REST API für CRUD-Operationen auf Architecture-Definitionen.
 """

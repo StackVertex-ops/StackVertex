@@ -16,7 +16,7 @@ def client(mock_dynamodb_table, mock_s3_bucket):
     from app.db.s3_storage import get_s3_storage, S3Storage
 
     app.dependency_overrides[get_dynamodb_table] = lambda: mock_dynamodb_table
-    app.dependency_overrides[get_s3_storage] = lambda: S3Storage(bucket_name="overcloud-test-bucket")
+    app.dependency_overrides[get_s3_storage] = lambda: S3Storage(bucket_name="stackvertex-test-bucket")
 
     yield TestClient(app)
 
@@ -482,7 +482,7 @@ class TestOrganisationAWSCredentials:
             f"/api/v1/organisations/{org_id}/aws-credentials",
             headers={"Authorization": f"Bearer {token}"},
             json={
-                "aws_role_arn": "arn:aws:iam::123456789012:role/OverCloudRole"
+                "aws_role_arn": "arn:aws:iam::123456789012:role/StackVertexRole"
             }
         )
 

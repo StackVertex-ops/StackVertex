@@ -1,5 +1,5 @@
 /**
- * OverCloud - Auth Helper
+ * StackVertex - Auth Helper
  *
  * Manages authentication state and token storage.
  */

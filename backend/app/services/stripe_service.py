@@ -96,7 +96,7 @@ class StripeService:
                 "interval": "month" if interval == "monthly" else "year",
             },
             product_data={
-                "name": f"OverCloud {plan.value.upper()} Plan",
+                "name": f"StackVertex {plan.value.upper()} Plan",
                 "description": self._get_plan_description(plan),
             },
         )
@@ -286,7 +286,7 @@ class StripeService:
             OrganisationPlan.PRO: "Professional tier - 10 active deployments, advanced monitoring",
             OrganisationPlan.ENTERPRISE: "Enterprise tier - unlimited deployments, multi-cloud, SLA",
         }
-        return descriptions.get(plan, "OverCloud subscription")
+        return descriptions.get(plan, "StackVertex subscription")
 
 
 # Dependency for FastAPI

@@ -10,13 +10,13 @@
 
 # S3 Bucket für User-Daten
 resource "aws_s3_bucket" "user_data" {
-  bucket = "overcloud-user-data-${var.environment}"
+  bucket = "stackvertex-user-data-${var.environment}"
 
   tags = {
-    Name        = "OverCloud User Data Storage"
+    Name        = "StackVertex User Data Storage"
     Environment = var.environment
     ManagedBy   = "Terraform"
-    Project     = "OverCloud"
+    Project     = "StackVertex"
   }
 }
 
@@ -112,25 +112,25 @@ resource "aws_s3_bucket_cors_configuration" "user_data" {
 
 # KMS Key für Encryption
 resource "aws_kms_key" "user_data" {
-  description             = "KMS key for OverCloud user data encryption"
+  description             = "KMS key for StackVertex user data encryption"
   deletion_window_in_days = 30
   enable_key_rotation     = true
 
   tags = {
-    Name        = "overcloud-user-data-key-${var.environment}"
+    Name        = "stackvertex-user-data-key-${var.environment}"
     Environment = var.environment
     ManagedBy   = "Terraform"
   }
 }
 
 resource "aws_kms_alias" "user_data" {
-  name          = "alias/overcloud-user-data-${var.environment}"
+  name          = "alias/stackvertex-user-data-${var.environment}"
   target_key_id = aws_kms_key.user_data.key_id
 }
 
 # IAM Policy für Lambda/ECS (Data Upload/Copy)
 resource "aws_iam_policy" "user_data_access" {
-  name        = "overcloud-user-data-access-${var.environment}"
+  name        = "stackvertex-user-data-access-${var.environment}"
   description = "Allow Lambda/ECS to read/write user data in S3"
 
   policy = jsonencode({
@@ -174,7 +174,7 @@ resource "aws_iam_policy" "user_data_access" {
 
 # IAM Role für Lambda (Data Upload Service)
 resource "aws_iam_role" "data_upload_lambda" {
-  name = "overcloud-data-upload-lambda-${var.environment}"
+  name = "stackvertex-data-upload-lambda-${var.environment}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -209,7 +209,7 @@ resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
 
 # CloudWatch Log Group für Audit Logs
 resource "aws_cloudwatch_log_group" "user_data_access_logs" {
-  name              = "/aws/s3/overcloud-user-data-${var.environment}"
+  name              = "/aws/s3/stackvertex-user-data-${var.environment}"
   retention_in_days = var.log_retention_days
 
   tags = {

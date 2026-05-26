@@ -1,6 +1,6 @@
-# OverCloud Infrastructure
+# StackVertex Infrastructure
 
-Komplette AWS Serverless Infrastruktur für OverCloud - gebaut mit Terraform.
+Komplette AWS Serverless Infrastruktur für StackVertex - gebaut mit Terraform.
 
 ## Architektur Übersicht
 
@@ -345,15 +345,15 @@ aws ecr get-login-password --region eu-central-1 | \
 
 # Build
 cd backend
-docker build -f Dockerfile.lambda -t overcloud-dev-lambda .
+docker build -f Dockerfile.lambda -t stackvertex-dev-lambda .
 
 # Tag & Push
-docker tag overcloud-dev-lambda:latest <ECR_URL>:latest
+docker tag stackvertex-dev-lambda:latest <ECR_URL>:latest
 docker push <ECR_URL>:latest
 
 # Update Lambda
 aws lambda update-function-code \
-  --function-name overcloud-dev-api \
+  --function-name stackvertex-dev-api \
   --image-uri <ECR_URL>:latest
 ```
 
@@ -364,10 +364,10 @@ aws lambda update-function-code \
 ```bash
 # Get DB Credentials
 aws secretsmanager get-secret-value \
-  --secret-id overcloud-dev-db-credentials
+  --secret-id stackvertex-dev-db-credentials
 
 # Set DATABASE_URL
-export DATABASE_URL="postgresql://user:pass@host:5432/overcloud"
+export DATABASE_URL="postgresql://user:pass@host:5432/stackvertex"
 
 # Run Migrations
 cd backend
@@ -411,7 +411,7 @@ GitHub Actions Workflow (`.github/workflows/deploy.yml`):
 terraform output cloudwatch_dashboard_url
 
 # Oder manuell
-open "https://console.aws.amazon.com/cloudwatch/home?region=eu-central-1#dashboards:name=overcloud-dev-overview"
+open "https://console.aws.amazon.com/cloudwatch/home?region=eu-central-1#dashboards:name=stackvertex-dev-overview"
 ```
 
 **Enthält:**
@@ -614,10 +614,10 @@ terraform output deployment_summary
 open $(terraform output -raw cloudwatch_dashboard_url)
 
 # Lambda Logs live
-aws logs tail /aws/lambda/overcloud-dev-api --follow
+aws logs tail /aws/lambda/stackvertex-dev-api --follow
 
 # Database Connection Test
-psql -h $(terraform output -raw database_endpoint) -U overcloud_admin -d overcloud
+psql -h $(terraform output -raw database_endpoint) -U stackvertex_admin -d stackvertex
 
 # Cost Report
 aws ce get-cost-and-usage \
@@ -644,9 +644,9 @@ aws securityhub get-findings --filters 'ComplianceStatus=[{Value=FAILED}]'
 
 ## Support
 
-**Issues:** https://github.com/YOUR_ORG/overcloud/issues
+**Issues:** https://github.com/YOUR_ORG/stackvertex/issues
 
-**Slack:** #overcloud-ops
+**Slack:** #stackvertex-ops
 
 **Email:** ops@company.com
 
@@ -654,4 +654,4 @@ aws securityhub get-findings --filters 'ComplianceStatus=[{Value=FAILED}]'
 
 ## License
 
-Proprietary - OverCloud Internal
+Proprietary - StackVertex Internal

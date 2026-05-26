@@ -2,7 +2,7 @@
 AWS Constraints und Pricing Data Package
 
 Dieses Package enthält alle AWS-Limits, Preise und Validierungsregeln
-für die OverCloud-Plattform.
+für die StackVertex-Plattform.
 """
 
 from .aws_constraints import (

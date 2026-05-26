@@ -192,7 +192,7 @@ class BillingDashboard {
         if (!container) return;
 
         const totalAWS = costs.total_aws_costs || 0;
-        const markupFee = costs.overcloud_percentage_fee || 0;
+        const markupFee = costs.stackvertex_percentage_fee || 0;
         const total = totalAWS + markupFee;
 
         container.innerHTML = `
@@ -202,7 +202,7 @@ class BillingDashboard {
                     <p class="text-2xl font-bold">€${totalAWS.toFixed(2)}</p>
                 </div>
                 <div>
-                    <p class="text-sm text-gray-600">OverCloud Markup</p>
+                    <p class="text-sm text-gray-600">StackVertex Markup</p>
                     <p class="text-xl font-semibold text-blue-600">€${markupFee.toFixed(2)}</p>
                 </div>
                 <div class="border-t pt-4">
@@ -249,7 +249,7 @@ class BillingDashboard {
                     <p class="text-xs text-gray-700">
                         Based on current usage, your projected end-of-month cost is
                         <strong>€${projection.projected_total.toFixed(2)}</strong>
-                        (AWS: €${projection.projected_aws_costs.toFixed(2)} + Markup: €${projection.projected_overcloud_fee.toFixed(2)})
+                        (AWS: €${projection.projected_aws_costs.toFixed(2)} + Markup: €${projection.projected_stackvertex_fee.toFixed(2)})
                     </p>
                 </div>
             </div>

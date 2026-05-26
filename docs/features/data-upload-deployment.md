@@ -2,20 +2,20 @@
 
 ## Übersicht
 
-Das Data Upload & Deployment System ermöglicht es Usern, ihre Application Data (Docker Images, Static Files) zu OverCloud hochzuladen und anschließend in ihren eigenen AWS Accounts zu deployen.
+Das Data Upload & Deployment System ermöglicht es Usern, ihre Application Data (Docker Images, Static Files) zu StackVertex hochzuladen und anschließend in ihren eigenen AWS Accounts zu deployen.
 
 ## Architektur
 
 ```
 ┌─────────────┐      ┌──────────────┐      ┌─────────────────┐
-│   Browser   │─────>│  OverCloud   │─────>│  Customer AWS   │
+│   Browser   │─────>│  StackVertex   │─────>│  Customer AWS   │
 │             │      │   Backend    │      │    Account      │
 │  Upload UI  │      │  (FastAPI)   │      │  (Deployment)   │
 └─────────────┘      └──────────────┘      └─────────────────┘
                             │
                             ▼
                     ┌──────────────┐
-                    │ OverCloud S3 │
+                    │ StackVertex S3 │
                     │ (User Data)  │
                     └──────────────┘
 ```
@@ -35,7 +35,7 @@ Das Data Upload & Deployment System ermöglicht es Usern, ihre Application Data 
 3. **Deployment Executor**
    - Generiert Terraform Code
    - Führt Terraform in Kunden-Account aus
-   - Kopiert Daten von OverCloud S3 → Kunden ECR/S3
+   - Kopiert Daten von StackVertex S3 → Kunden ECR/S3
 
 ## Workflow
 
@@ -46,12 +46,12 @@ User fügt AWS Credentials für seinen Account hinzu:
 **Option A: AssumeRole (Empfohlen)**
 ```bash
 # User erstellt IAM Role in seinem AWS Account
-aws iam create-role --role-name OverCloudDeploymentRole \
+aws iam create-role --role-name StackVertexDeploymentRole \
   --assume-role-policy-document '{
     "Version": "2012-10-17",
     "Statement": [{
       "Effect": "Allow",
-      "Principal": {"AWS": "arn:aws:iam::{OverCloudAccountID}:root"},
+      "Principal": {"AWS": "arn:aws:iam::{StackVertexAccountID}:root"},
       "Action": "sts:AssumeRole",
       "Condition": {
         "StringEquals": {"sts:ExternalId": "unique-external-id"}
@@ -60,19 +60,19 @@ aws iam create-role --role-name OverCloudDeploymentRole \
   }'
 
 # Policies anhängen
-aws iam attach-role-policy --role-name OverCloudDeploymentRole \
+aws iam attach-role-policy --role-name StackVertexDeploymentRole \
   --policy-arn arn:aws:iam::aws:policy/AmazonEC2FullAccess
 ```
 
 **Option B: Access Keys (Fallback)**
 ```bash
-aws iam create-user --user-name overcloud-deployer
-aws iam create-access-key --user-name overcloud-deployer
+aws iam create-user --user-name stackvertex-deployer
+aws iam create-access-key --user-name stackvertex-deployer
 ```
 
 ### 2. Application Data hochladen
 
-User uploaded seine Daten zu OverCloud S3:
+User uploaded seine Daten zu StackVertex S3:
 
 **Docker Image:**
 - Upload `.tar.gz` File (max 5GB)
@@ -84,7 +84,7 @@ User uploaded seine Daten zu OverCloud S3:
 
 **Storage Structure:**
 ```
-overcloud-user-data-{env}/
+stackvertex-user-data-{env}/
 ├── {org_id}/
 │   ├── {deployment_id}/
 │   │   ├── docker-images/
@@ -114,8 +114,8 @@ User klickt auf "Deploy to AWS":
    ```
 
 4. **Data Copy**
-   - Docker Images: OverCloud S3 → Kunden ECR
-   - Static Files: OverCloud S3 → Kunden S3
+   - Docker Images: StackVertex S3 → Kunden ECR
+   - Static Files: StackVertex S3 → Kunden S3
 
 5. **Verification**
    - Teste Deployment (Health Check)
@@ -132,7 +132,7 @@ Content-Type: application/json
 {
   "name": "Production AWS Account",
   "credential_type": "assume_role",
-  "role_arn": "arn:aws:iam::123456789012:role/OverCloudDeploymentRole",
+  "role_arn": "arn:aws:iam::123456789012:role/StackVertexDeploymentRole",
   "external_id": "unique-external-id",
   "region": "us-east-1"
 }
@@ -306,7 +306,7 @@ module "user_data_storage" {
   log_retention_days = 30
   
   allowed_cors_origins = [
-    "https://app.overcloud.io",
+    "https://app.stackvertex.io",
     "http://localhost:5173"
   ]
 }
@@ -316,7 +316,7 @@ module "user_data_storage" {
 
 ```bash
 # .env
-USER_DATA_BUCKET=overcloud-user-data-dev
+USER_DATA_BUCKET=stackvertex-user-data-dev
 AWS_REGION=us-east-1
 TERRAFORM_TIMEOUT=600
 MAX_CONCURRENT_DEPLOYMENTS=5
@@ -369,6 +369,6 @@ MAX_CONCURRENT_DEPLOYMENTS=5
 ## Support
 
 Bei Fragen oder Problemen:
-- GitHub Issues: https://github.com/overcloud/issues
-- Docs: https://docs.overcloud.io
-- Email: support@overcloud.io
+- GitHub Issues: https://github.com/stackvertex/issues
+- Docs: https://docs.stackvertex.io
+- Email: support@stackvertex.io

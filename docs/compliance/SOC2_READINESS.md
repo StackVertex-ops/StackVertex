@@ -12,7 +12,7 @@
 
 ## 1. Executive Summary
 
-Dieses Dokument bewertet die Bereitschaft von OverCloud für eine SOC 2 Type II Zertifizierung gemäß den Trust Services Criteria (TSC) des American Institute of CPAs (AICPA).
+Dieses Dokument bewertet die Bereitschaft von StackVertex für eine SOC 2 Type II Zertifizierung gemäß den Trust Services Criteria (TSC) des American Institute of CPAs (AICPA).
 
 ### 1.1 SOC 2 Overview
 
@@ -28,7 +28,7 @@ Dieses Dokument bewertet die Bereitschaft von OverCloud für eine SOC 2 Type II 
 - **Processing Integrity (PI):** Optional (nicht relevant für SaaS)
 - **Privacy (P):** Optional (überschneidet mit DSGVO)
 
-**OverCloud Focus:** Security (CC) + Availability (A)
+**StackVertex Focus:** Security (CC) + Availability (A)
 
 ### 1.2 Readiness Summary
 
@@ -81,7 +81,7 @@ Dieses Dokument bewertet die Bereitschaft von OverCloud für eine SOC 2 Type II 
 | **CC2.1** | Quality information obtained/generated | ✅ Implemented | Monitoring (CloudWatch, Sentry) | None |
 | **CC2.2** | Information communicated internally | ✅ Implemented | Slack, Email, Documentation | None |
 | **CC2.3** | Information communicated externally | ✅ Implemented | Status Page, Customer Support | None |
-| **CC2.4** | Communication channels for concerns | ✅ Implemented | security@overcloud.io, Support | None |
+| **CC2.4** | Communication channels for concerns | ✅ Implemented | security@stackvertex.io, Support | None |
 
 **Gap Summary:** ✅ COMPLIANT
 

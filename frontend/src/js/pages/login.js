@@ -1,5 +1,5 @@
 /**
- * OverCloud - Login Page
+ * StackVertex - Login Page
  *
  * Handles user login.
  */

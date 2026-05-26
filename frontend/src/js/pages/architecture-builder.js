@@ -1,5 +1,5 @@
 /**
- * OverCloud - Architecture Builder Page
+ * StackVertex - Architecture Builder Page
  *
  * Hauptseite für Erstellung und Bearbeitung von Architekturen
  */
@@ -215,7 +215,7 @@ function renderExamplesCard() {
             <div class="space-y-2">
                 ${EXAMPLE_ARCHITECTURES.map(example => `
                     <button
-                        onclick="window.OverCloud.loadExample('${example.id}')"
+                        onclick="window.StackVertex.loadExample('${example.id}')"
                         class="w-full text-left px-4 py-3 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                     >
                         <div class="font-medium text-gray-900 dark:text-white text-sm">
@@ -406,8 +406,8 @@ function setupBuilderHandlers(container, architecture) {
     setupJSONEditorHandlers(container, architecture);
 
     // Example Loader
-    window.OverCloud = window.OverCloud || {};
-    window.OverCloud.loadExample = (exampleId) => {
+    window.StackVertex = window.StackVertex || {};
+    window.StackVertex.loadExample = (exampleId) => {
         loadExampleArchitecture(container, exampleId);
     };
 }

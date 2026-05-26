@@ -10,12 +10,12 @@
 
 ```bash
 # User erstellen + Access Keys generieren
-aws iam create-user --user-name github-actions-overcloud
-aws iam create-access-key --user-name github-actions-overcloud
+aws iam create-user --user-name github-actions-stackvertex
+aws iam create-access-key --user-name github-actions-stackvertex
 
 # Admin Policy anhängen
 aws iam attach-user-policy \
-  --user-name github-actions-overcloud \
+  --user-name github-actions-stackvertex \
   --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
 
 # Account ID anzeigen
@@ -81,7 +81,7 @@ Value: *
 2. Eingaben:
    - `aws_account_id`: (deine 12-stellige ID)
    - `aws_region`: `eu-central-1`
-   - `project_name`: `overcloud`
+   - `project_name`: `stackvertex`
 3. **Run workflow** klicken
 4. Warte ~2-3 Minuten
 5. **WICHTIG:** Kopiere `TERRAFORM_STATE_BUCKET` aus Output
@@ -92,7 +92,7 @@ Value: *
 
 ```
 Name: TERRAFORM_STATE_BUCKET
-Value: overcloud-terraform-state-123456789012 (von Bootstrap Output)
+Value: stackvertex-terraform-state-123456789012 (von Bootstrap Output)
 ```
 
 ---
@@ -153,7 +153,7 @@ Tests → Build → Terraform → Deploy → Health Check ✅
 **Error:** "Access Denied"
 ```bash
 # Prüfe ob User Admin Policy hat
-aws iam list-attached-user-policies --user-name github-actions-overcloud
+aws iam list-attached-user-policies --user-name github-actions-stackvertex
 ```
 
 ### Deployment schlägt fehl

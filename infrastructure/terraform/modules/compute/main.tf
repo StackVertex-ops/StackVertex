@@ -42,7 +42,7 @@ resource "aws_iam_role_policy_attachment" "lambda_vpc" {
 # Custom IAM Policy für Lambda (Secrets Manager, S3, etc.)
 resource "aws_iam_policy" "lambda_custom" {
   name        = "${var.project_name}-${var.environment}-lambda-custom-policy"
-  description = "Custom policy for OverCloud Lambda"
+  description = "Custom policy for StackVertex Lambda"
 
   policy = jsonencode({
     Version = "2012-10-17"

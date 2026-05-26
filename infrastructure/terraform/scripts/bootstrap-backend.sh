@@ -32,7 +32,7 @@ fi
 
 ENVIRONMENT=$1
 REGION=${2:-eu-central-1}
-PROJECT_NAME="overcloud"
+PROJECT_NAME="stackvertex"
 BUCKET_NAME="${PROJECT_NAME}-${ENVIRONMENT}-terraform-state"
 DYNAMODB_TABLE="${PROJECT_NAME}-${ENVIRONMENT}-terraform-lock"
 

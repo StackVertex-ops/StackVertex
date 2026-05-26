@@ -1,4 +1,4 @@
-# OverCloud - Complete Deployment Guide
+# StackVertex - Complete Deployment Guide
 
 **Vollautomatisches AWS Deployment via CI/CD mit minimalem manuellen Setup**
 
@@ -152,7 +152,7 @@ POST /api/v1/organisations/{currentOrg}/architectures
 **Single Table Design in DynamoDB:**
 
 ```
-Table: overcloud-prod-main
+Table: stackvertex-prod-main
 ├── Users (PK=USER#{id}, SK=METADATA)
 ├── Organisations (PK=ORG#{id}, SK=METADATA)
 ├── Memberships (PK=ORG#{id}, SK=USER#{id})
@@ -183,16 +183,16 @@ GSI2SK = ORG#{org_id}
 → Direkt in DynamoDB
 
 **Große Items (>300KB):**
-→ Komprimiert in S3 (`overcloud-prod-large-items`)
+→ Komprimiert in S3 (`stackvertex-prod-large-items`)
 → DynamoDB enthält nur S3 Pointer
 
 **Customer Data (Terraform State, Generated Files):**
-→ S3 Bucket: `overcloud-prod-customer-data-{region}`
+→ S3 Bucket: `stackvertex-prod-customer-data-{region}`
 → Verschlüsselt (AES-256 oder KMS)
 → Versioned (30-90 Tage Retention)
 
 **Secrets (API Keys, Stripe Keys, JWT Secret):**
-→ AWS Secrets Manager: `overcloud/prod/*`
+→ AWS Secrets Manager: `stackvertex/prod/*`
 → Encrypted at Rest
 → Rotation policies
 
@@ -238,8 +238,8 @@ Security Groups:
 
 **Option A: ECS Fargate (Empfohlen)**
 ```
-ECS Cluster: overcloud-prod
-├── Service: overcloud-backend
+ECS Cluster: stackvertex-prod
+├── Service: stackvertex-backend
 │   ├── Task Definition (2 vCPU, 4GB RAM)
 │   ├── Desired Count: 2 (Multi-AZ)
 │   ├── Auto Scaling (CPU 70%)
@@ -250,7 +250,7 @@ ECS Cluster: overcloud-prod
 **Option B: Lambda (Serverless, aber Cold Starts)**
 ```
 Lambda Functions:
-├── overcloud-api (Python 3.11)
+├── stackvertex-api (Python 3.11)
 │   ├── Memory: 512 MB
 │   ├── Timeout: 30s
 │   ├── Provisioned Concurrency: 2
@@ -261,7 +261,7 @@ Lambda Functions:
 
 **DynamoDB:**
 ```
-Table: overcloud-prod-main
+Table: stackvertex-prod-main
 ├── Billing: PAY_PER_REQUEST (Auto-Scaling)
 ├── Point-in-Time Recovery: Enabled
 ├── Encryption: AWS Managed KMS
@@ -272,7 +272,7 @@ Table: overcloud-prod-main
 
 **Aurora Serverless v2 (Optional, für später):**
 ```
-Cluster: overcloud-prod-aurora
+Cluster: stackvertex-prod-aurora
 ├── Engine: PostgreSQL 15.4
 ├── Capacity: 0.5 - 4 ACU (Auto-Scaling)
 ├── Multi-AZ: Yes
@@ -283,49 +283,49 @@ Cluster: overcloud-prod-aurora
 #### 4. **Storage** (S3 Buckets)
 
 ```
-overcloud-prod-large-items-{region}
+stackvertex-prod-large-items-{region}
 ├── Versioning: Enabled
 ├── Encryption: AES-256
 ├── Lifecycle: Glacier nach 90 Tagen
 └── CORS: Configured for Frontend
 
-overcloud-prod-customer-data-{region}
+stackvertex-prod-customer-data-{region}
 ├── Versioning: Enabled (30 Tage)
 ├── Encryption: KMS (Customer Managed)
 ├── Access: Private (AssumeRole only)
 └── Lifecycle: Delete nach 365 Tagen
 
-overcloud-prod-frontend-{region}
+stackvertex-prod-frontend-{region}
 ├── Static Website Hosting
 ├── CloudFront Distribution
 ├── ACM Certificate (HTTPS)
-└── Custom Domain (app.overcloud.com)
+└── Custom Domain (app.stackvertex.com)
 ```
 
 #### 5. **Security** (IAM, Secrets Manager, WAF)
 
 **IAM Roles:**
 ```
-overcloud-prod-ecs-execution-role
+stackvertex-prod-ecs-execution-role
 ├── Permissions: ECR Pull, CloudWatch Logs, Secrets Manager
 └── Trust: ECS Tasks Service
 
-overcloud-prod-ecs-task-role
+stackvertex-prod-ecs-task-role
 ├── Permissions: DynamoDB, S3, Secrets Manager (Read)
 └── Trust: ECS Tasks
 
-overcloud-prod-github-actions-role
+stackvertex-prod-github-actions-role
 ├── Permissions: ECR Push, ECS Update, S3 Deploy
 └── Trust: GitHub OIDC (No Access Keys!)
 ```
 
 **Secrets Manager:**
 ```
-overcloud/prod/jwt-secret
-overcloud/prod/stripe-secret-key
-overcloud/prod/stripe-webhook-secret
-overcloud/prod/sentry-dsn
-overcloud/prod/database-password (wenn Aurora)
+stackvertex/prod/jwt-secret
+stackvertex/prod/stripe-secret-key
+stackvertex/prod/stripe-webhook-secret
+stackvertex/prod/sentry-dsn
+stackvertex/prod/database-password (wenn Aurora)
 ```
 
 **WAF (Web Application Firewall):**
@@ -341,9 +341,9 @@ Rules:
 
 ```
 CloudWatch Logs:
-├── /overcloud/backend (30 Tage Retention)
-├── /overcloud/ecs-tasks (7 Tage)
-└── /overcloud/alb (30 Tage)
+├── /stackvertex/backend (30 Tage Retention)
+├── /stackvertex/ecs-tasks (7 Tage)
+└── /stackvertex/alb (30 Tage)
 
 Alarms:
 ├── ECS CPU > 80% (5 min) → SNS
@@ -352,8 +352,8 @@ Alarms:
 ├── DynamoDB Throttling → SNS
 └── API Latency > 2s (p95) → SNS
 
-SNS Topic: overcloud-prod-alerts
-└── Email: alerts@overcloud.com
+SNS Topic: stackvertex-prod-alerts
+└── Email: alerts@stackvertex.com
 ```
 
 #### 7. **Frontend** (CloudFront + S3)
@@ -363,7 +363,7 @@ CloudFront Distribution:
 ├── Origin: S3 Static Website
 ├── Default Root: index.html
 ├── SSL Certificate: ACM
-├── Custom Domain: app.overcloud.com
+├── Custom Domain: app.stackvertex.com
 ├── Cache Policy: 24h (HTML), 1 Jahr (Assets)
 └── Geo Restriction: None
 ```
@@ -414,7 +414,7 @@ infrastructure/terraform/
 module "networking" {
   source = "../../modules/networking"
   
-  project_name = "overcloud"
+  project_name = "stackvertex"
   environment  = "prod"
   vpc_cidr     = "10.0.0.0/16"
   
@@ -425,10 +425,10 @@ module "networking" {
 module "database_dynamodb" {
   source = "../../modules/database-dynamodb"
   
-  project_name = "overcloud"
+  project_name = "stackvertex"
   environment  = "prod"
   
-  table_name   = "overcloud-prod-main"
+  table_name   = "stackvertex-prod-main"
   billing_mode = "PAY_PER_REQUEST"
   
   enable_pitr       = true
@@ -438,7 +438,7 @@ module "database_dynamodb" {
 module "compute_ecs" {
   source = "../../modules/compute"
   
-  project_name  = "overcloud"
+  project_name  = "stackvertex"
   environment   = "prod"
   
   vpc_id            = module.networking.vpc_id
@@ -458,18 +458,18 @@ module "compute_ecs" {
   }
   
   secrets = {
-    SECRET_KEY = "overcloud/prod/jwt-secret"
-    STRIPE_SECRET_KEY = "overcloud/prod/stripe-secret-key"
+    SECRET_KEY = "stackvertex/prod/jwt-secret"
+    STRIPE_SECRET_KEY = "stackvertex/prod/stripe-secret-key"
   }
 }
 
 module "frontend" {
   source = "../../modules/frontend"
   
-  project_name = "overcloud"
+  project_name = "stackvertex"
   environment  = "prod"
   
-  domain_name = "app.overcloud.com"
+  domain_name = "app.stackvertex.com"
   
   enable_cloudfront = true
   enable_waf        = true
@@ -484,11 +484,11 @@ module "frontend" {
 # environments/prod/backend.tf
 terraform {
   backend "s3" {
-    bucket         = "overcloud-terraform-state"
+    bucket         = "stackvertex-terraform-state"
     key            = "prod/terraform.tfstate"
     region         = "us-east-1"
     encrypt        = true
-    dynamodb_table = "overcloud-terraform-locks"
+    dynamodb_table = "stackvertex-terraform-locks"
   }
 }
 ```
@@ -522,9 +522,9 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REPOSITORY: overcloud-backend
-  ECS_SERVICE: overcloud-backend
-  ECS_CLUSTER: overcloud-prod
+  ECR_REPOSITORY: stackvertex-backend
+  ECS_SERVICE: stackvertex-backend
+  ECS_CLUSTER: stackvertex-prod
 
 jobs:
   terraform:
@@ -653,14 +653,14 @@ jobs:
       
       - name: Deploy to S3
         run: |
-          aws s3 sync frontend/dist/ s3://overcloud-prod-frontend-${AWS_REGION}/ \
+          aws s3 sync frontend/dist/ s3://stackvertex-prod-frontend-${AWS_REGION}/ \
             --delete \
             --cache-control "public, max-age=31536000, immutable"
       
       - name: Invalidate CloudFront
         run: |
           DISTRIBUTION_ID=$(aws cloudfront list-distributions \
-            --query "DistributionList.Items[?Origins.Items[?DomainName=='overcloud-prod-frontend-${AWS_REGION}.s3.amazonaws.com']].Id" \
+            --query "DistributionList.Items[?Origins.Items[?DomainName=='stackvertex-prod-frontend-${AWS_REGION}.s3.amazonaws.com']].Id" \
             --output text)
           
           aws cloudfront create-invalidation \
@@ -678,8 +678,8 @@ jobs:
         if: ${{ needs.deploy-frontend.result == 'success' }}
         run: |
           echo "🚀 Deployment successful!"
-          echo "Backend: https://api.overcloud.com"
-          echo "Frontend: https://app.overcloud.com"
+          echo "Backend: https://api.stackvertex.com"
+          echo "Frontend: https://app.stackvertex.com"
       
       - name: Deployment Failed
         if: ${{ needs.deploy-frontend.result == 'failure' }}
@@ -696,7 +696,7 @@ jobs:
 GitHub Repository → Settings → Secrets → Actions
 
 Name: AWS_GITHUB_ACTIONS_ROLE_ARN
-Value: arn:aws:iam::123456789012:role/overcloud-github-actions-role
+Value: arn:aws:iam::123456789012:role/stackvertex-github-actions-role
 ```
 
 **Keine Access Keys! Wir nutzen OIDC (OpenID Connect):**
@@ -737,8 +737,8 @@ terraform init
 terraform apply
 
 # Output:
-# ✅ S3 Bucket: overcloud-terraform-state
-# ✅ DynamoDB Table: overcloud-terraform-locks
+# ✅ S3 Bucket: stackvertex-terraform-state
+# ✅ DynamoDB Table: stackvertex-terraform-locks
 ```
 
 ### 3. IAM Role für GitHub Actions erstellen
@@ -751,7 +751,7 @@ terraform init
 terraform apply
 
 # Output:
-# ✅ Role ARN: arn:aws:iam::123456789012:role/overcloud-github-actions-role
+# ✅ Role ARN: arn:aws:iam::123456789012:role/stackvertex-github-actions-role
 
 # Kopiere ARN und füge in GitHub Secrets ein!
 ```
@@ -760,12 +760,12 @@ terraform apply
 
 ```bash
 # Domain in Route53 registrieren
-aws route53 create-hosted-zone --name overcloud.com
+aws route53 create-hosted-zone --name stackvertex.com
 
 # SSL Certificate in ACM anfordern
 aws acm request-certificate \
-  --domain-name overcloud.com \
-  --subject-alternative-names *.overcloud.com \
+  --domain-name stackvertex.com \
+  --subject-alternative-names *.stackvertex.com \
   --validation-method DNS
 
 # DNS Validation Records in Route53 hinzufügen
@@ -777,16 +777,16 @@ aws acm request-certificate \
 ```bash
 # JWT Secret
 aws secretsmanager create-secret \
-  --name overcloud/prod/jwt-secret \
+  --name stackvertex/prod/jwt-secret \
   --secret-string "$(openssl rand -base64 32)"
 
 # Stripe Keys
 aws secretsmanager create-secret \
-  --name overcloud/prod/stripe-secret-key \
+  --name stackvertex/prod/stripe-secret-key \
   --secret-string "sk_live_..."
 
 aws secretsmanager create-secret \
-  --name overcloud/prod/stripe-webhook-secret \
+  --name stackvertex/prod/stripe-webhook-secret \
   --secret-string "whsec_..."
 ```
 
@@ -815,8 +815,8 @@ git push origin main
 # 4. Frontend Deploy zu S3 + CloudFront
 
 # Nach ~10 Minuten:
-# ✅ Backend: https://api.overcloud.com
-# ✅ Frontend: https://app.overcloud.com
+# ✅ Backend: https://api.stackvertex.com
+# ✅ Frontend: https://app.stackvertex.com
 ```
 
 ---
@@ -886,7 +886,7 @@ Vouchers nutzen einen Global Secondary Index für schnelles Listing:
 # infrastructure/terraform/modules/database/dynamodb.tf
 
 resource "aws_dynamodb_table" "main" {
-  name           = "overcloud-${var.environment}-main"
+  name           = "stackvertex-${var.environment}-main"
   billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "PK"
   range_key      = "SK"
@@ -916,7 +916,7 @@ terraform apply  # GSI wird erstellt (~5 Minuten)
 **Prüfen:**
 ```bash
 aws dynamodb describe-table \
-  --table-name overcloud-prod-main \
+  --table-name stackvertex-prod-main \
   --query "Table.GlobalSecondaryIndexes[?IndexName=='GSI1'].IndexStatus" \
   --output text
 # Output: ACTIVE (✅ Ready)
@@ -929,11 +929,11 @@ aws dynamodb describe-table \
 ```bash
 # Stripe API Keys (von Stripe Dashboard)
 aws secretsmanager create-secret \
-  --name overcloud-prod-stripe-secret-key \
+  --name stackvertex-prod-stripe-secret-key \
   --secret-string "sk_live_xyz..."
 
 aws secretsmanager create-secret \
-  --name overcloud-prod-stripe-webhook-secret \
+  --name stackvertex-prod-stripe-webhook-secret \
   --secret-string "whsec_xyz..."
 ```
 
@@ -980,7 +980,7 @@ stripe prices create \
 
 ```bash
 # In Stripe Dashboard: Developers → Webhooks → Add Endpoint
-# URL: https://api.overcloud.com/api/v1/webhooks/stripe
+# URL: https://api.stackvertex.com/api/v1/webhooks/stripe
 # Events:
 #   - customer.subscription.created
 #   - customer.subscription.updated
@@ -995,10 +995,10 @@ stripe prices create \
 
 ```bash
 # Via Backend API (nach Deployment)
-curl -X POST https://api.overcloud.com/api/v1/auth/register \
+curl -X POST https://api.stackvertex.com/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "admin@overcloud.com",
+    "email": "admin@stackvertex.com",
     "password": "secure-password-here",
     "name": "SuperAdmin"
   }'
@@ -1008,7 +1008,7 @@ curl -X POST https://api.overcloud.com/api/v1/auth/register \
 
 # Manuell SuperAdmin-Rolle setzen (via DynamoDB Console oder Script)
 aws dynamodb update-item \
-  --table-name overcloud-prod-main \
+  --table-name stackvertex-prod-main \
   --key '{"PK": {"S": "USER#'$USER_ID'"}, "SK": {"S": "METADATA"}}' \
   --update-expression "SET system_role = :role" \
   --expression-attribute-values '{":role": {"S": "superadmin"}}'
@@ -1018,7 +1018,7 @@ aws dynamodb update-item \
 
 ```bash
 # Login als SuperAdmin
-# → Frontend: https://app.overcloud.com/admin-vouchers.html
+# → Frontend: https://app.stackvertex.com/admin-vouchers.html
 # → Vouchers erstellen, verwalten, Stats einsehen
 ```
 
@@ -1051,11 +1051,11 @@ git push origin main  # CI/CD deployed automatisch
 **5. Test:**
 ```bash
 # Pricing-Page öffnen
-curl https://app.overcloud.com/pricing.html
+curl https://app.stackvertex.com/pricing.html
 # → Tiers anzeigen, Kostenrechner testen
 
 # Voucher erstellen (als SuperAdmin)
-curl -X POST https://api.overcloud.com/api/v1/admin/vouchers \
+curl -X POST https://api.stackvertex.com/api/v1/admin/vouchers \
   -H "Authorization: Bearer SUPERADMIN_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1068,7 +1068,7 @@ curl -X POST https://api.overcloud.com/api/v1/admin/vouchers \
   }'
 
 # Voucher validieren (als normaler User)
-curl -X POST https://api.overcloud.com/api/v1/voucher/validate \
+curl -X POST https://api.stackvertex.com/api/v1/voucher/validate \
   -H "Authorization: Bearer USER_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"code": "LAUNCH100"}'
@@ -1083,7 +1083,7 @@ curl -X POST https://api.overcloud.com/api/v1/voucher/validate \
 # infrastructure/terraform/modules/monitoring/cloudwatch_dashboard.tf
 
 resource "aws_cloudwatch_dashboard" "vouchers" {
-  dashboard_name = "overcloud-vouchers-${var.environment}"
+  dashboard_name = "stackvertex-vouchers-${var.environment}"
 
   dashboard_body = jsonencode({
     widgets = [
@@ -1092,7 +1092,7 @@ resource "aws_cloudwatch_dashboard" "vouchers" {
         properties = {
           title = "Voucher Redemptions"
           metrics = [
-            ["OverCloud/Vouchers", "VoucherRedemptions", { stat = "Sum" }]
+            ["StackVertex/Vouchers", "VoucherRedemptions", { stat = "Sum" }]
           ]
         }
       },
@@ -1101,7 +1101,7 @@ resource "aws_cloudwatch_dashboard" "vouchers" {
         properties = {
           title = "Total Discount (EUR)"
           metrics = [
-            ["OverCloud/Billing", "VoucherDiscount", { stat = "Sum" }]
+            ["StackVertex/Billing", "VoucherDiscount", { stat = "Sum" }]
           ]
         }
       }
@@ -1114,11 +1114,11 @@ resource "aws_cloudwatch_dashboard" "vouchers" {
 
 ```hcl
 resource "aws_cloudwatch_metric_alarm" "high_voucher_usage" {
-  alarm_name          = "overcloud-high-voucher-usage"
+  alarm_name          = "stackvertex-high-voucher-usage"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 1
   metric_name         = "VoucherRedemptions"
-  namespace           = "OverCloud/Vouchers"
+  namespace           = "StackVertex/Vouchers"
   period              = 3600  # 1 hour
   statistic           = "Sum"
   threshold           = 50
@@ -1134,11 +1134,11 @@ resource "aws_cloudwatch_metric_alarm" "high_voucher_usage" {
 
 ```bash
 # Check Backend Logs
-aws logs tail /ecs/overcloud-backend-prod --follow
+aws logs tail /ecs/stackvertex-backend-prod --follow
 
 # Häufige Ursache: DynamoDB GSI nicht vorhanden
 aws dynamodb describe-table \
-  --table-name overcloud-prod-main \
+  --table-name stackvertex-prod-main \
   --query "Table.GlobalSecondaryIndexes[?IndexName=='GSI1']"
 ```
 
@@ -1147,7 +1147,7 @@ aws dynamodb describe-table \
 ```bash
 # Check system_role
 aws dynamodb get-item \
-  --table-name overcloud-prod-main \
+  --table-name stackvertex-prod-main \
   --key '{"PK": {"S": "USER#'$USER_ID'"}, "SK": {"S": "METADATA"}}' \
   --query "Item.system_role.S"
 # Output: superadmin (erwartet)
@@ -1158,7 +1158,7 @@ aws dynamodb get-item \
 ```bash
 # Check Subscription hat voucher_code
 aws dynamodb query \
-  --table-name overcloud-prod-main \
+  --table-name stackvertex-prod-main \
   --key-condition-expression "PK = :pk AND SK = :sk" \
   --expression-attribute-values '{
     ":pk": {"S": "ORG#'$ORG_ID'"},

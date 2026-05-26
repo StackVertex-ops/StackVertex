@@ -118,7 +118,7 @@ class DeploymentExecutor:
                 logger.error(f"Terraform Deployment fehlgeschlagen: {e}")
                 raise
 
-        # 5. Copy User Data (OverCloud S3 → Customer ECR/S3)
+        # 5. Copy User Data (StackVertex S3 → Customer ECR/S3)
         await self._copy_user_data(
             session=session,
             org_id=org_id,
@@ -283,7 +283,7 @@ class DeploymentExecutor:
         deployment_id: str,
         terraform_outputs: dict
     ):
-        """Kopiert User-Daten von OverCloud S3 zu Customer ECR/S3.
+        """Kopiert User-Daten von StackVertex S3 zu Customer ECR/S3.
 
         Args:
             session: Customer AWS Session
@@ -293,8 +293,8 @@ class DeploymentExecutor:
         """
         logger.info("Kopiere User-Daten zu Kunden-Account...")
 
-        # Get OverCloud S3 Client
-        overcloud_s3 = boto3.client('s3', region_name=settings.AWS_REGION)
+        # Get StackVertex S3 Client
+        stackvertex_s3 = boto3.client('s3', region_name=settings.AWS_REGION)
 
         # Get Customer Clients
         customer_s3 = session.client('s3')
@@ -304,7 +304,7 @@ class DeploymentExecutor:
         ecr_repo_url = terraform_outputs.get("ecr_repository_url", {}).get("value")
         if ecr_repo_url:
             await self._copy_docker_to_ecr(
-                overcloud_s3=overcloud_s3,
+                stackvertex_s3=stackvertex_s3,
                 customer_ecr=customer_ecr,
                 org_id=org_id,
                 deployment_id=deployment_id,
@@ -315,7 +315,7 @@ class DeploymentExecutor:
         customer_bucket = terraform_outputs.get("deployment_bucket_name", {}).get("value")
         if customer_bucket:
             await self._copy_static_files(
-                overcloud_s3=overcloud_s3,
+                stackvertex_s3=stackvertex_s3,
                 customer_s3=customer_s3,
                 org_id=org_id,
                 deployment_id=deployment_id,
@@ -326,7 +326,7 @@ class DeploymentExecutor:
 
     async def _copy_docker_to_ecr(
         self,
-        overcloud_s3,
+        stackvertex_s3,
         customer_ecr,
         org_id: str,
         deployment_id: str,
@@ -335,7 +335,7 @@ class DeploymentExecutor:
         """Kopiert Docker Images von S3 zu ECR.
 
         Args:
-            overcloud_s3: OverCloud S3 Client
+            stackvertex_s3: StackVertex S3 Client
             customer_ecr: Customer ECR Client
             org_id: Organisation ID
             deployment_id: Deployment ID
@@ -345,7 +345,7 @@ class DeploymentExecutor:
 
         # List Docker Images in S3
         prefix = f"{org_id}/{deployment_id}/docker-images/"
-        response = overcloud_s3.list_objects_v2(
+        response = stackvertex_s3.list_objects_v2(
             Bucket=settings.S3_LARGE_ITEMS_BUCKET,
             Prefix=prefix
         )
@@ -366,16 +366,16 @@ class DeploymentExecutor:
 
     async def _copy_static_files(
         self,
-        overcloud_s3,
+        stackvertex_s3,
         customer_s3,
         org_id: str,
         deployment_id: str,
         customer_bucket: str
     ):
-        """Kopiert Static Files von OverCloud S3 zu Customer S3.
+        """Kopiert Static Files von StackVertex S3 zu Customer S3.
 
         Args:
-            overcloud_s3: OverCloud S3 Client
+            stackvertex_s3: StackVertex S3 Client
             customer_s3: Customer S3 Client
             org_id: Organisation ID
             deployment_id: Deployment ID
@@ -385,7 +385,7 @@ class DeploymentExecutor:
 
         # List Files in S3
         prefix = f"{org_id}/{deployment_id}/static-files/"
-        response = overcloud_s3.list_objects_v2(
+        response = stackvertex_s3.list_objects_v2(
             Bucket=settings.S3_LARGE_ITEMS_BUCKET,
             Prefix=prefix
         )

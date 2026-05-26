@@ -1,6 +1,7 @@
-"""OverCloud Backend - Main FastAPI Application.
+"""StackVertex Backend - Main FastAPI Application.
 
-This is the entry point for the OverCloud backend API.
+This is the entry point for the StackVertex backend API.
+The apex of your cloud stack - Multi-cloud infrastructure orchestration.
 """
 
 import logging
@@ -31,8 +32,8 @@ logger = logging.getLogger(__name__)
 
 # Create FastAPI app
 app = FastAPI(
-    title="OverCloud API",
-    description="Cloud infrastructure management platform - Requirements-driven IaC generation",
+    title="StackVertex API",
+    description="The apex of your cloud stack - Multi-cloud infrastructure orchestration platform with requirements-driven IaC generation",
     version="0.1.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
@@ -81,7 +82,7 @@ async def add_security_headers(request: Request, call_next):
             "script-src 'self' 'unsafe-inline'; "
             "style-src 'self' 'unsafe-inline'; "
             "img-src 'self' data: https:; "
-            "connect-src 'self' https://api.overcloud.io;"
+            "connect-src 'self' https://api.stackvertex.io;"
         )
     else:
         # Dev: Allow Vite HMR
@@ -148,7 +149,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
 async def startup_event():
     """Log application startup."""
     logger.info(
-        "OverCloud API starting",
+        "StackVertex API starting",
         extra={
             "version": "0.1.0",
             "environment": settings.ENV,
@@ -162,7 +163,7 @@ async def startup_event():
 async def root():
     """Root endpoint - Health check."""
     return {
-        "message": "OverCloud API",
+        "message": "StackVertex API",
         "version": "0.1.0",
         "status": "running",
         "docs": "/api/docs",

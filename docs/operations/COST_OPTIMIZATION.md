@@ -1,4 +1,4 @@
-# OverCloud Cost Optimization Guide
+# StackVertex Cost Optimization Guide
 
 Kompletter Guide zur Kostenoptimierung für Startup/MVP Phase.
 
@@ -306,7 +306,7 @@ import boto3
 from boto3.dynamodb.conditions import Key
 
 dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table('overcloud-dev-main')
+table = dynamodb.Table('stackvertex-dev-main')
 
 class ArchitectureRepository:
     """DynamoDB Repository für Architectures."""
@@ -444,7 +444,7 @@ sentry_sdk.init(dsn="https://...", environment="production")
 module "dynamodb" {
   source = "../../modules/database-dynamodb"
   
-  project_name = "overcloud"
+  project_name = "stackvertex"
   environment  = "dev"
   
   enable_pitr   = false  # Dev: kein Backup

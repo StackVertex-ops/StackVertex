@@ -2,7 +2,7 @@
 
 ## Übersicht
 
-OverCloud führt automatisierte Security Scans bei jedem Push und wöchentlich durch. Dies erfüllt ISO 27001 und SOC 2 Anforderungen für regelmäßige Sicherheitsüberprüfungen.
+StackVertex führt automatisierte Security Scans bei jedem Push und wöchentlich durch. Dies erfüllt ISO 27001 und SOC 2 Anforderungen für regelmäßige Sicherheitsüberprüfungen.
 
 ## Scan-Tools
 
@@ -161,7 +161,7 @@ Actions → Security Scanning → Run workflow
 
 ### GitHub Security Tab
 ```
-https://github.com/AndySchw/OverCloud/security
+https://github.com/AndySchw/StackVertex/security
 ```
 
 **Code Scanning Alerts:**
@@ -330,7 +330,7 @@ pre-commit install
 **Lösung:**
 ```bash
 # Check API health
-curl https://staging-api.overcloud.io/health
+curl https://staging-api.stackvertex.io/health
 
 # Wenn down: Skip ZAP für diesen Run
 # ZAP läuft nur wenn Environment deployed ist

@@ -1,6 +1,6 @@
-# OverCloud - Claude Code Rules & Workflows
+# StackVertex - Claude Code Rules & Workflows
 
-> These rules extend Andy's global `.claude/CLAUDE.md` with OverCloud-specific guidelines
+> These rules extend Andy's global `.claude/CLAUDE.md` with StackVertex-specific guidelines
 
 ---
 
@@ -48,11 +48,11 @@
 
 ---
 
-## 🎯 OverCloud-Specific Rules
+## 🎯 StackVertex-Specific Rules
 
 ### Project Vision
 
-**OverCloud** is a platform that:
+**StackVertex** is a platform that:
 - Models cloud infrastructure from requirements (not resources)
 - Stores everything as versionable JSON (source of truth)
 - Generates IaC (Terraform/OpenTofu) from JSON
@@ -151,7 +151,7 @@
 │   ├── vite.config.js        # Vite configuration
 │   └── tailwind.config.js    # Tailwind configuration
 ├── infrastructure/            # Platform infrastructure
-│   ├── terraform/            # Terraform for OverCloud itself
+│   ├── terraform/            # Terraform for StackVertex itself
 │   └── docker/               # Container configs
 └── scripts/                   # Build & deployment scripts
 ```

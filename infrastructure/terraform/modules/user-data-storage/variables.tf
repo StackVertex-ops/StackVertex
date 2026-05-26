@@ -30,8 +30,8 @@ variable "allowed_cors_origins" {
   description = "Allowed CORS origins for direct browser uploads"
   type        = list(string)
   default = [
-    "https://app.overcloud.io",
-    "https://staging.overcloud.io"
+    "https://app.stackvertex.io",
+    "https://staging.stackvertex.io"
   ]
 }
 

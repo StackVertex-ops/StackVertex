@@ -2,7 +2,7 @@
 
 ## Übersicht
 
-Das Review-System ermöglicht Nutzern, 5-Sterne-Bewertungen mit Kommentaren auf der OverCloud-Startseite zu hinterlassen. Alle Reviews werden vor Veröffentlichung moderiert.
+Das Review-System ermöglicht Nutzern, 5-Sterne-Bewertungen mit Kommentaren auf der StackVertex-Startseite zu hinterlassen. Alle Reviews werden vor Veröffentlichung moderiert.
 
 ## Features
 

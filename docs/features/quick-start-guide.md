@@ -4,13 +4,13 @@
 
 ### 1. AWS Credentials hinzufügen
 
-**Browser:** `https://app.overcloud.io/aws-credentials.html`
+**Browser:** `https://app.stackvertex.io/aws-credentials.html`
 
 **Option A: AssumeRole (Empfohlen)**
 
 1. Erstelle IAM Role in deinem AWS Account:
    ```bash
-   aws iam create-role --role-name OverCloudDeploymentRole \
+   aws iam create-role --role-name StackVertexDeploymentRole \
      --assume-role-policy-document file://trust-policy.json
    ```
 
@@ -31,28 +31,28 @@
 
 3. Permissions anhängen:
    ```bash
-   aws iam attach-role-policy --role-name OverCloudDeploymentRole \
+   aws iam attach-role-policy --role-name StackVertexDeploymentRole \
      --policy-arn arn:aws:iam::aws:policy/AmazonEC2FullAccess
    
-   aws iam attach-role-policy --role-name OverCloudDeploymentRole \
+   aws iam attach-role-policy --role-name StackVertexDeploymentRole \
      --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
    ```
 
-4. In OverCloud eintragen:
-   - Role ARN: `arn:aws:iam::YOUR_ACCOUNT_ID:role/OverCloudDeploymentRole`
+4. In StackVertex eintragen:
+   - Role ARN: `arn:aws:iam::YOUR_ACCOUNT_ID:role/StackVertexDeploymentRole`
    - External ID: `YOUR_UNIQUE_EXTERNAL_ID`
 
 **Option B: Access Keys**
 
 ```bash
-aws iam create-user --user-name overcloud-deployer
-aws iam create-access-key --user-name overcloud-deployer
+aws iam create-user --user-name stackvertex-deployer
+aws iam create-access-key --user-name stackvertex-deployer
 # Kopiere Access Key ID und Secret Access Key
 ```
 
 ### 2. Application Data hochladen
 
-**Browser:** `https://app.overcloud.io/deployment-data.html?id=DEPLOYMENT_ID`
+**Browser:** `https://app.stackvertex.io/deployment-data.html?id=DEPLOYMENT_ID`
 
 **Docker Image:**
 - Lokale `.tar.gz` Datei uploaden
@@ -81,7 +81,7 @@ Click "Deploy to AWS" Button → Deployment läuft automatisch
 2. **Environment Variables:**
    ```bash
    # .env
-   USER_DATA_BUCKET=overcloud-user-data-dev
+   USER_DATA_BUCKET=stackvertex-user-data-dev
    AWS_REGION=us-east-1
    SECRET_KEY=your-secret-key-min-32-chars
    ```
@@ -118,7 +118,7 @@ terraform plan
 terraform apply
 
 # Outputs:
-# - bucket_name: overcloud-user-data-dev
+# - bucket_name: stackvertex-user-data-dev
 # - kms_key_arn: arn:aws:kms:...
 ```
 
@@ -187,17 +187,17 @@ aws sts assume-role \
   --external-id your-external-id
 
 # Prüfe Trust Relationship
-aws iam get-role --role-name OverCloudDeploymentRole
+aws iam get-role --role-name StackVertexDeploymentRole
 ```
 
 ### "Upload fehlgeschlagen"
 
 ```bash
 # Prüfe S3 Bucket
-aws s3 ls s3://overcloud-user-data-dev/
+aws s3 ls s3://stackvertex-user-data-dev/
 
 # Prüfe KMS Key
-aws kms describe-key --key-id alias/overcloud-user-data-dev
+aws kms describe-key --key-id alias/stackvertex-user-data-dev
 ```
 
 ### "Terraform Apply fehlgeschlagen"
@@ -221,14 +221,14 @@ aws s3 ls
 
 ```bash
 # Liste alle Uploads
-aws s3 ls s3://overcloud-user-data-dev/ --recursive
+aws s3 ls s3://stackvertex-user-data-dev/ --recursive
 
 # Lösche altes Deployment
-aws s3 rm s3://overcloud-user-data-dev/org_123/dep_456/ --recursive
+aws s3 rm s3://stackvertex-user-data-dev/org_123/dep_456/ --recursive
 
 # Prüfe Encryption
 aws s3api head-object \
-  --bucket overcloud-user-data-dev \
+  --bucket stackvertex-user-data-dev \
   --key org_123/dep_456/docker-images/app.tar.gz
 ```
 
@@ -240,22 +240,22 @@ aws secretsmanager list-secrets
 
 # Hole Secret (für Debugging)
 aws secretsmanager get-secret-value \
-  --secret-id overcloud/aws-credentials/cred_123
+  --secret-id stackvertex/aws-credentials/cred_123
 
 # Lösche Secret (7 Tage Recovery Window)
 aws secretsmanager delete-secret \
-  --secret-id overcloud/aws-credentials/cred_123
+  --secret-id stackvertex/aws-credentials/cred_123
 ```
 
 ### CloudWatch Logs
 
 ```bash
 # Tail Deployment Logs
-aws logs tail /aws/lambda/overcloud-deployment --follow
+aws logs tail /aws/lambda/stackvertex-deployment --follow
 
 # Filter für Errors
 aws logs filter-log-events \
-  --log-group-name /aws/lambda/overcloud-deployment \
+  --log-group-name /aws/lambda/stackvertex-deployment \
   --filter-pattern "ERROR"
 ```
 

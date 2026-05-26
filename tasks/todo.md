@@ -1,4 +1,4 @@
-# OverCloud - Aktuelle Aufgaben
+# StackVertex - Aktuelle Aufgaben
 
 > **Letztes Update:** 2026-05-17 23:45  
 > **Status:** Backend ✅ 100% Ready | Infrastructure ✅ 90% Ready | Operations ✅ 85% Ready | **Tests ✅ 100% PASSED**
@@ -133,7 +133,7 @@ app.include_router(dsgvo.router, prefix="/api/v1/dsgvo", tags=["dsgvo"])
 **Tool:** UptimeRobot (kostenlos)
 **Schritte:**
 1. Account erstellen: uptimerobot.com
-2. Monitor erstellen: `https://api.overcloud.io/health`
+2. Monitor erstellen: `https://api.stackvertex.io/health`
 3. Interval: 5 Minuten
 4. Alert: Email
 5. Optional: Public Status Page
@@ -163,7 +163,7 @@ infrastructure/terraform/scripts/test-backup-restore.sh
    (oder: git revert + push)
 
 2. Verify health:
-   curl https://api.overcloud.io/health
+   curl https://api.stackvertex.io/health
 
 3. Monitor errors (Sentry) für 15 min
 

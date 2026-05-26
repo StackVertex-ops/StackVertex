@@ -41,12 +41,12 @@ Automatische Benachrichtigung bei Production Downtime innerhalb von 5 Minuten.
 
 2. **Monitor Type:** HTTP(s)
 
-3. **Friendly Name:** `OverCloud API - Health`
+3. **Friendly Name:** `StackVertex API - Health`
 
-4. **URL:** `https://api.overcloud.io/health`
+4. **URL:** `https://api.stackvertex.io/health`
    - Development: `http://localhost:8000/health` (nur für lokale Tests)
-   - Staging: `https://api-staging.overcloud.io/health`
-   - Production: `https://api.overcloud.io/health`
+   - Staging: `https://api-staging.stackvertex.io/health`
+   - Production: `https://api.stackvertex.io/health`
 
 5. **Monitoring Interval:** 5 minutes (Free Tier)
    - Upgrade: 1 minute (Pro Plan)
@@ -90,31 +90,31 @@ Automatische Benachrichtigung bei Production Downtime innerhalb von 5 Minuten.
 
 #### Monitor #2: Root Endpoint
 ```
-Name:     OverCloud API - Root
-URL:      https://api.overcloud.io/
+Name:     StackVertex API - Root
+URL:      https://api.stackvertex.io/
 Expected: 200
-Keyword:  "OverCloud API"
+Keyword:  "StackVertex API"
 ```
 
 #### Monitor #3: Frontend
 ```
-Name:     OverCloud Frontend
-URL:      https://overcloud.io/
+Name:     StackVertex Frontend
+URL:      https://stackvertex.io/
 Expected: 200
-Keyword:  "OverCloud"
+Keyword:  "StackVertex"
 ```
 
 #### Monitor #4: Auth API
 ```
-Name:     OverCloud API - Auth Health
-URL:      https://api.overcloud.io/api/v1/auth/health
+Name:     StackVertex API - Auth Health
+URL:      https://api.stackvertex.io/api/v1/auth/health
 Expected: 200 (oder 404 wenn Endpoint nicht existiert)
 ```
 
 #### Monitor #5: Database Connection (indirect)
 ```
-Name:     OverCloud API - Architectures List
-URL:      https://api.overcloud.io/api/v1/architectures
+Name:     StackVertex API - Architectures List
+URL:      https://api.stackvertex.io/api/v1/architectures
 Expected: 401 (Unauthorized - bedeutet API läuft, nur Auth fehlt)
 ```
 
@@ -130,22 +130,22 @@ Expected: 401 (Unauthorized - bedeutet API läuft, nur Auth fehlt)
 
 2. **Type:** Public Status Page (kostenlos)
 
-3. **Custom Domain:** `status.overcloud.io` (DNS konfigurieren)
-   - Oder: Standard `overcloud.betteruptime.com`
+3. **Custom Domain:** `status.stackvertex.io` (DNS konfigurieren)
+   - Oder: Standard `stackvertex.betteruptime.com`
 
 4. **Select Monitors:**
-   - [x] OverCloud API - Health
-   - [x] OverCloud Frontend
-   - [x] OverCloud API - Root
+   - [x] StackVertex API - Health
+   - [x] StackVertex Frontend
+   - [x] StackVertex API - Root
 
 5. **Customization:**
-   - Logo: OverCloud Logo
+   - Logo: StackVertex Logo
    - Color: #a18072 (Primary Color)
-   - Custom Message: "Real-time status of OverCloud services"
+   - Custom Message: "Real-time status of StackVertex services"
 
 6. **Klicke "Create Status Page"**
 
-**Share URL mit Team:** `https://status.overcloud.io`
+**Share URL mit Team:** `https://status.stackvertex.io`
 
 ---
 
@@ -157,13 +157,13 @@ UptimeRobot sendet automatisch Emails bei Downtime:
 
 **Subject:**
 ```
-[DOWN] OverCloud API - Health is down
+[DOWN] StackVertex API - Health is down
 ```
 
 **Body:**
 ```
-Monitor Name: OverCloud API - Health
-URL: https://api.overcloud.io/health
+Monitor Name: StackVertex API - Health
+URL: https://api.stackvertex.io/health
 Status: Down
 Started: 2026-05-17 23:45 UTC
 Duration: 5 minutes
@@ -270,7 +270,7 @@ UptimeRobot prüft automatisch:
 ### Slack Integration
 
 1. **Slack → Apps → Incoming Webhooks**
-2. **Create Webhook für #overcloud-alerts**
+2. **Create Webhook für #stackvertex-alerts**
 3. **UptimeRobot → Alert Contacts → Add Webhook**
    ```
    Webhook URL: https://hooks.slack.com/services/XXX/YYY/ZZZ
@@ -288,13 +288,13 @@ UptimeRobot prüft automatisch:
 
 ```bash
 # Webhook Endpoint erstellen (optional)
-POST https://api.overcloud.io/webhooks/uptime-alert
+POST https://api.stackvertex.io/webhooks/uptime-alert
 
 Body:
 {
   "monitor_id": "123456",
-  "monitor_name": "OverCloud API - Health",
-  "monitor_url": "https://api.overcloud.io/health",
+  "monitor_name": "StackVertex API - Health",
+  "monitor_url": "https://api.stackvertex.io/health",
   "status": "down",
   "alert_datetime": "2026-05-17 23:45:00",
   "alert_type": "down"
@@ -417,7 +417,7 @@ poetry run uvicorn app.main:app --reload
 ```bash
 # Temporär Monitor auf nicht-existierende URL ändern
 Dashboard → Monitor → Edit
-URL: https://api.overcloud.io/does-not-exist
+URL: https://api.stackvertex.io/does-not-exist
 → Save
 → Warte 5 Min → Alert
 → URL wieder auf /health ändern
@@ -463,7 +463,7 @@ URL: https://api.overcloud.io/does-not-exist
 |---------|-----|----------|-----------------|
 | API Health | /health | 5 Min | 1 failed check |
 | API Root | / | 5 Min | 1 failed check |
-| Frontend | overcloud.io | 5 Min | 1 failed check |
+| Frontend | stackvertex.io | 5 Min | 1 failed check |
 | Auth | /api/v1/auth/... | 5 Min | 2 failed checks |
 
 **Total:** 4 Monitors (von 50 verfügbar)

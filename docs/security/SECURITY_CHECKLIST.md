@@ -1,4 +1,4 @@
-# Security Checklist für OverCloud Go-Live
+# Security Checklist für StackVertex Go-Live
 
 **Version:** 1.0  
 **Last Updated:** 2026-05-16  
@@ -80,8 +80,8 @@ Diese Checkliste muss vollständig abgearbeitet sein vor Production Deployment. 
 - [x] ✅ Whitelist Origins (keine Wildcards in prod!)
 - [x] ✅ Credentials allowed (true für cookies/auth)
 - [ ] 🟡 Production Origins konfiguriert (.env)
-  - [ ] `https://app.overcloud.io`
-  - [ ] `https://overcloud.io`
+  - [ ] `https://app.stackvertex.io`
+  - [ ] `https://stackvertex.io`
 
 ### WAF & DDoS Protection
 - [x] ✅ CloudFront WAF aktiviert
@@ -297,7 +297,7 @@ Diese Checkliste muss vollständig abgearbeitet sein vor Production Deployment. 
   - [ ] `ENV=production`
   - [ ] `DEBUG=False`
   - [ ] `LOG_LEVEL=WARNING`
-  - [ ] `CORS_ORIGINS=https://app.overcloud.io`
+  - [ ] `CORS_ORIGINS=https://app.stackvertex.io`
   - [ ] `SECRET_KEY=<strong-key>`
 - [ ] 🟡 Secrets in AWS Secrets Manager (nicht .env!)
 - [ ] ❌ Blue/Green Deployment

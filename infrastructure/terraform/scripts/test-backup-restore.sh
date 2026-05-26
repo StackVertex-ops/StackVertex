@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Backup Restore Test Script für OverCloud
+# Backup Restore Test Script für StackVertex
 # Testet DynamoDB + S3 Backup-Wiederherstellung
 #
 # Usage: ./test-backup-restore.sh [environment]
@@ -13,11 +13,11 @@ set -u
 # Configuration
 ENV="${1:-staging}"
 AWS_REGION="${AWS_REGION:-us-east-1}"
-DYNAMODB_TABLE="overcloud-${ENV}-main"
-S3_BUCKET="overcloud-${ENV}-large-items"
+DYNAMODB_TABLE="stackvertex-${ENV}-main"
+S3_BUCKET="stackvertex-${ENV}-large-items"
 TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
-TEST_TABLE="overcloud-test-restore-$TIMESTAMP"
-TEST_BUCKET="overcloud-test-restore-$TIMESTAMP"
+TEST_TABLE="stackvertex-test-restore-$TIMESTAMP"
+TEST_BUCKET="stackvertex-test-restore-$TIMESTAMP"
 
 # Colors
 RED='\033[0;31m'

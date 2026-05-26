@@ -1,6 +1,6 @@
-# OverCloud Terraform Environments
+# StackVertex Terraform Environments
 
-Dieses Directory enthält die Terraform-Konfigurationen für alle OverCloud-Umgebungen.
+Dieses Directory enthält die Terraform-Konfigurationen für alle StackVertex-Umgebungen.
 
 ## Übersicht
 
@@ -36,11 +36,11 @@ Nach dem Bootstrap sollte `backend.tf` automatisch erstellt worden sein:
 # backend.tf (auto-generated)
 terraform {
   backend "s3" {
-    bucket         = "overcloud-terraform-state-123456789012"
+    bucket         = "stackvertex-terraform-state-123456789012"
     key            = "environments/dev/terraform.tfstate"
     region         = "eu-central-1"
     encrypt        = true
-    dynamodb_table = "overcloud-terraform-locks"
+    dynamodb_table = "stackvertex-terraform-locks"
   }
 }
 ```
@@ -102,16 +102,16 @@ terraform output deployment_summary
 
 Beispiel Output:
 ```
-✅ OverCloud Dev Environment Deployed!
+✅ StackVertex Dev Environment Deployed!
 
 🌐 API Endpoint:       https://abc123.execute-api.eu-central-1.amazonaws.com/
 🔌 WebSocket Endpoint: wss://xyz789.execute-api.eu-central-1.amazonaws.com/dev
 
-📦 ECR Repository:     123456789012.dkr.ecr.eu-central-1.amazonaws.com/overcloud-dev-lambda
-🗄️  Deployment Bucket:  overcloud-dev-deployment-states-123456789012
+📦 ECR Repository:     123456789012.dkr.ecr.eu-central-1.amazonaws.com/stackvertex-dev-lambda
+🗄️  Deployment Bucket:  stackvertex-dev-deployment-states-123456789012
 
-💾 Database Endpoint:  overcloud-dev-aurora.cluster-abc.eu-central-1.rds.amazonaws.com
-🔐 Database Secret:    arn:aws:secretsmanager:eu-central-1:123:secret:overcloud-dev-db...
+💾 Database Endpoint:  stackvertex-dev-aurora.cluster-abc.eu-central-1.rds.amazonaws.com
+🔐 Database Secret:    arn:aws:secretsmanager:eu-central-1:123:secret:stackvertex-dev-db...
 
 📋 Next Steps:
 1. Build & push Docker image to ECR
@@ -132,19 +132,19 @@ aws ecr get-login-password --region eu-central-1 | \
 
 # Build Image
 cd ../../../../backend
-docker build -t overcloud-dev-lambda .
+docker build -t stackvertex-dev-lambda .
 
 # Tag & Push
-docker tag overcloud-dev-lambda:latest \
-  123456789012.dkr.ecr.eu-central-1.amazonaws.com/overcloud-dev-lambda:latest
+docker tag stackvertex-dev-lambda:latest \
+  123456789012.dkr.ecr.eu-central-1.amazonaws.com/stackvertex-dev-lambda:latest
 
 docker push \
-  123456789012.dkr.ecr.eu-central-1.amazonaws.com/overcloud-dev-lambda:latest
+  123456789012.dkr.ecr.eu-central-1.amazonaws.com/stackvertex-dev-lambda:latest
 
 # Update Lambda
 aws lambda update-function-code \
-  --function-name overcloud-dev-api \
-  --image-uri 123456789012.dkr.ecr.eu-central-1.amazonaws.com/overcloud-dev-lambda:latest
+  --function-name stackvertex-dev-api \
+  --image-uri 123456789012.dkr.ecr.eu-central-1.amazonaws.com/stackvertex-dev-lambda:latest
 ```
 
 ### Datenbank-Migrationen ausführen
@@ -153,11 +153,11 @@ Option A: Lokal (mit Database Secret):
 ```bash
 # Secret holen
 aws secretsmanager get-secret-value \
-  --secret-id overcloud-dev-db-credentials \
+  --secret-id stackvertex-dev-db-credentials \
   --query SecretString --output text | jq .
 
 # DATABASE_URL setzen
-export DATABASE_URL="postgresql://user:pass@host:5432/overcloud"
+export DATABASE_URL="postgresql://user:pass@host:5432/stackvertex"
 
 # Alembic Migration
 cd backend
@@ -218,7 +218,7 @@ open https://abc123.execute-api.eu-central-1.amazonaws.com/api/docs
 
 ### State-Datei Location
 ```
-s3://overcloud-terraform-state-123456789012/
+s3://stackvertex-terraform-state-123456789012/
 └── environments/
     ├── dev/terraform.tfstate
     ├── staging/terraform.tfstate
@@ -226,7 +226,7 @@ s3://overcloud-terraform-state-123456789012/
 ```
 
 ### State Locks
-DynamoDB Table: `overcloud-terraform-locks`
+DynamoDB Table: `stackvertex-terraform-locks`
 
 Bei `terraform plan/apply` wird automatisch ein Lock erstellt.
 
@@ -242,12 +242,12 @@ S3 Versioning ist aktiv → alte Versionen werden gespeichert.
 ```bash
 # Liste Versionen
 aws s3api list-object-versions \
-  --bucket overcloud-terraform-state-123456789012 \
+  --bucket stackvertex-terraform-state-123456789012 \
   --prefix environments/dev/terraform.tfstate
 
 # Download alte Version
 aws s3api get-object \
-  --bucket overcloud-terraform-state-123456789012 \
+  --bucket stackvertex-terraform-state-123456789012 \
   --key environments/dev/terraform.tfstate \
   --version-id <VERSION_ID> \
   terraform.tfstate.backup

@@ -24,7 +24,7 @@ class TestSchemaLoading:
 
         assert schema is not None
         assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
-        assert schema["title"] == "OverCloud Architecture Definition"
+        assert schema["title"] == "StackVertex Architecture Definition"
         assert "version" in schema["required"]
 
     def test_load_schema_caching(self):

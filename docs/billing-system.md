@@ -1,4 +1,4 @@
-# OverCloud Billing System
+# StackVertex Billing System
 
 > **Hybrid Pricing Model:** Flat Fee + % AWS Infrastructure Costs
 
@@ -6,7 +6,7 @@
 
 ## Überblick
 
-Das OverCloud Billing System implementiert ein hybrides Pricing-Modell, das Transparenz und faire Preise gewährleistet:
+Das StackVertex Billing System implementiert ein hybrides Pricing-Modell, das Transparenz und faire Preise gewährleistet:
 
 - **Base Fee:** Feste monatliche/jährliche Gebühr je nach Tier
 - **AWS Cost Markup:** Prozentuale Aufschlag auf tatsächliche AWS-Infrastrukturkosten
@@ -30,8 +30,8 @@ Das OverCloud Billing System implementiert ein hybrides Pricing-Modell, das Tran
 **Beispiel-Rechnung:**
 ```
 AWS Costs:        €30/Monat (kleine EC2 Instance)
-OverCloud Base:   €10/Monat
-OverCloud Markup: €4.50 (15% von €30)
+StackVertex Base:   €10/Monat
+StackVertex Markup: €4.50 (15% von €30)
 ─────────────────────────────────────
 Subtotal:         €44.50
 VAT (19%):        €8.46
@@ -55,8 +55,8 @@ Total:            €52.96/Monat
 **Beispiel-Rechnung:**
 ```
 AWS Costs:        €200/Monat (EC2, RDS, S3, etc.)
-OverCloud Base:   €50/Monat
-OverCloud Markup: €20 (10% von €200)
+StackVertex Base:   €50/Monat
+StackVertex Markup: €20 (10% von €200)
 ─────────────────────────────────────
 Subtotal:         €70
 VAT (19%):        €13.30
@@ -81,8 +81,8 @@ Total:            €83.30/Monat
 **Beispiel-Rechnung:**
 ```
 AWS Costs:        €2000/Monat (große Production-Infrastruktur)
-OverCloud Base:   €250/Monat
-OverCloud Markup: €100 (5% von €2000)
+StackVertex Base:   €250/Monat
+StackVertex Markup: €100 (5% von €2000)
 ─────────────────────────────────────
 Subtotal:         €350
 VAT (19%):        €66.50
@@ -105,9 +105,9 @@ Total:            €416.50/Monat
 **Beispiel-Rechnung:**
 ```
 AWS Costs:        €50/Monat
-OverCloud Base:   €0
+StackVertex Base:   €0
 Deployments:      3 × €5 = €15
-OverCloud Markup: €10 (20% von €50)
+StackVertex Markup: €10 (20% von €50)
 ─────────────────────────────────────
 Subtotal:         €25
 VAT (19%):        €4.75
@@ -161,7 +161,7 @@ Total:            €29.75/Monat
     }
   },
   "total_aws_costs": 185.00,
-  "overcloud_percentage_fee": 18.50,
+  "stackvertex_percentage_fee": 18.50,
   "created_at": "2026-05-01T00:00:00Z"
 }
 ```
@@ -178,7 +178,7 @@ Total:            €29.75/Monat
   "period_end": "2026-06-01T00:00:00Z",
   "line_items": [
     {
-      "description": "OverCloud Pro - Base Fee",
+      "description": "StackVertex Pro - Base Fee",
       "amount": 50.00,
       "currency": "EUR"
     },
@@ -254,7 +254,7 @@ response = ce_client.get_cost_and_usage(
     Metrics=['UnblendedCost'],
     GroupBy=[
         {'Type': 'DIMENSION', 'Key': 'SERVICE'},
-        {'Type': 'TAG', 'Key': 'overcloud:deployment_id'}
+        {'Type': 'TAG', 'Key': 'stackvertex:deployment_id'}
     ]
 )
 ```
@@ -328,7 +328,7 @@ response = ce_client.get_cost_and_usage(
 {
   "month": "2026-05",
   "total_aws_costs": 185.00,
-  "overcloud_percentage_fee": 18.50,
+  "stackvertex_percentage_fee": 18.50,
   "deployment_costs": {
     "deployment-1": {
       "ec2": 50.00,
@@ -348,7 +348,7 @@ response = ce_client.get_cost_and_usage(
 {
   "current_aws_costs": 120.00,
   "projected_aws_costs": 200.00,
-  "projected_overcloud_fee": 20.00,
+  "projected_stackvertex_fee": 20.00,
   "projected_total": 220.00,
   "days_elapsed": 18,
   "days_in_month": 30
@@ -428,14 +428,14 @@ stripe_service.create_billing_portal_session(
 ## AWS Cost Tracking
 
 ### Tagging Strategy
-Alle von OverCloud deployte Resources werden automatisch getaggt:
+Alle von StackVertex deployte Resources werden automatisch getaggt:
 
 ```hcl
 tags = {
-  "overcloud:deployment_id" = "deployment-uuid"
-  "overcloud:org_id"         = "org-uuid"
-  "overcloud:tier"           = "pro"
-  "overcloud:managed_by"     = "overcloud"
+  "stackvertex:deployment_id" = "deployment-uuid"
+  "stackvertex:org_id"         = "org-uuid"
+  "stackvertex:tier"           = "pro"
+  "stackvertex:managed_by"     = "stackvertex"
 }
 ```
 
@@ -449,7 +449,7 @@ ce_client.get_cost_and_usage(
     Metrics=['UnblendedCost'],
     GroupBy=[
         {'Type': 'DIMENSION', 'Key': 'SERVICE'},
-        {'Type': 'TAG', 'Key': 'overcloud:deployment_id'}
+        {'Type': 'TAG', 'Key': 'stackvertex:deployment_id'}
     ]
 )
 ```
@@ -518,7 +518,7 @@ pytest tests/test_billing.py -v
 
 ### Payment Data
 - Alle Payment Data bei Stripe gespeichert
-- OverCloud speichert nur Stripe IDs
+- StackVertex speichert nur Stripe IDs
 - PCI-DSS Compliance durch Stripe
 
 ### Invoice Access
@@ -573,7 +573,7 @@ pytest tests/test_billing.py -v
 ## FAQ
 
 ### Wie werden AWS Costs getrackt?
-Wir nutzen die AWS Cost Explorer API, um deine tatsächlichen Infrastrukturkosten abzurufen. Alle von OverCloud deployte Resources werden automatisch getaggt.
+Wir nutzen die AWS Cost Explorer API, um deine tatsächlichen Infrastrukturkosten abzurufen. Alle von StackVertex deployte Resources werden automatisch getaggt.
 
 ### Was passiert wenn ich mein Limit erreiche?
 Du bekommst eine Warnung wenn du 80% deines Deployment-Limits erreichst. Bei 100% werden neue Deployments blockiert (bestehende laufen weiter).

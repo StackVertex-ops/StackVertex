@@ -70,7 +70,7 @@ app.include_router(
 
 ### 5. AWS IAM Permissions
 
-Der OverCloud Service Account benötigt:
+Der StackVertex Service Account benötigt:
 
 ```json
 {
@@ -90,7 +90,7 @@ Der OverCloud Service Account benötigt:
 
 ### 6. Customer AWS Credentials
 
-Kunden müssen OverCloud Zugriff auf ihre AWS Cost Explorer API gewähren:
+Kunden müssen StackVertex Zugriff auf ihre AWS Cost Explorer API gewähren:
 
 **Option 1: IAM Role (Recommended)**
 ```json
@@ -210,10 +210,10 @@ In AWS Console:
 
 1. Billing → Cost Allocation Tags
 2. Activate User-Defined Tags:
-   - `overcloud:deployment_id`
-   - `overcloud:org_id`
-   - `overcloud:tier`
-   - `overcloud:managed_by`
+   - `stackvertex:deployment_id`
+   - `stackvertex:org_id`
+   - `stackvertex:tier`
+   - `stackvertex:managed_by`
 
 3. Wait 24h for activation
 
@@ -247,7 +247,7 @@ print(response)
 ```yaml
 # infrastructure/terraform/modules/billing/eventbridge.tf
 resource "aws_cloudwatch_event_rule" "monthly_invoicing" {
-  name                = "overcloud-monthly-invoicing"
+  name                = "stackvertex-monthly-invoicing"
   schedule_expression = "cron(0 2 1 * ? *)"  # 1st day of month, 02:00 UTC
 }
 
@@ -273,7 +273,7 @@ spec:
         spec:
           containers:
           - name: invoicing
-            image: overcloud/backend:latest
+            image: stackvertex/backend:latest
             command: ["python", "-m", "app.cli.generate_invoices"]
           restartPolicy: OnFailure
 ```
@@ -397,7 +397,7 @@ python -m app.cli.test_billing_cycle
 - Stripe webhooks: `logs/stripe.log`
 
 ### Monitoring
-- CloudWatch Dashboard: `OverCloud-Billing`
+- CloudWatch Dashboard: `StackVertex-Billing`
 - Stripe Dashboard: https://dashboard.stripe.com
 
 ---

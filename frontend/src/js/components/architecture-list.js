@@ -1,5 +1,5 @@
 /**
- * OverCloud - Architecture List Component
+ * StackVertex - Architecture List Component
  *
  * Komponente zur Darstellung einer Liste von Architekturen
  */

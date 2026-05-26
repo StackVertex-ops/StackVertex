@@ -1,6 +1,6 @@
-# OverCloud Developer's Encyclopedia
+# StackVertex Developer's Encyclopedia
 
-**Vollständige Dokumentation des OverCloud-Projekts**
+**Vollständige Dokumentation des StackVertex-Projekts**
 
 **Version:** 1.0  
 **Datum:** 2026-05-16  
@@ -17,7 +17,7 @@
 
 **Inhalt:**
 1. **Projekt-Übersicht**
-   - Was ist OverCloud?
+   - Was ist StackVertex?
    - Projektstruktur
    - Tech Stack Übersicht
    - Architektur-Diagramme
@@ -55,7 +55,7 @@
 
 **Inhalt:**
 1. **Infrastructure as Code (Terraform)**
-   - Platform-Infrastruktur (OverCloud selbst)
+   - Platform-Infrastruktur (StackVertex selbst)
    - Module-Struktur (networking, storage, compute)
    - Environment-Configs (dev, staging, prod)
    - Terraform State Management (S3 + DynamoDB Locks)
@@ -329,12 +329,12 @@ Mit dieser Encyclopedia hast du:
 - Security Audits bestehen
 - Production Deployments durchführen
 
-**Viel Erfolg mit OverCloud! 🚀**
+**Viel Erfolg mit StackVertex! 🚀**
 
 ---
 
 **Erstellt:** 2026-05-16  
 **Autoren:** Claude Agent + Claude Code  
-**Für:** Andy Schwarz (OverCloud Developer)  
+**Für:** Andy Schwarz (StackVertex Developer)  
 **Version:** 1.0  
 **Nächstes Update:** Bei größeren Änderungen am Projekt

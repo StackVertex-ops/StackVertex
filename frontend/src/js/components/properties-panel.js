@@ -1,5 +1,5 @@
 /**
- * OverCloud - Properties Panel
+ * StackVertex - Properties Panel
  *
  * Rechtes Panel für Konfiguration von Component-Properties
  */

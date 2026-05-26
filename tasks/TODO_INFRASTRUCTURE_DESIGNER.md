@@ -1,6 +1,6 @@
 # Infrastructure Designer - TODO Liste
 
-**Projekt:** OverCloud Infrastructure Designer  
+**Projekt:** StackVertex Infrastructure Designer  
 **Version:** 1.0.0 MVP  
 **Letztes Update:** 2026-05-16 15:35  
 **Status:** 🟡 In Testing Phase
@@ -345,8 +345,8 @@
 - [Status Report](../INFRASTRUCTURE_DESIGNER_STATUS.md)
 
 ### Test-Scripts
-- Backend: `/Users/andyschwarz/Documents/Privat/OverCloud/backend/test_designer_api.sh`
-- Frontend: `/Users/andyschwarz/Documents/Privat/OverCloud/frontend/test_infrastructure_designer.sh`
+- Backend: `/Users/andyschwarz/Documents/Privat/StackVertex/backend/test_designer_api.sh`
+- Frontend: `/Users/andyschwarz/Documents/Privat/StackVertex/frontend/test_infrastructure_designer.sh`
 
 ---
 

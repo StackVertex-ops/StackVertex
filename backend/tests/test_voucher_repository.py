@@ -18,7 +18,7 @@ def dynamodb_table():
 
         # Create table
         table = dynamodb.create_table(
-            TableName='overcloud-test',
+            TableName='stackvertex-test',
             KeySchema=[
                 {'AttributeName': 'PK', 'KeyType': 'HASH'},
                 {'AttributeName': 'SK', 'KeyType': 'RANGE'}

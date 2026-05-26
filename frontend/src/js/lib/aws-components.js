@@ -1,5 +1,5 @@
 /**
- * OverCloud - AWS Components Library
+ * StackVertex - AWS Components Library
  *
  * Definition aller verfügbaren AWS-Services für den Architecture Builder
  */

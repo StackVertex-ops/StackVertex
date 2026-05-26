@@ -1,4 +1,4 @@
-# OverCloud Free Tier Setup Guide
+# StackVertex Free Tier Setup Guide
 
 Komplettes Setup für **Production-Ready Deployment** mit AWS Free Tier + $200 Credits.
 
@@ -83,7 +83,7 @@ EOF
 # Erstelle Certificates
 terraform init
 terraform plan \
-  -var="project_name=overcloud" \
+  -var="project_name=stackvertex" \
   -var="environment=prod" \
   -var="frontend_domain=yourdomain.com" \
   -var="api_domain=api.yourdomain.com" \
@@ -106,7 +106,7 @@ cd infrastructure/terraform/modules/route53
 
 terraform init
 terraform plan \
-  -var="project_name=overcloud" \
+  -var="project_name=stackvertex" \
   -var="environment=prod" \
   -var="domain_name=yourdomain.com" \
   -var="create_hosted_zone=true"
@@ -159,7 +159,7 @@ cd infrastructure/terraform/environments/prod-freetier
 # Erstelle terraform.tfvars
 cat > terraform.tfvars <<EOF
 # Project
-project_name = "overcloud"
+project_name = "stackvertex"
 environment  = "prod"
 aws_region   = "eu-central-1"
 
@@ -173,7 +173,7 @@ frontend_certificate_arn = "arn:aws:acm:us-east-1:123:certificate/abc-123"
 api_certificate_arn      = "arn:aws:acm:us-east-1:123:certificate/def-456"
 
 # Terraform State (from Bootstrap)
-terraform_state_bucket = "overcloud-terraform-state-123456789012"
+terraform_state_bucket = "stackvertex-terraform-state-123456789012"
 
 # Alerts
 alert_emails = ["your-email@example.com"]
@@ -234,13 +234,13 @@ aws ecr get-login-password --region eu-central-1 | \
 
 # Build & Push
 cd backend
-docker build -f Dockerfile.lambda -t overcloud-lambda .
-docker tag overcloud-lambda:latest $ECR_URL:latest
+docker build -f Dockerfile.lambda -t stackvertex-lambda .
+docker tag stackvertex-lambda:latest $ECR_URL:latest
 docker push $ECR_URL:latest
 
 # Update Lambda
 aws lambda update-function-code \
-  --function-name overcloud-prod-api \
+  --function-name stackvertex-prod-api \
   --image-uri $ECR_URL:latest
 ```
 
@@ -279,13 +279,13 @@ curl https://api.yourdomain.com/health
 
 ```bash
 # Logs live ansehen
-aws logs tail /aws/lambda/overcloud-prod-api --follow
+aws logs tail /aws/lambda/stackvertex-prod-api --follow
 
 # Metrics abfragen
 aws cloudwatch get-metric-statistics \
   --namespace AWS/Lambda \
   --metric-name Invocations \
-  --dimensions Name=FunctionName,Value=overcloud-prod-api \
+  --dimensions Name=FunctionName,Value=stackvertex-prod-api \
   --start-time 2026-04-19T00:00:00Z \
   --end-time 2026-04-19T23:59:59Z \
   --period 3600 \
@@ -343,7 +343,7 @@ aws budgets create-budget \
 **budget.json:**
 ```json
 {
-  "BudgetName": "OverCloud-Monthly",
+  "BudgetName": "StackVertex-Monthly",
   "BudgetLimit": {
     "Amount": "50",
     "Unit": "USD"
@@ -472,13 +472,13 @@ terraform apply
 **Check:**
 ```bash
 # Lambda Logs
-aws logs tail /aws/lambda/overcloud-prod-api --follow
+aws logs tail /aws/lambda/stackvertex-prod-api --follow
 
 # Lambda Errors?
 aws cloudwatch get-metric-statistics \
   --namespace AWS/Lambda \
   --metric-name Errors \
-  --dimensions Name=FunctionName,Value=overcloud-prod-api \
+  --dimensions Name=FunctionName,Value=stackvertex-prod-api \
   --start-time 2026-04-19T10:00:00Z \
   --end-time 2026-04-19T11:00:00Z \
   --period 300 \

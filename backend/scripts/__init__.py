@@ -1,1 +1,1 @@
-"""OverCloud Backend - Scripts Package."""
+"""StackVertex Backend - Scripts Package."""

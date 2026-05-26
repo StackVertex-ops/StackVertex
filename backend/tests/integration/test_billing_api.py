@@ -13,7 +13,7 @@ def client(mock_dynamodb_table, mock_s3_bucket, mock_secrets_manager):
     from app.db.s3_storage import get_s3_storage, S3Storage
 
     app.dependency_overrides[get_dynamodb_table] = lambda: mock_dynamodb_table
-    app.dependency_overrides[get_s3_storage] = lambda: S3Storage(bucket_name="overcloud-test-bucket")
+    app.dependency_overrides[get_s3_storage] = lambda: S3Storage(bucket_name="stackvertex-test-bucket")
 
     # Disable rate limiting for tests
     app.state.limiter.enabled = False

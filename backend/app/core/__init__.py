@@ -1,1 +1,1 @@
-"""OverCloud Backend - Core Business Logic."""
+"""StackVertex Backend - Core Business Logic."""

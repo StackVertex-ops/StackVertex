@@ -1,6 +1,6 @@
-# AWS Setup für OverCloud Backend
+# AWS Setup für StackVertex Backend
 
-Dieses Dokument beschreibt die AWS-Infrastruktur für das OverCloud Backend und was noch konfiguriert werden muss.
+Dieses Dokument beschreibt die AWS-Infrastruktur für das StackVertex Backend und was noch konfiguriert werden muss.
 
 ---
 
@@ -30,7 +30,7 @@ Dieses Dokument beschreibt die AWS-Infrastruktur für das OverCloud Backend und 
 - [ ] Secrets Manager konfiguriert
 - [ ] CloudWatch Logs eingerichtet
 - [ ] ECS Cluster / Lambda Functions deployed
-- [ ] API Domain konfiguriert (z.B. api.overcloud.com)
+- [ ] API Domain konfiguriert (z.B. api.stackvertex.com)
 
 ---
 
@@ -40,7 +40,7 @@ Dieses Dokument beschreibt die AWS-Infrastruktur für das OverCloud Backend und 
 
 #### A) CI/CD User (GitHub Actions)
 
-Erstelle IAM User: **`overcloud-github-actions`**
+Erstelle IAM User: **`stackvertex-github-actions`**
 
 **Permissions:**
 ```json
@@ -77,7 +77,7 @@ Erstelle IAM User: **`overcloud-github-actions`**
         "lambda:GetFunction",
         "lambda:PublishVersion"
       ],
-      "Resource": "arn:aws:lambda:*:*:function:overcloud-*"
+      "Resource": "arn:aws:lambda:*:*:function:stackvertex-*"
     }
   ]
 }
@@ -90,7 +90,7 @@ Erstelle IAM User: **`overcloud-github-actions`**
 
 #### B) Backend Execution Role
 
-Erstelle IAM Role: **`overcloud-backend-execution-role`**
+Erstelle IAM Role: **`stackvertex-backend-execution-role`**
 
 **Trust Policy (für ECS/Lambda):**
 ```json
@@ -126,8 +126,8 @@ Erstelle IAM Role: **`overcloud-backend-execution-role`**
         "dynamodb:BatchWriteItem"
       ],
       "Resource": [
-        "arn:aws:dynamodb:*:*:table/overcloud-*",
-        "arn:aws:dynamodb:*:*:table/overcloud-*/index/*"
+        "arn:aws:dynamodb:*:*:table/stackvertex-*",
+        "arn:aws:dynamodb:*:*:table/stackvertex-*/index/*"
       ]
     },
     {
@@ -139,8 +139,8 @@ Erstelle IAM Role: **`overcloud-backend-execution-role`**
         "s3:ListBucket"
       ],
       "Resource": [
-        "arn:aws:s3:::overcloud-*",
-        "arn:aws:s3:::overcloud-*/*"
+        "arn:aws:s3:::stackvertex-*",
+        "arn:aws:s3:::stackvertex-*/*"
       ]
     },
     {
@@ -149,7 +149,7 @@ Erstelle IAM Role: **`overcloud-backend-execution-role`**
         "secretsmanager:GetSecretValue",
         "secretsmanager:DescribeSecret"
       ],
-      "Resource": "arn:aws:secretsmanager:*:*:secret:overcloud/*"
+      "Resource": "arn:aws:secretsmanager:*:*:secret:stackvertex/*"
     },
     {
       "Effect": "Allow",
@@ -158,7 +158,7 @@ Erstelle IAM Role: **`overcloud-backend-execution-role`**
         "logs:CreateLogStream",
         "logs:PutLogEvents"
       ],
-      "Resource": "arn:aws:logs:*:*:log-group:/overcloud/*"
+      "Resource": "arn:aws:logs:*:*:log-group:/stackvertex/*"
     }
   ]
 }
@@ -171,7 +171,7 @@ Erstelle IAM Role: **`overcloud-backend-execution-role`**
 **Tabelle erstellen:**
 ```bash
 aws dynamodb create-table \
-  --table-name overcloud-prod-main \
+  --table-name stackvertex-prod-main \
   --attribute-definitions \
     AttributeName=PK,AttributeType=S \
     AttributeName=SK,AttributeType=S \
@@ -186,20 +186,20 @@ aws dynamodb create-table \
     IndexName=GSI1,KeySchema=[{AttributeName=GSI1PK,KeyType=HASH},{AttributeName=GSI1SK,KeyType=RANGE}],Projection={ProjectionType=ALL},ProvisionedThroughput={ReadCapacityUnits=5,WriteCapacityUnits=5} \
     IndexName=GSI2,KeySchema=[{AttributeName=GSI2PK,KeyType=HASH},{AttributeName=GSI2SK,KeyType=RANGE}],Projection={ProjectionType=ALL},ProvisionedThroughput={ReadCapacityUnits=5,WriteCapacityUnits=5} \
   --billing-mode PAY_PER_REQUEST \
-  --tags Key=Project,Value=OverCloud Key=Environment,Value=Production
+  --tags Key=Project,Value=StackVertex Key=Environment,Value=Production
 ```
 
 **Point-in-Time Recovery aktivieren:**
 ```bash
 aws dynamodb update-continuous-backups \
-  --table-name overcloud-prod-main \
+  --table-name stackvertex-prod-main \
   --point-in-time-recovery-specification PointInTimeRecoveryEnabled=true
 ```
 
 **Encryption aktivieren:**
 ```bash
 aws dynamodb update-table \
-  --table-name overcloud-prod-main \
+  --table-name stackvertex-prod-main \
   --sse-specification Enabled=true,SSEType=KMS
 ```
 
@@ -210,11 +210,11 @@ aws dynamodb update-table \
 **Bucket erstellen:**
 ```bash
 aws s3api create-bucket \
-  --bucket overcloud-prod-large-items \
+  --bucket stackvertex-prod-large-items \
   --region us-east-1
 
 aws s3api put-bucket-encryption \
-  --bucket overcloud-prod-large-items \
+  --bucket stackvertex-prod-large-items \
   --server-side-encryption-configuration '{
     "Rules": [{
       "ApplyServerSideEncryptionByDefault": {
@@ -224,11 +224,11 @@ aws s3api put-bucket-encryption \
   }'
 
 aws s3api put-bucket-versioning \
-  --bucket overcloud-prod-large-items \
+  --bucket stackvertex-prod-large-items \
   --versioning-configuration Status=Enabled
 
 aws s3api put-bucket-lifecycle-configuration \
-  --bucket overcloud-prod-large-items \
+  --bucket stackvertex-prod-large-items \
   --lifecycle-configuration file://s3-lifecycle.json
 ```
 
@@ -266,24 +266,24 @@ aws s3api put-bucket-lifecycle-configuration \
 ```bash
 # JWT Secret Key
 aws secretsmanager create-secret \
-  --name overcloud/prod/jwt-secret \
-  --description "JWT signing secret for OverCloud Backend" \
+  --name stackvertex/prod/jwt-secret \
+  --description "JWT signing secret for StackVertex Backend" \
   --secret-string "$(openssl rand -base64 32)"
 
 # Stripe Keys
 aws secretsmanager create-secret \
-  --name overcloud/prod/stripe-secret-key \
+  --name stackvertex/prod/stripe-secret-key \
   --description "Stripe API Secret Key" \
   --secret-string "sk_live_..."
 
 aws secretsmanager create-secret \
-  --name overcloud/prod/stripe-webhook-secret \
+  --name stackvertex/prod/stripe-webhook-secret \
   --description "Stripe Webhook Signing Secret" \
   --secret-string "whsec_..."
 
 # Sentry DSN (optional)
 aws secretsmanager create-secret \
-  --name overcloud/prod/sentry-dsn \
+  --name stackvertex/prod/sentry-dsn \
   --description "Sentry Error Tracking DSN" \
   --secret-string "https://...@sentry.io/..."
 ```
@@ -295,10 +295,10 @@ aws secretsmanager create-secret \
 **Log Group erstellen:**
 ```bash
 aws logs create-log-group \
-  --log-group-name /overcloud/backend
+  --log-group-name /stackvertex/backend
 
 aws logs put-retention-policy \
-  --log-group-name /overcloud/backend \
+  --log-group-name /stackvertex/backend \
   --retention-in-days 30
 ```
 
@@ -309,11 +309,11 @@ aws logs put-retention-policy \
 #### A) ECR Repository erstellen
 ```bash
 aws ecr create-repository \
-  --repository-name overcloud-backend \
+  --repository-name stackvertex-backend \
   --image-scanning-configuration scanOnPush=true
 
 aws ecr put-lifecycle-policy \
-  --repository-name overcloud-backend \
+  --repository-name stackvertex-backend \
   --lifecycle-policy-text file://ecr-lifecycle.json
 ```
 
@@ -340,7 +340,7 @@ aws ecr put-lifecycle-policy \
 #### B) ECS Cluster erstellen
 ```bash
 aws ecs create-cluster \
-  --cluster-name overcloud-prod \
+  --cluster-name stackvertex-prod \
   --capacity-providers FARGATE FARGATE_SPOT \
   --default-capacity-provider-strategy \
     capacityProvider=FARGATE,weight=1,base=1
@@ -352,9 +352,9 @@ Siehe `backend/ecs-task-definition.json` (wird noch erstellt)
 #### D) Service erstellen
 ```bash
 aws ecs create-service \
-  --cluster overcloud-prod \
-  --service-name overcloud-backend \
-  --task-definition overcloud-backend:1 \
+  --cluster stackvertex-prod \
+  --service-name stackvertex-backend \
+  --task-definition stackvertex-backend:1 \
   --desired-count 2 \
   --launch-type FARGATE \
   --network-configuration "awsvpcConfiguration={subnets=[subnet-xxx,subnet-yyy],securityGroups=[sg-xxx],assignPublicIp=ENABLED}"
@@ -371,18 +371,18 @@ cd backend
 poetry export -f requirements.txt --output requirements.txt
 pip install -r requirements.txt -t lambda_package/
 cp -r app lambda_package/
-cd lambda_package && zip -r ../overcloud-backend.zip .
+cd lambda_package && zip -r ../stackvertex-backend.zip .
 
 # Create Lambda
 aws lambda create-function \
-  --function-name overcloud-backend \
+  --function-name stackvertex-backend \
   --runtime python3.11 \
   --handler app.lambda_handler.handler \
-  --role arn:aws:iam::ACCOUNT_ID:role/overcloud-backend-execution-role \
-  --zip-file fileb://overcloud-backend.zip \
+  --role arn:aws:iam::ACCOUNT_ID:role/stackvertex-backend-execution-role \
+  --zip-file fileb://stackvertex-backend.zip \
   --environment Variables="{
-    DYNAMODB_TABLE_NAME=overcloud-prod-main,
-    S3_LARGE_ITEMS_BUCKET=overcloud-prod-large-items,
+    DYNAMODB_TABLE_NAME=stackvertex-prod-main,
+    S3_LARGE_ITEMS_BUCKET=stackvertex-prod-large-items,
     AWS_REGION=us-east-1,
     LOG_JSON_FORMAT=true,
     ENABLE_CLOUDWATCH=true,
@@ -395,9 +395,9 @@ aws lambda create-function \
 **API Gateway Integration:**
 ```bash
 aws apigatewayv2 create-api \
-  --name overcloud-api \
+  --name stackvertex-api \
   --protocol-type HTTP \
-  --target arn:aws:lambda:us-east-1:ACCOUNT_ID:function:overcloud-backend
+  --target arn:aws:lambda:us-east-1:ACCOUNT_ID:function:stackvertex-backend
 ```
 
 ---
@@ -407,16 +407,16 @@ aws apigatewayv2 create-api \
 **Production (.env):**
 ```bash
 # App
-APP_NAME=OverCloud API
+APP_NAME=StackVertex API
 DEBUG=false
 ENV=production
 
 # Database
-DYNAMODB_TABLE_NAME=overcloud-prod-main
+DYNAMODB_TABLE_NAME=stackvertex-prod-main
 # DYNAMODB_ENDPOINT_URL nicht setzen (use real DynamoDB)
 
 # S3
-S3_LARGE_ITEMS_BUCKET=overcloud-prod-large-items
+S3_LARGE_ITEMS_BUCKET=stackvertex-prod-large-items
 LARGE_ITEM_THRESHOLD=300000
 
 # AWS
@@ -439,7 +439,7 @@ ENABLE_SENTRY=true
 SENTRY_DSN=<loaded from Secrets Manager>
 
 # CORS
-CORS_ORIGINS=https://app.overcloud.com,https://www.overcloud.com
+CORS_ORIGINS=https://app.stackvertex.com,https://www.stackvertex.com
 ```
 
 ---
@@ -461,15 +461,15 @@ git push origin main
 ### Manuelles Deployment (ECS)
 ```bash
 # Build & Push Image
-docker build -t overcloud-backend backend/
-docker tag overcloud-backend:latest ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/overcloud-backend:latest
+docker build -t stackvertex-backend backend/
+docker tag stackvertex-backend:latest ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/stackvertex-backend:latest
 aws ecr get-login-password | docker login --username AWS --password-stdin ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com
-docker push ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/overcloud-backend:latest
+docker push ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/stackvertex-backend:latest
 
 # Update Service
 aws ecs update-service \
-  --cluster overcloud-prod \
-  --service overcloud-backend \
+  --cluster stackvertex-prod \
+  --service stackvertex-backend \
   --force-new-deployment
 ```
 
@@ -479,8 +479,8 @@ aws ecs update-service \
 cd backend
 ./scripts/build_lambda.sh
 aws lambda update-function-code \
-  --function-name overcloud-backend \
-  --zip-file fileb://overcloud-backend.zip
+  --function-name stackvertex-backend \
+  --zip-file fileb://stackvertex-backend.zip
 ```
 
 ---
@@ -490,22 +490,22 @@ aws lambda update-function-code \
 ### CloudWatch Logs
 ```bash
 # Tail logs
-aws logs tail /overcloud/backend --follow
+aws logs tail /stackvertex/backend --follow
 
 # Query errors
 aws logs filter-log-events \
-  --log-group-name /overcloud/backend \
+  --log-group-name /stackvertex/backend \
   --filter-pattern "ERROR"
 ```
 
 ### Sentry Dashboard
-https://sentry.io/organizations/overcloud/issues/
+https://sentry.io/organizations/stackvertex/issues/
 
 ### ECS Service Status
 ```bash
 aws ecs describe-services \
-  --cluster overcloud-prod \
-  --services overcloud-backend
+  --cluster stackvertex-prod \
+  --services stackvertex-backend
 ```
 
 ### Lambda Metrics
@@ -513,7 +513,7 @@ aws ecs describe-services \
 aws cloudwatch get-metric-statistics \
   --namespace AWS/Lambda \
   --metric-name Invocations \
-  --dimensions Name=FunctionName,Value=overcloud-backend \
+  --dimensions Name=FunctionName,Value=stackvertex-backend \
   --start-time 2026-05-15T00:00:00Z \
   --end-time 2026-05-15T23:59:59Z \
   --period 3600 \
@@ -525,13 +525,13 @@ aws cloudwatch get-metric-statistics \
 ## 📋 Noch zu erledigen (TODO)
 
 - [ ] **IAM Setup:** CI/CD User + Execution Role erstellen
-- [ ] **DynamoDB:** Tabelle `overcloud-prod-main` erstellen
-- [ ] **S3:** Bucket `overcloud-prod-large-items` erstellen
+- [ ] **DynamoDB:** Tabelle `stackvertex-prod-main` erstellen
+- [ ] **S3:** Bucket `stackvertex-prod-large-items` erstellen
 - [ ] **Secrets Manager:** Alle Secrets (JWT, Stripe, Sentry) hinterlegen
-- [ ] **CloudWatch:** Log Group `/overcloud/backend` erstellen
-- [ ] **ECR:** Repository `overcloud-backend` erstellen
+- [ ] **CloudWatch:** Log Group `/stackvertex/backend` erstellen
+- [ ] **ECR:** Repository `stackvertex-backend` erstellen
 - [ ] **ECS/Lambda:** Deployment-Target wählen und konfigurieren
-- [ ] **Domain:** API Domain (z.B. api.overcloud.com) mit Route53 + ALB/API Gateway
+- [ ] **Domain:** API Domain (z.B. api.stackvertex.com) mit Route53 + ALB/API Gateway
 - [ ] **SSL Zertifikat:** ACM Certificate für HTTPS
 - [ ] **WAF:** (optional) für zusätzliche Security
 - [ ] **Backup:** Automatische DynamoDB Backups konfigurieren

@@ -90,7 +90,7 @@ python scripts/seed_example_faqs.py
    ```
 
 2. Login unter http://localhost:5173/login.html
-   - Email: admin@overcloud.io
+   - Email: admin@stackvertex.io
    - Password: (dein Passwort)
 
 3. Öffne http://localhost:5173/admin-faq.html
@@ -301,7 +301,7 @@ curl http://localhost:8000/api/v1/faq/{faq_id}
 # Login holen
 TOKEN=$(curl -X POST http://localhost:8000/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@overcloud.io","password":"dein-passwort"}' \
+  -d '{"email":"admin@stackvertex.io","password":"dein-passwort"}' \
   | jq -r '.access_token')
 
 # Alle FAQs (inkl. Drafts)

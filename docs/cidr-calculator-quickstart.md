@@ -205,11 +205,11 @@ poetry install
 ```bash
 cd backend
 poetry run pytest --collect-only  # Zeigt gefundene Tests
-export PYTHONPATH=/Users/andyschwarz/Documents/Privat/OverCloud/backend
+export PYTHONPATH=/Users/andyschwarz/Documents/Privat/StackVertex/backend
 poetry run pytest
 ```
 
-## Integration in OverCloud
+## Integration in StackVertex
 
 Der CIDR Calculator ist für die spätere Integration in den Architecture Builder vorbereitet:
 
@@ -261,4 +261,4 @@ Bei Fragen oder Problemen:
 
 ---
 
-**Entwickelt für OverCloud** - Requirements-driven Cloud Infrastructure Management
+**Entwickelt für StackVertex** - Requirements-driven Cloud Infrastructure Management

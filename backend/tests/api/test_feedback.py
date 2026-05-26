@@ -36,7 +36,7 @@ def mock_admin_user():
 
     return UserResponse(
         id=uuid4(),
-        email="admin@overcloud.dev",
+        email="admin@stackvertex.dev",
         name="Admin User",
         auth_provider=AuthProvider.EMAIL,
         status=UserStatus.ACTIVE,
@@ -475,7 +475,7 @@ def test_add_note_admin(client, mock_feedback_service, mock_admin_user):
             {
                 "note_id": "note-1",
                 "admin_id": str(mock_admin_user.id),
-                "admin_email": "admin@overcloud.dev",
+                "admin_email": "admin@stackvertex.dev",
                 "note": "Looking into this",
                 "created_at": "2026-05-19T10:00:00Z"
             }

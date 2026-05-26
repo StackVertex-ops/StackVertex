@@ -465,7 +465,7 @@ Statt nur einem JSON-Editor bieten wir **visuelle, formularbasierte Konfiguratio
           "user_data": null,
           "tags": {
             "Environment": "production",
-            "ManagedBy": "OverCloud"
+            "ManagedBy": "StackVertex"
           }
         },
         "metadata": {

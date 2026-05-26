@@ -1,4 +1,4 @@
-# OverCloud - Lessons Learned
+# StackVertex - Lessons Learned
 
 > This file captures mistakes, corrections, and learnings throughout the project.
 > Updated after every correction from the user or discovery of a better approach.
@@ -16,7 +16,7 @@
 - Agent swarm mode enables parallel development without context pollution
 
 **Action taken:**
-- Created comprehensive CLAUDE.md with OverCloud-specific rules
+- Created comprehensive CLAUDE.md with StackVertex-specific rules
 - Planned phased tool adoption (Superpowers → GSD → Swarm → Vibe Kanban)
 
 **Preventive rule:**

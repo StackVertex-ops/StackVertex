@@ -1,5 +1,5 @@
 /**
- * OverCloud - Architecture Canvas
+ * StackVertex - Architecture Canvas
  *
  * Drag & Drop Canvas für visuelle Architektur-Modellierung
  */

@@ -1,5 +1,5 @@
 """
-OverCloud Blueprint Library
+StackVertex Blueprint Library
 
 Zentrale Registry für alle verfügbaren Blueprints.
 Blueprints sind vorkonfigurierte Architektur-Templates mit realistischen Use Cases und fairen Preisen.

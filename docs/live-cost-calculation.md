@@ -523,7 +523,7 @@ def calculate_new_service_cost(...) -> CostItem:
 
 **Entwickler:** Andy Schwarz  
 **Email:** schwarz23andy@gmail.com  
-**Projekt:** OverCloud  
+**Projekt:** StackVertex  
 **Version:** 1.0.0  
 
 ---

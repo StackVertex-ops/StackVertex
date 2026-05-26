@@ -1,4 +1,4 @@
-# OverCloud - Architectural Decision Records (ADRs)
+# StackVertex - Architectural Decision Records (ADRs)
 
 > Documents key technical decisions, trade-offs, and rationale.
 > Format: [ADR-XXX] Title

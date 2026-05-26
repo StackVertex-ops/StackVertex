@@ -52,14 +52,14 @@ echo "JWT_SECRET_KEY: $JWT_KEY"
 
 ```bash
 # 1. User erstellen
-aws iam create-user --user-name github-actions-overcloud
+aws iam create-user --user-name github-actions-stackvertex
 
 # 2. Access Keys generieren (OUTPUT KOPIEREN!)
-aws iam create-access-key --user-name github-actions-overcloud
+aws iam create-access-key --user-name github-actions-stackvertex
 
 # 3. Admin Policy anhängen (MVP)
 aws iam attach-user-policy \
-  --user-name github-actions-overcloud \
+  --user-name github-actions-stackvertex \
   --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
 
 # 4. Account ID anzeigen
@@ -80,7 +80,7 @@ python3 -c "import secrets; print(secrets.token_urlsafe(64))"
 
 ```bash
 # Option 1: Manuell über Web UI
-# Gehe zu: https://github.com/AndySchw/OverCloud/settings/secrets/actions
+# Gehe zu: https://github.com/AndySchw/StackVertex/settings/secrets/actions
 # Settings → Secrets and variables → Actions → New repository secret
 
 # Option 2: Via GitHub CLI (empfohlen - schneller!)
@@ -95,7 +95,7 @@ gh secret set ALERT_EMAILS --body "schwarz23andy@gmail.com"
 gh secret set CORS_ORIGINS --body "*"
 
 # Später (nach Bootstrap):
-gh secret set TERRAFORM_STATE_BUCKET --body "overcloud-terraform-state-$AWS_ACCOUNT_ID"
+gh secret set TERRAFORM_STATE_BUCKET --body "stackvertex-terraform-state-$AWS_ACCOUNT_ID"
 ```
 
 ---
@@ -173,7 +173,7 @@ echo -n "your-jwt-key" | wc -c  # Sollte >= 64 sein
 **Lösung:**
 ```bash
 # Neue Access Keys generieren
-aws iam create-access-key --user-name github-actions-overcloud
+aws iam create-access-key --user-name github-actions-stackvertex
 ```
 
 ### Error: "DB Password zu kurz"

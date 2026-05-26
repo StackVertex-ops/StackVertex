@@ -2,7 +2,7 @@
 
 ## Pragmatische Checkliste für den Go-Live
 
-**Ziel:** OverCloud production-ready machen - funktional, sicher, nicht over-engineered.
+**Ziel:** StackVertex production-ready machen - funktional, sicher, nicht over-engineered.
 
 ---
 
@@ -37,7 +37,7 @@
 **Sentry Setup:**
 ```bash
 # 1. Account erstellen: sentry.io (Free Tier reicht)
-# 2. Project erstellen: overcloud-backend
+# 2. Project erstellen: stackvertex-backend
 
 # 3. DSN in Secrets Manager:
 aws secretsmanager create-secret \
@@ -60,15 +60,15 @@ aws secretsmanager create-secret \
 ```bash
 # 1. Account: uptimerobot.com (Free: 50 monitors)
 # 2. Monitor erstellen:
-#    - Name: OverCloud API Production
+#    - Name: StackVertex API Production
 #    - Type: HTTPS
-#    - URL: https://api.overcloud.io/health
+#    - URL: https://api.stackvertex.io/health
 #    - Interval: 5 minutes
 #    - Alert: Email (deine Adresse)
 
 # 3. Status Page (optional):
 #    - Public Status Page erstellen
-#    - Embed auf overcloud.io/status
+#    - Embed auf stackvertex.io/status
 
 # Fertig. Mehr braucht es nicht.
 ```
@@ -108,7 +108,7 @@ cd infrastructure/terraform/scripts
    (oder: git revert + push)
 
 2. Verify health:
-   curl https://api.overcloud.io/health
+   curl https://api.stackvertex.io/health
 
 3. Monitor errors (Sentry) für 15 min
 
@@ -129,7 +129,7 @@ cd infrastructure/terraform/scripts
 - [ ] **Sentry:** Aktiviert, Error triggern, Alarm testen
 - [ ] **Uptime Monitor:** Aktiviert, Check empfängt Alerts
 - [ ] **Backup Test:** Einmal durchführen, dokumentieren
-- [ ] **DNS:** api.overcloud.io → Production API Gateway
+- [ ] **DNS:** api.stackvertex.io → Production API Gateway
 - [ ] **SSL:** Zertifikat verifizieren (Let's Encrypt)
 - [ ] **Secrets:** Alle production secrets rotiert (neue Passwörter)
 - [ ] **MFA:** Aktiviert auf allen AWS/GitHub Accounts

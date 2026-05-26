@@ -1,5 +1,5 @@
 /**
- * OverCloud - Architectures Page
+ * StackVertex - Architectures Page
  *
  * Hauptseite für die Darstellung und Verwaltung von Architekturen
  */

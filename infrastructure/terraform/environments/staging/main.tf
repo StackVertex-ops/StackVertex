@@ -1,4 +1,4 @@
-# OverCloud Staging Environment
+# StackVertex Staging Environment
 # Pre-Production environment for testing before prod deployment
 
 terraform {
@@ -20,7 +20,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "OverCloud"
+      Project     = "StackVertex"
       ManagedBy   = "Terraform"
       Environment = "staging"
     }
@@ -245,7 +245,7 @@ module "backup" {
 
 # WAF Module - Web Application Firewall & DDoS Protection
 # Staging: Cost-optimized protection (no Bot Control, shorter retention)
-# Note: OverCloud uses API Gateway HTTP API (v2) which is NOT compatible with WAF.
+# Note: StackVertex uses API Gateway HTTP API (v2) which is NOT compatible with WAF.
 #       Instead, we protect both frontend AND backend via CloudFront WAF by routing
 #       API traffic through CloudFront (e.g., /api/* origin to API Gateway).
 module "waf" {

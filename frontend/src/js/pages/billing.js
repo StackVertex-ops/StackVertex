@@ -1,5 +1,5 @@
 /**
- * OverCloud - Billing Page
+ * StackVertex - Billing Page
  *
  * Displays subscription status and allows users to manage their billing.
  */

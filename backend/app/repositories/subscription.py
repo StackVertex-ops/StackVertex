@@ -175,7 +175,7 @@ class SubscriptionRepository(BaseRepository):
         stripe_subscription_id: str,
         stripe_customer_id: str
     ) -> dict[str, Any]:
-        """Link Stripe subscription to OverCloud subscription.
+        """Link Stripe subscription to StackVertex subscription.
 
         Args:
             org_id: Organisation UUID

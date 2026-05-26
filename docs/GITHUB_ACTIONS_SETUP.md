@@ -1,6 +1,6 @@
 # GitHub Actions Deployment Setup
 
-Vollständige Anleitung für das automatisierte Deployment von OverCloud via GitHub Actions.
+Vollständige Anleitung für das automatisierte Deployment von StackVertex via GitHub Actions.
 
 ## 📋 Übersicht
 
@@ -28,14 +28,14 @@ Gehe zu: **Settings → Secrets and variables → Actions → New repository sec
 
 ```bash
 # Option 1: IAM User erstellen (empfohlen für Anfang)
-aws iam create-user --user-name github-actions-overcloud
+aws iam create-user --user-name github-actions-stackvertex
 
 # Access Keys generieren
-aws iam create-access-key --user-name github-actions-overcloud
+aws iam create-access-key --user-name github-actions-stackvertex
 
 # Admin Policy anhängen (MVP: Admin, später least privilege)
 aws iam attach-user-policy \
-  --user-name github-actions-overcloud \
+  --user-name github-actions-stackvertex \
   --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
 
 # AWS Account ID anzeigen
@@ -75,7 +75,7 @@ aws sts get-caller-identity --query Account --output text
 
 | Secret Name | Beschreibung | Beispiel |
 |-------------|--------------|----------|
-| `CORS_ORIGINS` | Erlaubte CORS Origins | `https://app.overcloud.io` |
+| `CORS_ORIGINS` | Erlaubte CORS Origins | `https://app.stackvertex.io` |
 
 ### Payment Integration (Optional)
 
@@ -98,10 +98,10 @@ aws sts get-caller-identity --query Account --output text
 
 ```bash
 # 1. IAM User für GitHub Actions erstellen
-aws iam create-user --user-name github-actions-overcloud
+aws iam create-user --user-name github-actions-stackvertex
 
 # 2. Access Keys generieren
-aws iam create-access-key --user-name github-actions-overcloud
+aws iam create-access-key --user-name github-actions-stackvertex
 
 # Output speichern:
 # {
@@ -114,7 +114,7 @@ aws iam create-access-key --user-name github-actions-overcloud
 
 # 3. Admin Policy anhängen (für MVP - später least privilege)
 aws iam attach-user-policy \
-  --user-name github-actions-overcloud \
+  --user-name github-actions-stackvertex \
   --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
 
 # 4. Account ID anzeigen
@@ -163,7 +163,7 @@ CORS_ORIGINS=*
 4. Eingaben:
    - **aws_account_id**: `123456789012` (deine AWS Account ID)
    - **aws_region**: `eu-central-1`
-   - **project_name**: `overcloud`
+   - **project_name**: `stackvertex`
 5. Klicke **Run workflow** (grüner Button)
 
 **Was passiert:**
@@ -177,14 +177,14 @@ CORS_ORIGINS=*
 ✅ Terraform State Backend erfolgreich erstellt!
 
 📦 S3 Buckets:
-  - Terraform State: overcloud-terraform-state-123456789012
-  - Deployment States: overcloud-deployment-states-123456789012
+  - Terraform State: stackvertex-terraform-state-123456789012
+  - Deployment States: stackvertex-deployment-states-123456789012
 
 🔒 DynamoDB Lock Table:
-  - overcloud-terraform-locks
+  - stackvertex-terraform-locks
 
 📋 WICHTIG: Füge dieses Secret zu GitHub hinzu:
-  TERRAFORM_STATE_BUCKET = overcloud-terraform-state-123456789012
+  TERRAFORM_STATE_BUCKET = stackvertex-terraform-state-123456789012
 ```
 
 ### Schritt 5: TERRAFORM_STATE_BUCKET Secret setzen
@@ -192,7 +192,7 @@ CORS_ORIGINS=*
 Kopiere den Bucket-Namen aus dem Bootstrap Output und füge ihn als Secret hinzu:
 
 ```
-TERRAFORM_STATE_BUCKET=overcloud-terraform-state-123456789012
+TERRAFORM_STATE_BUCKET=stackvertex-terraform-state-123456789012
 ```
 
 ### Schritt 6: Automatisches Deployment testen
@@ -344,7 +344,7 @@ Für Production sollte statt `AdministratorAccess` eine Custom Policy verwendet 
         "s3:PutObject",
         "s3:DeleteObject"
       ],
-      "Resource": "arn:aws:s3:::overcloud-terraform-state-*/*"
+      "Resource": "arn:aws:s3:::stackvertex-terraform-state-*/*"
     }
   ]
 }
@@ -379,9 +379,9 @@ Für Production sollte GitHub Environment Protection konfiguriert werden:
 ECR Repositories werden automatisch bei erstem Deployment erstellt. Wenn das fehlschlägt:
 
 ```bash
-aws ecr create-repository --repository-name overcloud-dev-lambda --region eu-central-1
-aws ecr create-repository --repository-name overcloud-staging-lambda --region eu-central-1
-aws ecr create-repository --repository-name overcloud-prod-lambda --region eu-central-1
+aws ecr create-repository --repository-name stackvertex-dev-lambda --region eu-central-1
+aws ecr create-repository --repository-name stackvertex-staging-lambda --region eu-central-1
+aws ecr create-repository --repository-name stackvertex-prod-lambda --region eu-central-1
 ```
 
 ### Error: "Access Denied" bei S3 Sync
@@ -392,7 +392,7 @@ aws ecr create-repository --repository-name overcloud-prod-lambda --region eu-ce
 ```bash
 # Policy mit S3 Full Access anhängen
 aws iam attach-user-policy \
-  --user-name github-actions-overcloud \
+  --user-name github-actions-stackvertex \
   --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
 ```
 
@@ -404,8 +404,8 @@ aws iam attach-user-policy \
 ```bash
 # DynamoDB Lock manuell entfernen
 aws dynamodb delete-item \
-  --table-name overcloud-terraform-locks \
-  --key '{"LockID":{"S":"overcloud-terraform-state-123456789012/dev/terraform.tfstate-md5"}}' \
+  --table-name stackvertex-terraform-locks \
+  --key '{"LockID":{"S":"stackvertex-terraform-state-123456789012/dev/terraform.tfstate-md5"}}' \
   --region eu-central-1
 ```
 
@@ -447,10 +447,10 @@ npm run build
 **AWS CloudWatch:**
 ```bash
 # Lambda Logs anschauen
-aws logs tail /aws/lambda/overcloud-dev-api --follow
+aws logs tail /aws/lambda/stackvertex-dev-api --follow
 
 # API Gateway Access Logs
-aws logs tail /aws/apigateway/overcloud-dev --follow
+aws logs tail /aws/apigateway/stackvertex-dev --follow
 ```
 
 ### Cost Monitoring
@@ -509,5 +509,5 @@ Nach erfolgreichem Setup:
 ---
 
 **Bei Fragen oder Problemen:**
-- Siehe [GitHub Issues](https://github.com/AndySchw/OverCloud/issues)
+- Siehe [GitHub Issues](https://github.com/AndySchw/StackVertex/issues)
 - Kontakt: schwarz23andy@gmail.com

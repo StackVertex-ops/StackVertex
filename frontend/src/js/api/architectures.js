@@ -1,5 +1,5 @@
 /**
- * OverCloud - Architectures API Module
+ * StackVertex - Architectures API Module
  *
  * Funktionen für den Zugriff auf Architecture-Endpoints des Backends
  */

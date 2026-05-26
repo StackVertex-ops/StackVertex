@@ -18,7 +18,7 @@ def dynamodb_table():
 
         # Create table mit allen GSIs
         table = dynamodb.create_table(
-            TableName='overcloud-test',
+            TableName='stackvertex-test',
             KeySchema=[
                 {'AttributeName': 'PK', 'KeyType': 'HASH'},
                 {'AttributeName': 'SK', 'KeyType': 'RANGE'}
@@ -123,12 +123,12 @@ def test_create_feedback_with_browser_info(feedback_repo):
         feedback_type="bug",
         title="Render Issue",
         description="Rendering problem in Chrome",
-        url="https://app.overcloud.dev/dashboard",
+        url="https://app.stackvertex.dev/dashboard",
         user_agent="Mozilla/5.0 ...",
         browser_info=browser_info
     )
 
-    assert feedback["url"] == "https://app.overcloud.dev/dashboard"
+    assert feedback["url"] == "https://app.stackvertex.dev/dashboard"
     assert feedback["user_agent"] == "Mozilla/5.0 ..."
     assert feedback["browser_info"]["browser"] == "Chrome"
 
@@ -353,7 +353,7 @@ def test_add_note(feedback_repo):
     )
 
     admin_id = str(uuid4())
-    admin_email = "admin@overcloud.dev"
+    admin_email = "admin@stackvertex.dev"
 
     # Add note
     updated = feedback_repo.add_note(
@@ -388,7 +388,7 @@ def test_add_multiple_notes(feedback_repo):
     feedback_repo.add_note(
         feedback_id=feedback["feedback_id"],
         admin_id=admin_id,
-        admin_email="admin@overcloud.dev",
+        admin_email="admin@stackvertex.dev",
         note="First note"
     )
 
@@ -396,7 +396,7 @@ def test_add_multiple_notes(feedback_repo):
     updated = feedback_repo.add_note(
         feedback_id=feedback["feedback_id"],
         admin_id=admin_id,
-        admin_email="admin@overcloud.dev",
+        admin_email="admin@stackvertex.dev",
         note="Second note"
     )
 
@@ -410,7 +410,7 @@ def test_add_note_not_found(feedback_repo):
     updated = feedback_repo.add_note(
         feedback_id="non-existent-id",
         admin_id=str(uuid4()),
-        admin_email="admin@overcloud.dev",
+        admin_email="admin@stackvertex.dev",
         note="This should fail"
     )
 
@@ -431,7 +431,7 @@ def test_mark_resolved(feedback_repo):
     )
 
     admin_id = str(uuid4())
-    admin_email = "admin@overcloud.dev"
+    admin_email = "admin@stackvertex.dev"
 
     # Mark as resolved
     resolved = feedback_repo.mark_resolved(
@@ -459,7 +459,7 @@ def test_mark_resolved_not_found(feedback_repo):
     resolved = feedback_repo.mark_resolved(
         feedback_id="non-existent-id",
         admin_id=str(uuid4()),
-        admin_email="admin@overcloud.dev",
+        admin_email="admin@stackvertex.dev",
         resolution_note="This should fail"
     )
 
@@ -505,7 +505,7 @@ def test_get_stats_with_data(feedback_repo):
     feedback_repo.mark_resolved(
         feedback_id=fb3["feedback_id"],
         admin_id=str(uuid4()),
-        admin_email="admin@overcloud.dev",
+        admin_email="admin@stackvertex.dev",
         resolution_note="Done"
     )
 

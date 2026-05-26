@@ -1,5 +1,5 @@
 /**
- * OverCloud - Architecture Validator
+ * StackVertex - Architecture Validator
  *
  * Client-side Validierung von Architecture JSON
  */

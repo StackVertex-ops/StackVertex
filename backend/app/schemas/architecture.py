@@ -1,4 +1,4 @@
-"""OverCloud Backend - Architecture Schemas.
+"""StackVertex Backend - Architecture Schemas.
 
 Pydantic schemas für Validierung und Serialisierung von Architecture-Daten.
 """

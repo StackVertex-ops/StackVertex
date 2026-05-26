@@ -1,5 +1,5 @@
 /**
- * OverCloud - Architecture Form Component
+ * StackVertex - Architecture Form Component
  *
  * Formular für Architecture Metadata und Requirements
  */
@@ -190,7 +190,7 @@ function renderProviderSelection(data) {
                                     ${isSelected ? 'checked' : ''}
                                     ${isDisabled ? 'disabled' : ''}
                                     class="peer sr-only"
-                                    onchange="window.OverCloud.updateRegionOptions('${key}')"
+                                    onchange="window.StackVertex.updateRegionOptions('${key}')"
                                 />
                                 <label
                                     for="provider-${key}"
@@ -647,8 +647,8 @@ export function setupFormHandlers(container, onSubmit, onCancel) {
     }
 
     // Global Update Region Options Function
-    window.OverCloud = window.OverCloud || {};
-    window.OverCloud.updateRegionOptions = (provider) => {
+    window.StackVertex = window.StackVertex || {};
+    window.StackVertex.updateRegionOptions = (provider) => {
         const regionContainer = container.querySelector('#region-selection');
         if (regionContainer) {
             regionContainer.innerHTML = renderRegionSelection(provider, getRegionsForProvider(provider)[0]?.id || '');

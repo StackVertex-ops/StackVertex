@@ -1,5 +1,5 @@
 # Monitoring & Observability Module
-# Zentrales Monitoring für komplette OverCloud Infrastruktur
+# Zentrales Monitoring für komplette StackVertex Infrastruktur
 
 terraform {
   required_version = ">= 1.5.0"
@@ -8,7 +8,7 @@ terraform {
 # SNS Topic für Alerts (Critical)
 resource "aws_sns_topic" "critical_alerts" {
   name              = "${var.project_name}-${var.environment}-critical-alerts"
-  display_name      = "OverCloud Critical Alerts"
+  display_name      = "StackVertex Critical Alerts"
   kms_master_key_id = var.enable_sns_encryption ? aws_kms_key.sns[0].id : null
 
   tags = {
@@ -20,7 +20,7 @@ resource "aws_sns_topic" "critical_alerts" {
 # SNS Topic für Warnings
 resource "aws_sns_topic" "warning_alerts" {
   name              = "${var.project_name}-${var.environment}-warning-alerts"
-  display_name      = "OverCloud Warning Alerts"
+  display_name      = "StackVertex Warning Alerts"
   kms_master_key_id = var.enable_sns_encryption ? aws_kms_key.sns[0].id : null
 
   tags = {
@@ -32,7 +32,7 @@ resource "aws_sns_topic" "warning_alerts" {
 # SNS Topic für Info
 resource "aws_sns_topic" "info_alerts" {
   name         = "${var.project_name}-${var.environment}-info-alerts"
-  display_name = "OverCloud Info Alerts"
+  display_name = "StackVertex Info Alerts"
 
   tags = {
     Name     = "${var.project_name}-${var.environment}-info-alerts"
@@ -436,7 +436,7 @@ resource "aws_cloudwatch_log_metric_filter" "deployment_failures" {
 
   metric_transformation {
     name      = "DeploymentFailures"
-    namespace = "OverCloud/${var.environment}"
+    namespace = "StackVertex/${var.environment}"
     value     = "1"
     unit      = "Count"
   }
@@ -447,7 +447,7 @@ resource "aws_cloudwatch_metric_alarm" "deployment_failures" {
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 1
   metric_name         = "DeploymentFailures"
-  namespace           = "OverCloud/${var.environment}"
+  namespace           = "StackVertex/${var.environment}"
   period              = 300
   statistic           = "Sum"
   threshold           = 3
@@ -468,7 +468,7 @@ resource "aws_cloudwatch_log_metric_filter" "unauthorized_access" {
 
   metric_transformation {
     name      = "UnauthorizedAccessAttempts"
-    namespace = "OverCloud/${var.environment}"
+    namespace = "StackVertex/${var.environment}"
     value     = "1"
     unit      = "Count"
   }
@@ -479,7 +479,7 @@ resource "aws_cloudwatch_metric_alarm" "unauthorized_access" {
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 1
   metric_name         = "UnauthorizedAccessAttempts"
-  namespace           = "OverCloud/${var.environment}"
+  namespace           = "StackVertex/${var.environment}"
   period              = 300
   statistic           = "Sum"
   threshold           = 10

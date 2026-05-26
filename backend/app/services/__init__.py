@@ -1,1 +1,1 @@
-"""OverCloud Backend - External Service Integrations."""
+"""StackVertex Backend - External Service Integrations."""

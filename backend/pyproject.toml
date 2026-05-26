@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "overcloud-backend"
+name = "stackvertex-backend"
 version = "0.1.0"
-description = ""
-authors = ["AndySchw <andy.emch1@web.de>"]
+description = "StackVertex Backend - The apex of your cloud stack"
+authors = ["AndySchw <schwarz23andy@gmail.com>"]
 package-mode = false
 
 [tool.poetry.dependencies]

@@ -38,7 +38,7 @@
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│  Header: OverCloud | [Architecture Name] | [Save] [Export] [?]   │
+│  Header: StackVertex | [Architecture Name] | [Save] [Export] [?]   │
 ├──────────────┬─────────────────────────────┬─────────────────────┤
 │              │                             │                     │
 │  Component   │        Canvas               │  Properties Panel   │
@@ -904,7 +904,7 @@ builderState.subscribe('component-updated', (component) => {
 2. **Performance:** Direkter DOM Access
 3. **Lernkurve:** Einfacher für Onboarding
 4. **Flexibilität:** Keine Framework Constraints
-5. **OverCloud CLAUDE.md:** "Vanilla JS + Modern Tooling" ist definiert
+5. **StackVertex CLAUDE.md:** "Vanilla JS + Modern Tooling" ist definiert
 
 ---
 

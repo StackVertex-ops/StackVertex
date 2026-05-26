@@ -58,7 +58,7 @@ Dieses Modul implementiert AWS WAF (Web Application Firewall) für maximalen Sch
 
 **⚠️ Wichtig:** API Gateway HTTP API (v2) wird von WAF NICHT unterstützt! Nur REST API (v1), ALB, und CloudFront.
 
-**OverCloud-Architektur:** Da OverCloud API Gateway HTTP API (v2) verwendet, schützen wir sowohl Frontend als auch Backend über CloudFront WAF:
+**StackVertex-Architektur:** Da StackVertex API Gateway HTTP API (v2) verwendet, schützen wir sowohl Frontend als auch Backend über CloudFront WAF:
 
 ```
 ┌───────────────────────────────────────────────────────┐
@@ -157,7 +157,7 @@ Total (Production):               ~$19-22/month
 module "waf" {
   source = "../../modules/waf"
 
-  project_name = "overcloud"
+  project_name = "stackvertex"
   environment  = "prod"
 
   # Enable both CloudFront + Regional WAF
@@ -191,7 +191,7 @@ module "waf" {
 module "waf" {
   source = "../../modules/waf"
 
-  project_name = "overcloud"
+  project_name = "stackvertex"
   environment  = "staging"
 
   enable_cloudfront_waf = true
@@ -247,7 +247,7 @@ waf_security_summary    # Enabled features overview
 - **Action:** SNS Notification an Critical Alerts Topic
 
 ### CloudWatch Logs
-- **Location:** `/aws/wafv2/overcloud-{environment}`
+- **Location:** `/aws/wafv2/stackvertex-{environment}`
 - **Retention:** 90 Tage (Prod), 14 Tage (Staging)
 - **Redacted Fields:**
   - `authorization` Header (GDPR-konform)
@@ -260,7 +260,7 @@ Wenn legitime Requests blockiert werden:
 
 1. **CloudWatch Logs prüfen:**
    ```bash
-   aws logs tail /aws/wafv2/overcloud-prod --follow
+   aws logs tail /aws/wafv2/stackvertex-prod --follow
    ```
 
 2. **Blockierte Rule identifizieren:**
@@ -296,7 +296,7 @@ allowed_countries = ["DE", "AT", "CH", "FR", "NL", "BE", "IT", "ES", "GB", "US",
 ```bash
 # 100 Requests in kurzer Zeit senden (sollte geblockt werden)
 for i in {1..100}; do
-  curl -i https://staging.overcloud.io/api/health
+  curl -i https://staging.stackvertex.io/api/health
   sleep 0.1
 done
 ```
@@ -306,14 +306,14 @@ done
 ### 2. Geo-Blocking Test (wenn enabled)
 ```bash
 # Request von blockiertem Land simulieren (mit Proxy/VPN)
-curl -i https://prod.overcloud.io -x socks5://russia-proxy:1080
+curl -i https://prod.stackvertex.io -x socks5://russia-proxy:1080
 ```
 
 **Erwartetes Ergebnis:** HTTP 403 (Forbidden)
 
 ### 3. SQLi-Test (sollte geblockt werden)
 ```bash
-curl -i "https://staging.overcloud.io/api/users?id=1' OR '1'='1"
+curl -i "https://staging.stackvertex.io/api/users?id=1' OR '1'='1"
 ```
 
 **Erwartetes Ergebnis:** HTTP 403 (Forbidden) durch AWS Managed Rules

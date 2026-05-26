@@ -25,22 +25,22 @@
 
 **und**
 
-**OverCloud GmbH** (oder Einzelunternehmen Andy Schwarz)  
+**StackVertex GmbH** (oder Einzelunternehmen Andy Schwarz)  
 [Adresse]  
 Deutschland  
-E-Mail: legal@overcloud.io  
-(nachfolgend "**Auftragsverarbeiter**" oder "**OverCloud**")
+E-Mail: legal@stackvertex.io  
+(nachfolgend "**Auftragsverarbeiter**" oder "**StackVertex**")
 
 ---
 
 ## Präambel
 
-Dieser Auftragsverarbeitungsvertrag (Data Processing Agreement, "**DPA**") regelt die Verarbeitung personenbezogener Daten durch OverCloud im Auftrag des Kunden gemäß Art. 28 der Datenschutz-Grundverordnung (DSGVO).
+Dieser Auftragsverarbeitungsvertrag (Data Processing Agreement, "**DPA**") regelt die Verarbeitung personenbezogener Daten durch StackVertex im Auftrag des Kunden gemäß Art. 28 der Datenschutz-Grundverordnung (DSGVO).
 
 Dieser DPA ist Bestandteil des Hauptvertrags zwischen den Parteien (nachfolgend "**Hauptvertrag**"):
 - Vertrag: [{VERTRAG NAME/NUMMER}]
 - Datum: [{VERTRAGSDATUM}]
-- Gegenstand: Nutzung der OverCloud Platform für Cloud-Infrastruktur-Management
+- Gegenstand: Nutzung der StackVertex Platform für Cloud-Infrastruktur-Management
 
 ---
 
@@ -48,9 +48,9 @@ Dieser DPA ist Bestandteil des Hauptvertrags zwischen den Parteien (nachfolgend 
 
 **1.1** Begriffe wie "personenbezogene Daten", "Verarbeitung", "Verantwortlicher", "Auftragsverarbeiter" und "betroffene Person" haben die Bedeutung gemäß Art. 4 DSGVO.
 
-**1.2** "**Unterkauftragsverarbeiter**" bezeichnet jeden von OverCloud beauftragten Dritten, der personenbezogene Daten im Auftrag des Kunden verarbeitet.
+**1.2** "**Unterkauftragsverarbeiter**" bezeichnet jeden von StackVertex beauftragten Dritten, der personenbezogene Daten im Auftrag des Kunden verarbeitet.
 
-**1.3** "**OverCloud Platform**" bezeichnet die SaaS-Plattform zur Verwaltung von Cloud-Infrastruktur, gehostet unter app.overcloud.io.
+**1.3** "**StackVertex Platform**" bezeichnet die SaaS-Plattform zur Verwaltung von Cloud-Infrastruktur, gehostet unter app.stackvertex.io.
 
 ---
 
@@ -58,7 +58,7 @@ Dieser DPA ist Bestandteil des Hauptvertrags zwischen den Parteien (nachfolgend 
 
 **2.1 Gegenstand**
 
-OverCloud verarbeitet personenbezogene Daten im Auftrag des Kunden ausschließlich zum Zweck der Bereitstellung der OverCloud Platform gemäß Hauptvertrag.
+StackVertex verarbeitet personenbezogene Daten im Auftrag des Kunden ausschließlich zum Zweck der Bereitstellung der StackVertex Platform gemäß Hauptvertrag.
 
 **2.2 Dauer**
 
@@ -66,7 +66,7 @@ Dieser DPA tritt mit Wirksamkeit des Hauptvertrags in Kraft und endet mit Beendi
 
 **2.3 Art der Daten**
 
-OverCloud verarbeitet folgende Kategorien personenbezogener Daten:
+StackVertex verarbeitet folgende Kategorien personenbezogener Daten:
 
 - **Benutzerdaten:**
   - E-Mail-Adresse (für Account-Erstellung)
@@ -92,7 +92,7 @@ OverCloud verarbeitet folgende Kategorien personenbezogener Daten:
 
 **2.5 Zweck der Verarbeitung**
 
-- Bereitstellung der OverCloud Platform (SaaS)
+- Bereitstellung der StackVertex Platform (SaaS)
 - Authentifizierung und Autorisierung
 - Technischer Support
 - Sicherheitsüberwachung (Incident Detection)
@@ -102,12 +102,12 @@ OverCloud verarbeitet folgende Kategorien personenbezogener Daten:
 
 ## 3. Weisungsgebundenheit
 
-**3.1** OverCloud verarbeitet personenbezogene Daten ausschließlich auf dokumentierte Weisung des Kunden. Die Weisung erfolgt durch:
+**3.1** StackVertex verarbeitet personenbezogene Daten ausschließlich auf dokumentierte Weisung des Kunden. Die Weisung erfolgt durch:
 - Diesen DPA und den Hauptvertrag
-- Nutzung der OverCloud Platform durch den Kunden
-- Schriftliche Anweisungen per E-Mail an support@overcloud.io
+- Nutzung der StackVertex Platform durch den Kunden
+- Schriftliche Anweisungen per E-Mail an support@stackvertex.io
 
-**3.2** OverCloud informiert den Kunden unverzüglich, wenn eine Weisung nach Auffassung von OverCloud gegen die DSGVO oder andere Datenschutzvorschriften verstößt.
+**3.2** StackVertex informiert den Kunden unverzüglich, wenn eine Weisung nach Auffassung von StackVertex gegen die DSGVO oder andere Datenschutzvorschriften verstößt.
 
 **3.3** Weisungen, die über den Hauptvertrag und diesen DPA hinausgehen, bedürfen einer gesonderten schriftlichen Vereinbarung und können zusätzliche Kosten verursachen.
 
@@ -115,9 +115,9 @@ OverCloud verarbeitet folgende Kategorien personenbezogener Daten:
 
 ## 4. Vertraulichkeit
 
-**4.1** OverCloud stellt sicher, dass alle Personen, die Zugang zu personenbezogenen Daten haben, zur Vertraulichkeit verpflichtet sind.
+**4.1** StackVertex stellt sicher, dass alle Personen, die Zugang zu personenbezogenen Daten haben, zur Vertraulichkeit verpflichtet sind.
 
-**4.2** Mitarbeiter von OverCloud unterzeichnen Vertraulichkeitsvereinbarungen (NDAs) vor Zugriff auf Kundendaten.
+**4.2** Mitarbeiter von StackVertex unterzeichnen Vertraulichkeitsvereinbarungen (NDAs) vor Zugriff auf Kundendaten.
 
 **4.3** Die Verpflichtung zur Vertraulichkeit besteht auch nach Beendigung dieses DPA fort.
 
@@ -125,11 +125,11 @@ OverCloud verarbeitet folgende Kategorien personenbezogener Daten:
 
 ## 5. Technische und organisatorische Maßnahmen (TOM)
 
-**5.1** OverCloud trifft technische und organisatorische Maßnahmen gemäß Art. 32 DSGVO, um ein dem Risiko angemessenes Schutzniveau zu gewährleisten.
+**5.1** StackVertex trifft technische und organisatorische Maßnahmen gemäß Art. 32 DSGVO, um ein dem Risiko angemessenes Schutzniveau zu gewährleisten.
 
 **5.2** Die aktuellen TOMs sind in **Anhang A** dieses DPA aufgeführt.
 
-**5.3** OverCloud behält sich das Recht vor, die TOMs anzupassen, solange das Schutzniveau nicht unterschritten wird. Wesentliche Änderungen werden dem Kunden vorab mitgeteilt.
+**5.3** StackVertex behält sich das Recht vor, die TOMs anzupassen, solange das Schutzniveau nicht unterschritten wird. Wesentliche Änderungen werden dem Kunden vorab mitgeteilt.
 
 ---
 
@@ -137,25 +137,25 @@ OverCloud verarbeitet folgende Kategorien personenbezogener Daten:
 
 **6.1 Genehmigung**
 
-Der Kunde erteilt OverCloud hiermit die generelle Genehmigung, Unterauftragsverarbeiter einzusetzen. Die aktuelle Liste ist in **Anhang B** aufgeführt.
+Der Kunde erteilt StackVertex hiermit die generelle Genehmigung, Unterauftragsverarbeiter einzusetzen. Die aktuelle Liste ist in **Anhang B** aufgeführt.
 
 **6.2 Informationspflicht**
 
-OverCloud informiert den Kunden mindestens 30 Tage vor Beauftragung eines neuen oder Austausch eines bestehenden Unterauftragsverarbeiters per E-Mail.
+StackVertex informiert den Kunden mindestens 30 Tage vor Beauftragung eines neuen oder Austausch eines bestehenden Unterauftragsverarbeiters per E-Mail.
 
 **6.3 Widerspruchsrecht**
 
 Der Kunde kann innerhalb von 14 Tagen nach Benachrichtigung Widerspruch erheben, wenn berechtigte datenschutzrechtliche Gründe vorliegen. In diesem Fall:
-- OverCloud sucht nach einer zumutbaren Alternative, oder
+- StackVertex sucht nach einer zumutbaren Alternative, oder
 - Der Kunde kann den Hauptvertrag außerordentlich kündigen.
 
 **6.4 Vertragliche Bindung**
 
-OverCloud verpflichtet Unterauftragsverarbeiter vertraglich zu denselben Datenschutzpflichten wie in diesem DPA.
+StackVertex verpflichtet Unterauftragsverarbeiter vertraglich zu denselben Datenschutzpflichten wie in diesem DPA.
 
 **6.5 Haftung**
 
-OverCloud haftet gegenüber dem Kunden für die Einhaltung der Datenschutzpflichten durch Unterauftragsverarbeiter.
+StackVertex haftet gegenüber dem Kunden für die Einhaltung der Datenschutzpflichten durch Unterauftragsverarbeiter.
 
 ---
 
@@ -163,7 +163,7 @@ OverCloud haftet gegenüber dem Kunden für die Einhaltung der Datenschutzpflich
 
 **7.1 Unterstützung**
 
-OverCloud unterstützt den Kunden bei der Erfüllung von Anfragen betroffener Personen (Art. 15-22 DSGVO):
+StackVertex unterstützt den Kunden bei der Erfüllung von Anfragen betroffener Personen (Art. 15-22 DSGVO):
 - Auskunft (Art. 15)
 - Berichtigung (Art. 16)
 - Löschung (Art. 17)
@@ -173,14 +173,14 @@ OverCloud unterstützt den Kunden bei der Erfüllung von Anfragen betroffener Pe
 
 **7.2 Bereitstellung von Daten**
 
-OverCloud stellt dem Kunden über die OverCloud Platform Tools zur Verfügung:
+StackVertex stellt dem Kunden über die StackVertex Platform Tools zur Verfügung:
 - **Datenexport:** `/api/v1/dsgvo/data-export` (JSON, CSV, PDF)
 - **Datenlöschung:** `/api/v1/dsgvo/data-deletion`
 - **Datenberichtigung:** Über UI oder API
 
 **7.3 Bearbeitungszeit**
 
-OverCloud bearbeitet Anfragen innerhalb von 5 Werktagen nach Erhalt der Weisung des Kunden.
+StackVertex bearbeitet Anfragen innerhalb von 5 Werktagen nach Erhalt der Weisung des Kunden.
 
 **7.4 Zusätzliche Kosten**
 
@@ -190,9 +190,9 @@ Anfragen, die über die im Hauptvertrag vereinbarten Leistungen hinausgehen, kö
 
 ## 8. Datenschutz-Folgenabschätzung und vorherige Konsultation
 
-**8.1** OverCloud unterstützt den Kunden bei der Durchführung einer Datenschutz-Folgenabschätzung (Art. 35 DSGVO), sofern erforderlich.
+**8.1** StackVertex unterstützt den Kunden bei der Durchführung einer Datenschutz-Folgenabschätzung (Art. 35 DSGVO), sofern erforderlich.
 
-**8.2** OverCloud stellt dem Kunden auf Anfrage Informationen zur Verfügung über:
+**8.2** StackVertex stellt dem Kunden auf Anfrage Informationen zur Verfügung über:
 - Art der verarbeiteten Daten
 - Technische und organisatorische Maßnahmen
 - Risiken für betroffene Personen
@@ -206,7 +206,7 @@ Anfragen, die über die im Hauptvertrag vereinbarten Leistungen hinausgehen, kö
 
 **9.1 Sicherheitsmaßnahmen**
 
-OverCloud implementiert angemessene technische und organisatorische Maßnahmen (siehe Anhang A), einschließlich:
+StackVertex implementiert angemessene technische und organisatorische Maßnahmen (siehe Anhang A), einschließlich:
 - Verschlüsselung im Ruhezustand (AES-256)
 - Verschlüsselung bei Übertragung (TLS 1.3)
 - Multi-Faktor-Authentifizierung (MFA)
@@ -215,7 +215,7 @@ OverCloud implementiert angemessene technische und organisatorische Maßnahmen (
 
 **9.2 Meldung von Datenschutzverletzungen**
 
-OverCloud meldet dem Kunden Verletzungen des Schutzes personenbezogener Daten unverzüglich, spätestens jedoch innerhalb von **48 Stunden** nach Kenntniserlangung.
+StackVertex meldet dem Kunden Verletzungen des Schutzes personenbezogener Daten unverzüglich, spätestens jedoch innerhalb von **48 Stunden** nach Kenntniserlangung.
 
 **9.3 Informationen bei Datenschutzverletzungen**
 
@@ -227,7 +227,7 @@ Die Meldung enthält mindestens:
 
 **9.4 Unterstützung bei Meldepflichten**
 
-OverCloud unterstützt den Kunden bei der Meldung an die Aufsichtsbehörde (Art. 33 DSGVO) und Benachrichtigung betroffener Personen (Art. 34 DSGVO).
+StackVertex unterstützt den Kunden bei der Meldung an die Aufsichtsbehörde (Art. 33 DSGVO) und Benachrichtigung betroffener Personen (Art. 34 DSGVO).
 
 ---
 
@@ -235,7 +235,7 @@ OverCloud unterstützt den Kunden bei der Meldung an die Aufsichtsbehörde (Art.
 
 **10.1 Bei Vertragsende**
 
-Nach Beendigung des Hauptvertrags löscht oder gibt OverCloud nach Wahl des Kunden alle personenbezogenen Daten zurück und löscht vorhandene Kopien, sofern nicht:
+Nach Beendigung des Hauptvertrags löscht oder gibt StackVertex nach Wahl des Kunden alle personenbezogenen Daten zurück und löscht vorhandene Kopien, sofern nicht:
 - Eine gesetzliche Aufbewahrungspflicht besteht (z.B. Rechnungsdaten: 10 Jahre)
 - Die Daten anonymisiert wurden (keine personenbezogenen Daten mehr)
 
@@ -245,7 +245,7 @@ Die Löschung erfolgt innerhalb von **30 Tagen** nach Vertragsende.
 
 **10.3 Bestätigung**
 
-OverCloud bestätigt dem Kunden schriftlich die vollständige Löschung oder Rückgabe.
+StackVertex bestätigt dem Kunden schriftlich die vollständige Löschung oder Rückgabe.
 
 **10.4 Ausnahmen**
 
@@ -257,11 +257,11 @@ Daten, die zur Erfüllung gesetzlicher Aufbewahrungspflichten erforderlich sind,
 
 **11.1 Audits**
 
-Der Kunde hat das Recht, die Einhaltung dieses DPA durch OverCloud zu überprüfen, einschließlich Inspektionen vor Ort.
+Der Kunde hat das Recht, die Einhaltung dieses DPA durch StackVertex zu überprüfen, einschließlich Inspektionen vor Ort.
 
 **11.2 Informationsbereitstellung**
 
-OverCloud stellt dem Kunden auf Anfrage folgende Nachweise zur Verfügung:
+StackVertex stellt dem Kunden auf Anfrage folgende Nachweise zur Verfügung:
 - Aktuelle TOMs (Anhang A)
 - Zertifizierungen (ISO 27001, SOC 2)
 - Ergebnisse externer Audits (nach Unterzeichnung NDA)
@@ -287,15 +287,15 @@ Vor-Ort-Inspektionen erfordern:
 
 **12.1 Haftung gegenüber betroffenen Personen**
 
-Gemäß Art. 82 DSGVO haftet OverCloud gegenüber betroffenen Personen für Schäden aus DSGVO-Verstößen, soweit OverCloud seine Pflichten nicht eingehalten hat.
+Gemäß Art. 82 DSGVO haftet StackVertex gegenüber betroffenen Personen für Schäden aus DSGVO-Verstößen, soweit StackVertex seine Pflichten nicht eingehalten hat.
 
 **12.2 Haftung gegenüber Kunde**
 
-Die Haftung von OverCloud gegenüber dem Kunden ist auf den im Hauptvertrag vereinbarten Haftungsumfang beschränkt.
+Die Haftung von StackVertex gegenüber dem Kunden ist auf den im Hauptvertrag vereinbarten Haftungsumfang beschränkt.
 
 **12.3 Freistellung**
 
-OverCloud stellt den Kunden von Ansprüchen betroffener Personen frei, soweit die Ansprüche auf einer Pflichtverletzung durch OverCloud beruhen.
+StackVertex stellt den Kunden von Ansprüchen betroffener Personen frei, soweit die Ansprüche auf einer Pflichtverletzung durch StackVertex beruhen.
 
 ---
 
@@ -303,7 +303,7 @@ OverCloud stellt den Kunden von Ansprüchen betroffener Personen frei, soweit di
 
 **13.1 Standort der Datenverarbeitung**
 
-OverCloud verarbeitet personenbezogene Daten ausschließlich in der Europäischen Union (EU):
+StackVertex verarbeitet personenbezogene Daten ausschließlich in der Europäischen Union (EU):
 - **Primärer Standort:** Deutschland (Frankfurt, AWS eu-central-1)
 - **Disaster Recovery:** Irland (Dublin, AWS eu-west-1)
 
@@ -322,7 +322,7 @@ Der Kunde kann einer Datenübermittlung in ein Drittland widersprechen (siehe Ab
 
 ## 14. Änderungen des DPA
 
-**14.1** OverCloud kann diesen DPA ändern, um:
+**14.1** StackVertex kann diesen DPA ändern, um:
 - Rechtliche Anforderungen zu erfüllen (DSGVO-Änderungen, neue Gesetze)
 - Technische oder organisatorische Verbesserungen umzusetzen
 - Klarstellungen vorzunehmen
@@ -370,7 +370,7 @@ Position: [{KUNDE POSITION}]
 Datum: [{DATUM}]  
 Unterschrift: _________________
 
-**Für den Auftragsverarbeiter (OverCloud):**
+**Für den Auftragsverarbeiter (StackVertex):**
 
 Name: Andy Schwarz  
 Position: CEO & Data Protection Officer  
@@ -384,7 +384,7 @@ Unterschrift: _________________
 ### 1. Zutrittskontrolle (Physischer Zugang)
 
 **Maßnahmen:**
-- OverCloud betreibt keine eigenen Rechenzentren (100% Cloud-basiert)
+- StackVertex betreibt keine eigenen Rechenzentren (100% Cloud-basiert)
 - Physischer Zugang wird von AWS kontrolliert (siehe AWS SOC 2 Report)
 - AWS-Rechenzentren:
   - Biometrische Zugangskontrollen
@@ -527,7 +527,7 @@ Unterschrift: _________________
 ### 10. Datenschutz-Management
 
 **Maßnahmen:**
-- **Data Protection Officer (DPO):** Andy Schwarz (dpo@overcloud.io)
+- **Data Protection Officer (DPO):** Andy Schwarz (dpo@stackvertex.io)
 - **ISMS Policy:** ISO 27001 konform
 - **Security Awareness Training:** Jährlich für alle Mitarbeiter
 - **Incident Response Plan:** Dokumentiert, getestet halbjährlich
@@ -572,7 +572,7 @@ Unterschrift: _________________
 - Änderungen dieser Liste werden dem Kunden 30 Tage im Voraus mitgeteilt (siehe Abschnitt 6.2).
 
 **Aktualisierungen:**
-Diese Liste wird aktualisiert unter: https://overcloud.io/legal/subprocessors
+Diese Liste wird aktualisiert unter: https://stackvertex.io/legal/subprocessors
 
 ---
 
@@ -582,7 +582,7 @@ Diese Liste wird aktualisiert unter: https://overcloud.io/legal/subprocessors
 
 ## Anleitung zur Verwendung
 
-### Für OverCloud Team:
+### Für StackVertex Team:
 
 1. **Kundengespräch:** Vor Vertragsabschluss DPA mit Kunde besprechen
 2. **Anpassung:** Platzhalter [{PLACEHOLDER}] durch kundenspezifische Daten ersetzen

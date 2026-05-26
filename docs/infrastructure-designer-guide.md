@@ -552,7 +552,7 @@ provider "aws" {
     tags = {
       Project     = "production"
       Environment = var.environment
-      ManagedBy   = "OverCloud"
+      ManagedBy   = "StackVertex"
     }
   }
 }

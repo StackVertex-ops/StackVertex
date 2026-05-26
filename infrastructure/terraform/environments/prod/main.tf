@@ -1,4 +1,4 @@
-# OverCloud Production Environment
+# StackVertex Production Environment
 # High-availability, secure, production-ready deployment
 
 terraform {
@@ -20,7 +20,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "OverCloud"
+      Project     = "StackVertex"
       ManagedBy   = "Terraform"
       Environment = "production"
       CostCenter  = "Platform"
@@ -35,7 +35,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "OverCloud"
+      Project     = "StackVertex"
       ManagedBy   = "Terraform"
       Environment = "production-dr"
       CostCenter  = "Platform"
@@ -285,7 +285,7 @@ module "backup" {
 
 # WAF Module - Web Application Firewall & DDoS Protection
 # Prod: Maximum protection - All features enabled
-# Note: OverCloud uses API Gateway HTTP API (v2) which is NOT compatible with WAF.
+# Note: StackVertex uses API Gateway HTTP API (v2) which is NOT compatible with WAF.
 #       Instead, we protect both frontend AND backend via CloudFront WAF by routing
 #       API traffic through CloudFront (e.g., /api/* origin to API Gateway).
 module "waf" {

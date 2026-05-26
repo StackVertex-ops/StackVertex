@@ -1,5 +1,5 @@
 /**
- * OverCloud - Auth API Client
+ * StackVertex - Auth API Client
  *
  * Handles authentication-related API calls.
  */

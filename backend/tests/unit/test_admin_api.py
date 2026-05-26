@@ -42,7 +42,7 @@ def superadmin_user():
     """Mock SuperAdmin user."""
     return {
         "id": str(uuid4()),
-        "email": "admin@overcloud.io",
+        "email": "admin@stackvertex.io",
         "name": "Super Admin",
         "system_role": SystemRole.SUPERADMIN.value,
         "status": UserStatus.ACTIVE.value,
@@ -375,7 +375,7 @@ async def test_get_audit_logs_as_auditor(mock_audit_repo):
     # Setup
     auditor_user = {
         "id": str(uuid4()),
-        "email": "auditor@overcloud.io",
+        "email": "auditor@stackvertex.io",
         "system_role": SystemRole.AUDITOR.value,
     }
     logs = []

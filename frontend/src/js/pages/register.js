@@ -1,5 +1,5 @@
 /**
- * OverCloud - Register Page
+ * StackVertex - Register Page
  *
  * Handles user registration.
  */

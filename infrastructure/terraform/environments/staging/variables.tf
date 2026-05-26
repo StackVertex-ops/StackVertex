@@ -3,7 +3,7 @@
 variable "project_name" {
   description = "Project name"
   type        = string
-  default     = "overcloud"
+  default     = "stackvertex"
 }
 
 variable "environment" {
@@ -29,13 +29,13 @@ variable "vpc_cidr" {
 variable "database_name" {
   description = "Database name"
   type        = string
-  default     = "overcloud"
+  default     = "stackvertex"
 }
 
 variable "db_master_username" {
   description = "Database master username"
   type        = string
-  default     = "overcloud_admin"
+  default     = "stackvertex_admin"
   sensitive   = true
 }
 
@@ -81,5 +81,5 @@ variable "slack_webhook_url" {
 variable "cors_origins" {
   description = "Allowed CORS origins for API"
   type        = string
-  default     = "https://staging.overcloud.example.com" # Staging Frontend URL
+  default     = "https://staging.stackvertex.example.com" # Staging Frontend URL
 }

@@ -89,7 +89,7 @@ class TerraformGenerator:
         metadata = architecture_json.get("metadata", {})
         provider = metadata.get("provider", "aws")
         region = metadata.get("region", "us-east-1")
-        project_name = metadata.get("name", "overcloud-project")
+        project_name = metadata.get("name", "stackvertex-project")
 
         logger.info(f"Provider: {provider}, Region: {region}, Project: {project_name}")
 
@@ -227,7 +227,7 @@ class TerraformGenerator:
             "project_name",
             type_="string",
             description="Project name",
-            default=metadata.get("name", "overcloud-project")
+            default=metadata.get("name", "stackvertex-project")
         )
 
         self.builder.add_variable(

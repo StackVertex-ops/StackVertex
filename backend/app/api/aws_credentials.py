@@ -39,7 +39,7 @@ class CreateCredentialRequest(BaseModel):
             "example": {
                 "name": "Production AWS Account",
                 "credential_type": "assume_role",
-                "role_arn": "arn:aws:iam::123456789012:role/OverCloudDeploymentRole",
+                "role_arn": "arn:aws:iam::123456789012:role/StackVertexDeploymentRole",
                 "external_id": "unique-external-id-123",
                 "region": "us-east-1"
             }
@@ -257,14 +257,14 @@ async def get_setup_guide():
 ### 1. IAM Role in Ihrem AWS Account erstellen
 
 ```bash
-# Ersetzen Sie {OverCloudAccountID} mit der OverCloud Account ID
-aws iam create-role --role-name OverCloudDeploymentRole \\
+# Ersetzen Sie {StackVertexAccountID} mit der StackVertex Account ID
+aws iam create-role --role-name StackVertexDeploymentRole \\
   --assume-role-policy-document '{
     "Version": "2012-10-17",
     "Statement": [{
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::{OverCloudAccountID}:root"
+        "AWS": "arn:aws:iam::{StackVertexAccountID}:root"
       },
       "Action": "sts:AssumeRole",
       "Condition": {
@@ -280,19 +280,19 @@ aws iam create-role --role-name OverCloudDeploymentRole \\
 
 ```bash
 # EC2, S3, VPC Permissions
-aws iam attach-role-policy --role-name OverCloudDeploymentRole \\
+aws iam attach-role-policy --role-name StackVertexDeploymentRole \\
   --policy-arn arn:aws:iam::aws:policy/AmazonEC2FullAccess
 
-aws iam attach-role-policy --role-name OverCloudDeploymentRole \\
+aws iam attach-role-policy --role-name StackVertexDeploymentRole \\
   --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
 
-aws iam attach-role-policy --role-name OverCloudDeploymentRole \\
+aws iam attach-role-policy --role-name StackVertexDeploymentRole \\
   --policy-arn arn:aws:iam::aws:policy/AmazonVPCFullAccess
 ```
 
-### 3. In OverCloud eintragen
+### 3. In StackVertex eintragen
 
-- **Role ARN**: `arn:aws:iam::123456789012:role/OverCloudDeploymentRole`
+- **Role ARN**: `arn:aws:iam::123456789012:role/StackVertexDeploymentRole`
 - **External ID**: Ihr unique External ID
 - **Region**: `us-east-1` (oder Ihre bevorzugte Region)
 
@@ -305,7 +305,7 @@ aws iam attach-role-policy --role-name OverCloudDeploymentRole \\
 ### 1. IAM User erstellen
 
 ```bash
-aws iam create-user --user-name overcloud-deployer
+aws iam create-user --user-name stackvertex-deployer
 ```
 
 ### 2. Policies anhängen (siehe oben)
@@ -313,10 +313,10 @@ aws iam create-user --user-name overcloud-deployer
 ### 3. Access Keys erstellen
 
 ```bash
-aws iam create-access-key --user-name overcloud-deployer
+aws iam create-access-key --user-name stackvertex-deployer
 ```
 
-### 4. In OverCloud eintragen
+### 4. In StackVertex eintragen
 
 - **Access Key ID**: `AKIA...`
 - **Secret Access Key**: `...`

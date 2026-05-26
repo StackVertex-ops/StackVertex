@@ -56,21 +56,21 @@ def setup_faqs(faq_repository, setup_categories):
         # Published FAQs
         {
             "category": "general",
-            "question": "Was ist OverCloud?",
-            "answer": "OverCloud ist eine Multi-Cloud Platform.",
+            "question": "Was ist StackVertex?",
+            "answer": "StackVertex ist eine Multi-Cloud Platform.",
             "sort_order": 0,
             "status": "published",
         },
         {
             "category": "general",
-            "question": "Wie funktioniert OverCloud?",
-            "answer": "OverCloud verwendet JSON-basierte Architektur-Definitionen.",
+            "question": "Wie funktioniert StackVertex?",
+            "answer": "StackVertex verwendet JSON-basierte Architektur-Definitionen.",
             "sort_order": 1,
             "status": "published",
         },
         {
             "category": "pricing",
-            "question": "Wie viel kostet OverCloud?",
+            "question": "Wie viel kostet StackVertex?",
             "answer": "Pricing starts at $10/month. Contact us for details.",
             "sort_order": 0,
             "status": "published",
@@ -133,7 +133,7 @@ def test_get_public_faqs_by_category(faq_service, setup_faqs):
     assert "faqs" in result
     assert len(result["faqs"]) == 1
     assert result["total"] == 1
-    assert result["faqs"][0]["question"] == "Wie viel kostet OverCloud?"
+    assert result["faqs"][0]["question"] == "Wie viel kostet StackVertex?"
 
 
 def test_get_public_faqs_excludes_drafts(faq_service, setup_faqs):
@@ -152,13 +152,13 @@ def test_get_public_faqs_excludes_drafts(faq_service, setup_faqs):
 
 def test_search_faqs_by_question(faq_service, setup_faqs):
     """Test: Suche in FAQ-Frage."""
-    results = faq_service.search_faqs(query="OverCloud")
+    results = faq_service.search_faqs(query="StackVertex")
 
-    # Sollte mindestens 2 FAQs finden (beide mit "OverCloud" in der Frage)
+    # Sollte mindestens 2 FAQs finden (beide mit "StackVertex" in der Frage)
     assert len(results) >= 2
     questions = [faq["question"] for faq in results]
-    assert "Was ist OverCloud?" in questions
-    assert "Wie viel kostet OverCloud?" in questions
+    assert "Was ist StackVertex?" in questions
+    assert "Wie viel kostet StackVertex?" in questions
 
 
 def test_search_faqs_by_answer(faq_service, setup_faqs):
@@ -173,9 +173,9 @@ def test_search_faqs_by_answer(faq_service, setup_faqs):
 def test_search_faqs_case_insensitive(faq_service, setup_faqs):
     """Test: Suche ist case-insensitive."""
     # Suche mit verschiedenen Cases
-    results_lower = faq_service.search_faqs(query="overcloud")
+    results_lower = faq_service.search_faqs(query="stackvertex")
     results_upper = faq_service.search_faqs(query="OVERCLOUD")
-    results_mixed = faq_service.search_faqs(query="OverCloud")
+    results_mixed = faq_service.search_faqs(query="StackVertex")
 
     # Sollten alle gleich viele Ergebnisse liefern
     assert len(results_lower) == len(results_upper)
@@ -292,14 +292,14 @@ def test_create_faq_admin(faq_service, faq_repository):
     faq = faq_service.create_faq(
         admin_id="admin_user_1",
         category="security",
-        question="Ist OverCloud sicher?",
+        question="Ist StackVertex sicher?",
         answer="Ja, mit End-to-End-Verschlüsselung.",
         status="published",
         sort_order=0,
     )
 
     assert faq is not None
-    assert faq["question"] == "Ist OverCloud sicher?"
+    assert faq["question"] == "Ist StackVertex sicher?"
     assert faq["status"] == "published"
     assert faq["created_by"] == "admin_user_1"
 

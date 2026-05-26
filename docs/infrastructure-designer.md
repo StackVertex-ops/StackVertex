@@ -271,19 +271,19 @@ CLI wird Terraform direkt generieren ohne UI.
 grep -r "VPC" docs/
 
 # Online
-https://docs.overcloud.io/search?q=vpc
+https://docs.stackvertex.io/search?q=vpc
 ```
 
 ### GitHub Issues
 Fehler gefunden? Feature Request?  
-**[→ GitHub Issues](https://github.com/overcloud/overcloud/issues)**
+**[→ GitHub Issues](https://github.com/stackvertex/stackvertex/issues)**
 
 ### Discord Community
 Fragen? Diskussionen?  
-**[→ Join Discord](https://discord.gg/overcloud)**
+**[→ Join Discord](https://discord.gg/stackvertex)**
 
 ### Support E-Mail
-**support@overcloud.io**
+**support@stackvertex.io**
 
 ---
 
@@ -308,8 +308,8 @@ Fragen? Diskussionen?
 
 ## Lizenz
 
-**OverCloud Infrastructure Designer**  
-© 2026 OverCloud  
+**StackVertex Infrastructure Designer**  
+© 2026 StackVertex  
 Lizenz: MIT
 
 Siehe [LICENSE](../LICENSE) für Details.

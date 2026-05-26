@@ -396,7 +396,7 @@ async def anonymize_user_data(user_id: UUID, audit_log_repo: AuditLogRepository)
 async def _delete_s3_customer_data(user_id: str):
     """Delete all S3 objects for user"""
     # TODO: Implement S3 deletion
-    # bucket_name = f"overcloud-customer-data"
+    # bucket_name = f"stackvertex-customer-data"
     # prefix = f"users/{user_id}/"
     # S3Client.delete_objects(bucket_name, prefix)
     pass

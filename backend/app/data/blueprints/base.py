@@ -1,7 +1,7 @@
 """
 Blueprint Base Models
 
-Definiert die Basisklassen für alle OverCloud Blueprints.
+Definiert die Basisklassen für alle StackVertex Blueprints.
 Blueprints sind vorkonfigurierte Architektur-Templates mit realistischen Use Cases.
 """
 

@@ -90,7 +90,7 @@ def setup_logging(
             import watchtower
 
             cloudwatch_handler = watchtower.CloudWatchLogHandler(
-                log_group_name="/overcloud/backend",
+                log_group_name="/stackvertex/backend",
                 stream_name=f"{environment}-api",
                 use_queues=True,  # Async logging
                 send_interval=10,  # Batch every 10 seconds

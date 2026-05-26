@@ -32,7 +32,7 @@ Der Code ist **vollständig integriert**:
 
 ### 2. Projekt erstellen
 - Platform: **Python / FastAPI**
-- Name: `overcloud-backend`
+- Name: `stackvertex-backend`
 
 ### 3. DSN kopieren
 - Format: `https://<key>@o0.ingest.sentry.io/<project-id>`

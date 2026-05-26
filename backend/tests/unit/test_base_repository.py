@@ -343,7 +343,7 @@ class TestBaseRepositoryS3Offload:
         s3_uri = base_repository._store_large_item(large_data, s3_key)
 
         assert s3_uri.startswith("s3://")
-        assert "overcloud-test-bucket" in s3_uri
+        assert "stackvertex-test-bucket" in s3_uri
         assert s3_key in s3_uri
 
     def test_load_large_item(self, base_repository):

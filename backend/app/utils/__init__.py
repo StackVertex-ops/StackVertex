@@ -1,1 +1,1 @@
-"""OverCloud Backend - Utility Functions."""
+"""StackVertex Backend - Utility Functions."""

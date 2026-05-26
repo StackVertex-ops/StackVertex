@@ -40,19 +40,19 @@ Enthält:
 
 ### Backend Tests
 ```bash
-cd /Users/andyschwarz/Documents/Privat/OverCloud/backend
+cd /Users/andyschwarz/Documents/Privat/StackVertex/backend
 ./test_designer_api.sh
 ```
 
 ### Frontend Tests
 ```bash
-cd /Users/andyschwarz/Documents/Privat/OverCloud/frontend
+cd /Users/andyschwarz/Documents/Privat/StackVertex/frontend
 ./test_infrastructure_designer.sh
 ```
 
 ### E2E Tests
 ```bash
-cd /Users/andyschwarz/Documents/Privat/OverCloud/frontend
+cd /Users/andyschwarz/Documents/Privat/StackVertex/frontend
 npx playwright test
 ```
 
@@ -61,13 +61,13 @@ npx playwright test
 ## Test-Scripts
 
 ### Backend
-- `/Users/andyschwarz/Documents/Privat/OverCloud/backend/test_designer_api.sh`
-- `/Users/andyschwarz/Documents/Privat/OverCloud/backend/tests/test_terraform_api.py`
-- `/Users/andyschwarz/Documents/Privat/OverCloud/backend/tests/test_cidr_api.py`
+- `/Users/andyschwarz/Documents/Privat/StackVertex/backend/test_designer_api.sh`
+- `/Users/andyschwarz/Documents/Privat/StackVertex/backend/tests/test_terraform_api.py`
+- `/Users/andyschwarz/Documents/Privat/StackVertex/backend/tests/test_cidr_api.py`
 
 ### Frontend
-- `/Users/andyschwarz/Documents/Privat/OverCloud/frontend/test_infrastructure_designer.sh`
-- `/Users/andyschwarz/Documents/Privat/OverCloud/frontend/tests/` (geplant)
+- `/Users/andyschwarz/Documents/Privat/StackVertex/frontend/test_infrastructure_designer.sh`
+- `/Users/andyschwarz/Documents/Privat/StackVertex/frontend/tests/` (geplant)
 
 ---
 

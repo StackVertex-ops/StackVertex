@@ -1,4 +1,4 @@
-# OverCloud - Testing Best Practices & Lessons Learned
+# StackVertex - Testing Best Practices & Lessons Learned
 
 > Dokumentation der wichtigsten Testing-Erkenntnisse aus der Test-Suite-Bereinigung (Mai 2026)
 

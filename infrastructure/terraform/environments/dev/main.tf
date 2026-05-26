@@ -1,4 +1,4 @@
-# OverCloud Dev Environment
+# StackVertex Dev Environment
 
 terraform {
   required_version = ">= 1.5.0"
@@ -19,7 +19,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "OverCloud"
+      Project     = "StackVertex"
       ManagedBy   = "Terraform"
       Environment = "dev"
     }

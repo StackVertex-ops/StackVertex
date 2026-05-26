@@ -1,4 +1,4 @@
-# OverCloud - Projekt-Struktur
+# StackVertex - Projekt-Struktur
 
 > Detaillierte Übersicht der Verzeichnisstruktur mit Erklärungen
 
@@ -7,7 +7,7 @@
 ## 📁 Root-Level
 
 ```
-OverCloud/
+StackVertex/
 ├── .claude/                 # Claude Code Konfiguration
 ├── .git/                    # Git repository (nach git init)
 ├── .gitignore              # Git ignore rules
@@ -248,7 +248,7 @@ tasks/
 
 ```
 infrastructure/
-├── terraform/              # Terraform for OverCloud platform itself
+├── terraform/              # Terraform for StackVertex platform itself
 │   ├── main.tf
 │   ├── variables.tf
 │   ├── outputs.tf
@@ -302,7 +302,7 @@ deployments/logs/
 
 ### Backend Development:
 ```bash
-cd /Users/andyschwarz/Documents/Privat/OverCloud/backend
+cd /Users/andyschwarz/Documents/Privat/StackVertex/backend
 
 # Activate venv
 poetry shell
@@ -316,7 +316,7 @@ poetry shell
 
 ### Frontend Development:
 ```bash
-cd /Users/andyschwarz/Documents/Privat/OverCloud/frontend
+cd /Users/andyschwarz/Documents/Privat/StackVertex/frontend
 
 # Start dev server
 npm run dev

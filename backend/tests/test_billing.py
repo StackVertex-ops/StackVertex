@@ -218,7 +218,7 @@ class TestAWSCostRepository:
         assert cost_record["month"] == "2026-05"
         # DynamoDB stores numbers as Decimal
         assert float(cost_record["total_aws_costs"]) == total_aws_costs
-        assert float(cost_record["overcloud_percentage_fee"]) == percentage_fee
+        assert float(cost_record["stackvertex_percentage_fee"]) == percentage_fee
 
         # Verify persistence
         retrieved = repo.get_monthly_costs(org_id, "2026-05")
@@ -236,7 +236,7 @@ class TestInvoiceRepository:
 
         line_items = [
             {
-                "description": "OverCloud PRO - Base Fee",
+                "description": "StackVertex PRO - Base Fee",
                 "amount": 50.00,
                 "currency": "EUR"
             },

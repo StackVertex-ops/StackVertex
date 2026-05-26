@@ -29,13 +29,13 @@ variable "postgres_version" {
 variable "database_name" {
   description = "Name of the database to create"
   type        = string
-  default     = "overcloud"
+  default     = "stackvertex"
 }
 
 variable "master_username" {
   description = "Master username for Aurora"
   type        = string
-  default     = "overcloud_admin"
+  default     = "stackvertex_admin"
   sensitive   = true
 }
 

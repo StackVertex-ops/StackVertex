@@ -13,18 +13,18 @@ Wir unterstützen derzeit folgende Versionen mit Security Updates:
 
 **BITTE KEINE ÖFFENTLICHEN GITHUB ISSUES FÜR SICHERHEITSLÜCKEN!**
 
-Wenn du eine Sicherheitslücke in OverCloud findest, melde sie bitte verantwortungsvoll:
+Wenn du eine Sicherheitslücke in StackVertex findest, melde sie bitte verantwortungsvoll:
 
 ### 1. Private Meldung
 
-Nutze GitHub's [Private Security Reporting](https://github.com/AndySchw/OverCloud/security/advisories/new):
+Nutze GitHub's [Private Security Reporting](https://github.com/AndySchw/StackVertex/security/advisories/new):
 - Gehe zu "Security" → "Advisories" → "New draft security advisory"
 - Beschreibe die Lücke detailliert
 - Füge PoC (Proof of Concept) hinzu falls möglich
 
 **Oder per E-Mail:**
 - An: schwarz23andy@gmail.com
-- Betreff: `[SECURITY] OverCloud Vulnerability Report`
+- Betreff: `[SECURITY] StackVertex Vulnerability Report`
 
 ### 2. Was gehört in den Report?
 
@@ -43,7 +43,7 @@ Nutze GitHub's [Private Security Reporting](https://github.com/AndySchw/OverClou
 
 ## Security Features
 
-OverCloud implementiert folgende Security Maßnahmen:
+StackVertex implementiert folgende Security Maßnahmen:
 
 ### 🔒 Authentication & Authorization
 - JWT-basierte Authentication
@@ -125,7 +125,7 @@ Wir veröffentlichen Security Updates:
 
 ## Responsible Disclosure Hall of Fame
 
-Danke an alle Security Researcher, die uns geholfen haben OverCloud sicherer zu machen:
+Danke an alle Security Researcher, die uns geholfen haben StackVertex sicherer zu machen:
 
 <!-- 
 - [Name] - [Vulnerability Type] - [Date]

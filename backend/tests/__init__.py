@@ -1,1 +1,1 @@
-"""Tests für OverCloud Backend."""
+"""Tests für StackVertex Backend."""

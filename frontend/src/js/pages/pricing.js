@@ -1,5 +1,5 @@
 /**
- * OverCloud - Hybrid Pricing Page
+ * StackVertex - Hybrid Pricing Page
  *
  * Displays hybrid pricing tiers (Base Fee + % AWS Costs) with interactive calculator.
  */

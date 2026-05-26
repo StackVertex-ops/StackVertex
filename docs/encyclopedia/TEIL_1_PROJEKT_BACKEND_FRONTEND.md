@@ -1,8 +1,8 @@
-# OverCloud Developer's Encyclopedia - Teil 1
+# StackVertex Developer's Encyclopedia - Teil 1
 
 **Version:** 1.0  
 **Datum:** 2026-05-16  
-**Zielgruppe:** Entwickler die OverCloud verstehen und weiterentwickeln wollen  
+**Zielgruppe:** Entwickler die StackVertex verstehen und weiterentwickeln wollen  
 **Autor:** Claude Agent (mit vollständiger Codebase-Analyse)
 
 ---
@@ -18,9 +18,9 @@
 
 ## 1. Projekt-Übersicht
 
-### 1.1 Was ist OverCloud?
+### 1.1 Was ist StackVertex?
 
-OverCloud ist eine **Requirements-Driven Infrastructure as Code Platform** mit einem visuellen Designer:
+StackVertex ist eine **Requirements-Driven Infrastructure as Code Platform** mit einem visuellen Designer:
 
 **Das Kern-Konzept:**
 ```
@@ -44,7 +44,7 @@ AWS Deployment (via Terraform)
 ### 1.2 Projektstruktur
 
 ```
-/Users/andyschwarz/Documents/Privat/OverCloud/
+/Users/andyschwarz/Documents/Privat/StackVertex/
 ├── .claude/                    # Claude Code Config
 │   ├── CLAUDE.md              # Projekt-spezifische Rules
 │   ├── settings.local.json    # Lokale Settings
@@ -341,7 +341,7 @@ Jinja2 Templates:
   components/variables.tf.j2 → variables.tf
   components/outputs.tf.j2 → outputs.tf
                               ↓
-Files written to: /tmp/overcloud/deployments/{deployment_id}/
+Files written to: /tmp/stackvertex/deployments/{deployment_id}/
                               ↓
 ┌─────────────────────────────────────────────────────────────────┐
 │ 7. Terraform Execution (TerraformExecutor)                      │
@@ -428,7 +428,7 @@ User sees: "Deployment successful! Resources created."
 ┌─────────────────────────────────┐  ┌──────────────────────────────┐
 │         AWS DynamoDB             │  │          AWS S3              │
 │  ┌────────────────────────────┐ │  │  ┌────────────────────────┐ │
-│  │ overcloud-dev-main (Table) │ │  │  │ Large Architecture JSON│ │
+│  │ stackvertex-dev-main (Table) │ │  │  │ Large Architecture JSON│ │
 │  │                            │ │  │  │ Terraform State Files  │ │
 │  │ PK          SK             │ │  │  │ Deployment Artifacts   │ │
 │  │ USER#uuid   METADATA       │ │  │  └────────────────────────┘ │
@@ -732,7 +732,7 @@ def test_get_user(client, mock_dynamodb_table):
         "enable_dns_support": true,
         "tags": {
           "Environment": "production",
-          "ManagedBy": "OverCloud"
+          "ManagedBy": "StackVertex"
         }
       },
       "position": { "x": 100, "y": 100 }
@@ -892,7 +892,7 @@ resource "aws_vpc" "vpc-1" {
   tags = {
     Name        = "Main VPC"
     Environment = "production"
-    ManagedBy   = "OverCloud"
+    ManagedBy   = "StackVertex"
   }
 }
 ```
@@ -1115,7 +1115,7 @@ FastAPI ist ein modernes Python Web Framework:
 - **Fast:** Performance vergleichbar mit Node.js und Go (dank Starlette + Pydantic)
 - **Developer Experience:** Autocomplete, Type Checking, weniger Bugs
 
-**Warum FastAPI für OverCloud?**
+**Warum FastAPI für StackVertex?**
 
 1. **Performance:** Terraform-Generierung und AWS API Calls brauchen schnelle I/O
 2. **Type Safety:** Architecture JSON muss validiert werden - Pydantic integriert
@@ -1332,7 +1332,7 @@ Pydantic ist eine Data Validation Library die Python Type Hints zur Runtime vali
 - **Serialization:** Python objects → JSON
 - **Deserialization:** JSON → Python objects
 
-**OverCloud Schemas Overview:**
+**StackVertex Schemas Overview:**
 
 ```
 backend/app/schemas/
@@ -1599,11 +1599,11 @@ DynamoDB ist AWS's vollständig verwaltete NoSQL Datenbank:
 - **Fast:** Single-digit millisecond latency
 - **Key-Value:** Flexible Schema, JSON Documents
 
-**OverCloud DynamoDB Design:**
+**StackVertex DynamoDB Design:**
 
 **Single Table Design Pattern:**
 
-Statt viele Tables (users, organisations, architectures, deployments, ...) nutzt OverCloud **eine einzige Table** mit PK/SK Pattern.
+Statt viele Tables (users, organisations, architectures, deployments, ...) nutzt StackVertex **eine einzige Table** mit PK/SK Pattern.
 
 **Warum Single Table?**
 - **Cost:** Weniger Tables = günstiger
@@ -1613,7 +1613,7 @@ Statt viele Tables (users, organisations, architectures, deployments, ...) nutzt
 **Table Schema:**
 
 ```
-Table: overcloud-dev-main
+Table: stackvertex-dev-main
 
 Primary Keys:
 - PK (Partition Key) - String - HASH
@@ -1712,7 +1712,7 @@ deployments = response['Items']
 
 **S3 Offload Pattern (Large Items):**
 
-DynamoDB hat ein Item Size Limit von 400KB. OverCloud nutzt S3 für große Architecture JSONs:
+DynamoDB hat ein Item Size Limit von 400KB. StackVertex nutzt S3 für große Architecture JSONs:
 
 ```python
 # backend/app/db/s3_storage.py
@@ -1868,7 +1868,7 @@ Header.Payload.Signature
 }
 ```
 
-**OverCloud JWT Implementation:**
+**StackVertex JWT Implementation:**
 
 ```python
 # backend/app/api/auth.py
@@ -2083,7 +2083,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), ...):
 **Security Best Practices:**
 
 1. **Strong SECRET_KEY:** Mindestens 32 Zeichen, kryptographisch random
-2. **Short Token Lifetime:** OverCloud nutzt 1 Stunde (TODO: Refresh Token Pattern)
+2. **Short Token Lifetime:** StackVertex nutzt 1 Stunde (TODO: Refresh Token Pattern)
 3. **HTTPS Only:** Tokens dürfen nur über HTTPS übertragen werden
 4. **No Sensitive Data in Token:** Token ist Base64-encoded (nicht encrypted!), daher keine Passwords/Credit Cards
 5. **Revocation:** Bei User Logout → Token bleibt gültig bis exp (TODO: Token Blacklist oder Refresh Token Pattern)
@@ -2097,7 +2097,7 @@ Schutz vor:
 - **DoS Attacks:** API Überlastung verhindern
 - **Abuse:** Scraping, excessive API calls
 
-**OverCloud Implementation:**
+**StackVertex Implementation:**
 
 ```python
 # backend/app/main.py
@@ -2163,7 +2163,7 @@ Jinja2 Templates (components/*.tf.j2)
     ↓
 Rendered Terraform HCL (.tf files)
     ↓
-Written to /tmp/overcloud/deployments/{deployment_id}/
+Written to /tmp/stackvertex/deployments/{deployment_id}/
     ↓
 terraform init && terraform plan && terraform apply
 ```
@@ -2209,7 +2209,7 @@ resource "aws_instance" "{{ ec2.id }}" {
     {% for key, value in ec2.config.tags.items() %}
     {{ key }} = "{{ value }}"
     {% endfor %}
-    ManagedBy = "OverCloud"
+    ManagedBy = "StackVertex"
   }
 }
 {% endfor %}
@@ -2289,7 +2289,7 @@ Vite ist ein moderner Build Tool (Nachfolger von Webpack):
 - **Hot Module Replacement (HMR):** Instant Updates ohne Page Reload
 - **Optimized Production Build:** Rollup-basiert, Tree-Shaking, Minification
 
-**Warum Vite für OverCloud?**
+**Warum Vite für StackVertex?**
 
 - **Developer Experience:** Instant Feedback beim Development
 - **No Framework Lock-in:** Funktioniert mit Vanilla JS (kein React/Vue nötig)
@@ -2388,7 +2388,7 @@ Tailwind ist ein Utility-First CSS Framework:
 - **Dark Mode:** Native Support (`dark:bg-gray-800`)
 - **Production Optimization:** Unused CSS wird automatisch entfernt (PurgeCSS)
 
-**OverCloud Tailwind Config:**
+**StackVertex Tailwind Config:**
 
 ```javascript
 // frontend/tailwind.config.js
@@ -2404,8 +2404,8 @@ export default {
         'aws-orange': '#FF9900',
         'aws-blue': '#527FFF',
         'aws-green': '#569A31',
-        'overcloud-primary': '#667eea',
-        'overcloud-secondary': '#764ba2',
+        'stackvertex-primary': '#667eea',
+        'stackvertex-secondary': '#764ba2',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -2495,7 +2495,7 @@ Cytoscape.js ist eine Graph Visualization Library:
 - **Interactive:** Drag, Zoom, Pan, Click Events
 - **Customizable:** Styles, Shapes, Colors
 
-**OverCloud Usage:**
+**StackVertex Usage:**
 
 Infrastructure Canvas visualisiert AWS Components als Graph:
 - **Nodes:** VPC, EC2, RDS, S3, Lambda, ...
@@ -2995,7 +2995,7 @@ export class ArchitectureState {
     saveDraft() {
         """Save to LocalStorage (auto-save)."""
         try {
-            localStorage.setItem('overcloud-draft', JSON.stringify(this.state));
+            localStorage.setItem('stackvertex-draft', JSON.stringify(this.state));
             console.log('Draft saved to LocalStorage');
         } catch (error) {
             console.error('Failed to save draft:', error);
@@ -3005,7 +3005,7 @@ export class ArchitectureState {
     loadDraft() {
         """Load from LocalStorage."""
         try {
-            const draft = localStorage.getItem('overcloud-draft');
+            const draft = localStorage.getItem('stackvertex-draft');
             if (draft) {
                 this.state = JSON.parse(draft);
                 this.notify('state-restored', { source: 'draft' });
@@ -3118,7 +3118,7 @@ export class ArchitectureState {
     
     getAuthToken() {
         """Get JWT token from localStorage."""
-        return localStorage.getItem('overcloud-token');
+        return localStorage.getItem('stackvertex-token');
     }
     
     // ========================================================================
@@ -3201,7 +3201,7 @@ document.getElementById('redo-btn').addEventListener('click', () => {
 **Ende Teil 1**
 
 Teil 1 umfasst:
-- Projekt-Übersicht (Was ist OverCloud, Projektstruktur, Technology Stack, Data Flow)
+- Projekt-Übersicht (Was ist StackVertex, Projektstruktur, Technology Stack, Data Flow)
 - Architektur & Design Patterns (Repository Pattern, Dependency Injection, JSON-First, Event-Driven)
 - Backend - Python Stack (FastAPI, Pydantic, DynamoDB, JWT, Rate Limiting, Terraform Generation)
 - Frontend - JavaScript Stack (Vite, Tailwind, Cytoscape.js, State Management)

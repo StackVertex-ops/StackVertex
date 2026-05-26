@@ -1,5 +1,5 @@
 /**
- * OverCloud - AI Advisor Component
+ * StackVertex - AI Advisor Component
  *
  * Intelligente Empfehlungen & Warnungen für Architecture Building
  */

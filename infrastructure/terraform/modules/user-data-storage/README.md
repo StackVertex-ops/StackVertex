@@ -1,6 +1,6 @@
 # User Data Storage Module
 
-Terraform Module für S3-basierte User-Daten-Speicherung in OverCloud.
+Terraform Module für S3-basierte User-Daten-Speicherung in StackVertex.
 
 ## Features
 
@@ -27,12 +27,12 @@ module "user_data_storage" {
   log_retention_days       = 30
 
   allowed_cors_origins = [
-    "https://app.overcloud.io",
+    "https://app.stackvertex.io",
     "http://localhost:5173"
   ]
 
   tags = {
-    Project = "OverCloud"
+    Project = "StackVertex"
     Team    = "Platform"
   }
 }
@@ -41,7 +41,7 @@ module "user_data_storage" {
 ## Bucket Structure
 
 ```
-overcloud-user-data-{env}/
+stackvertex-user-data-{env}/
 ├── {org_id}/
 │   ├── {deployment_id}/
 │   │   ├── docker-images/

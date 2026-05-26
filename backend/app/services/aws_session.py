@@ -44,7 +44,7 @@ class AWSSessionManager:
                 role_arn=creds["role_arn"],
                 external_id=creds.get("external_id"),
                 region=creds["region"],
-                session_name=f"overcloud-deployment-{credential_id[:8]}"
+                session_name=f"stackvertex-deployment-{credential_id[:8]}"
             )
         elif creds["credential_type"] == "access_key":
             return self._access_key_session(
@@ -59,7 +59,7 @@ class AWSSessionManager:
         self,
         role_arn: str,
         region: str,
-        session_name: str = "overcloud-deployment",
+        session_name: str = "stackvertex-deployment",
         external_id: str | None = None,
         duration_seconds: int = 3600
     ) -> boto3.Session:

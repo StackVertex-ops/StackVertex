@@ -1,4 +1,4 @@
-# OverCloud Deployment Status
+# StackVertex Deployment Status
 
 > **Stand:** 2026-05-19  
 > **Autor:** Claude Sonnet 4.5
@@ -137,7 +137,7 @@
 10. `TERRAFORM_STATE_BUCKET` (nach Bootstrap)
 
 **Wie setzen?**
-- Via Web UI: https://github.com/AndySchw/OverCloud/settings/secrets/actions
+- Via Web UI: https://github.com/AndySchw/StackVertex/settings/secrets/actions
 - Via GitHub CLI: `gh secret set <NAME> --body "<VALUE>"`
 
 **Anleitung:** Siehe [GITHUB_SECRETS_CHECKLIST.md](./GITHUB_SECRETS_CHECKLIST.md)
@@ -147,10 +147,10 @@
 ### Schritt 2: IAM User erstellen
 
 ```bash
-aws iam create-user --user-name github-actions-overcloud
-aws iam create-access-key --user-name github-actions-overcloud
+aws iam create-user --user-name github-actions-stackvertex
+aws iam create-access-key --user-name github-actions-stackvertex
 aws iam attach-user-policy \
-  --user-name github-actions-overcloud \
+  --user-name github-actions-stackvertex \
   --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
 ```
 
@@ -161,9 +161,9 @@ aws iam attach-user-policy \
 ### Schritt 3: ECR Repositories erstellen
 
 ```bash
-aws ecr create-repository --repository-name overcloud-dev-lambda --region eu-central-1
-aws ecr create-repository --repository-name overcloud-staging-lambda --region eu-central-1
-aws ecr create-repository --repository-name overcloud-prod-lambda --region eu-central-1
+aws ecr create-repository --repository-name stackvertex-dev-lambda --region eu-central-1
+aws ecr create-repository --repository-name stackvertex-staging-lambda --region eu-central-1
+aws ecr create-repository --repository-name stackvertex-prod-lambda --region eu-central-1
 ```
 
 **Anleitung:** Siehe [COMPLETE_DEPLOYMENT_GUIDE.md](./COMPLETE_DEPLOYMENT_GUIDE.md#schritt-4-ecr-repositories-erstellen)
@@ -173,12 +173,12 @@ aws ecr create-repository --repository-name overcloud-prod-lambda --region eu-ce
 ### Schritt 4: Bootstrap ausführen (einmalig!)
 
 Via GitHub Actions:
-1. Gehe zu: https://github.com/AndySchw/OverCloud/actions/workflows/bootstrap.yml
+1. Gehe zu: https://github.com/AndySchw/StackVertex/actions/workflows/bootstrap.yml
 2. Klicke **Run workflow**
 3. Eingaben:
    - `aws_account_id`: (deine 12-stellige ID)
    - `aws_region`: `eu-central-1`
-   - `project_name`: `overcloud`
+   - `project_name`: `stackvertex`
 4. Warte ~2-3 Minuten
 5. Kopiere `TERRAFORM_STATE_BUCKET` aus Output
 
@@ -265,10 +265,10 @@ git push origin develop
 
 ```bash
 # User erstellen + Access Keys
-aws iam create-user --user-name github-actions-overcloud
-aws iam create-access-key --user-name github-actions-overcloud
+aws iam create-user --user-name github-actions-stackvertex
+aws iam create-access-key --user-name github-actions-stackvertex
 aws iam attach-user-policy \
-  --user-name github-actions-overcloud \
+  --user-name github-actions-stackvertex \
   --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
 ```
 
@@ -302,9 +302,9 @@ gh secret set CORS_ORIGINS --body "*"
 ### ECR Repositories erstellen
 
 ```bash
-aws ecr create-repository --repository-name overcloud-dev-lambda --region eu-central-1
-aws ecr create-repository --repository-name overcloud-staging-lambda --region eu-central-1
-aws ecr create-repository --repository-name overcloud-prod-lambda --region eu-central-1
+aws ecr create-repository --repository-name stackvertex-dev-lambda --region eu-central-1
+aws ecr create-repository --repository-name stackvertex-staging-lambda --region eu-central-1
+aws ecr create-repository --repository-name stackvertex-prod-lambda --region eu-central-1
 ```
 
 ### Bootstrap starten
@@ -313,13 +313,13 @@ aws ecr create-repository --repository-name overcloud-prod-lambda --region eu-ce
 gh workflow run bootstrap.yml \
   --field aws_account_id="$AWS_ACCOUNT_ID" \
   --field aws_region="eu-central-1" \
-  --field project_name="overcloud"
+  --field project_name="stackvertex"
 ```
 
 ### Final Secret setzen
 
 ```bash
-gh secret set TERRAFORM_STATE_BUCKET --body "overcloud-terraform-state-$AWS_ACCOUNT_ID"
+gh secret set TERRAFORM_STATE_BUCKET --body "stackvertex-terraform-state-$AWS_ACCOUNT_ID"
 ```
 
 ### Test Deployment
@@ -337,9 +337,9 @@ gh run watch
 
 ### Nach Bootstrap
 
-- ✅ S3 Bucket: `overcloud-terraform-state-123456789012`
-- ✅ S3 Bucket: `overcloud-deployment-states-123456789012`
-- ✅ DynamoDB Table: `overcloud-terraform-locks`
+- ✅ S3 Bucket: `stackvertex-terraform-state-123456789012`
+- ✅ S3 Bucket: `stackvertex-deployment-states-123456789012`
+- ✅ DynamoDB Table: `stackvertex-terraform-locks`
 - ✅ `backend.tf` Dateien für dev/staging/prod
 
 ### Nach Dev Deployment
@@ -392,7 +392,7 @@ Gleiche Ressourcen wie Dev/Staging, aber:
 
 **Bei Problemen:**
 - Siehe [Troubleshooting](./COMPLETE_DEPLOYMENT_GUIDE.md#troubleshooting)
-- GitHub Issues: https://github.com/AndySchw/OverCloud/issues
+- GitHub Issues: https://github.com/AndySchw/StackVertex/issues
 - Email: schwarz23andy@gmail.com
 
 ---

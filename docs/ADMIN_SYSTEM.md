@@ -1,4 +1,4 @@
-# OverCloud Admin System
+# StackVertex Admin System
 
 System-level Administration für Support, Compliance & Security.
 
@@ -264,12 +264,12 @@ cd backend
 
 # Mit zufälligem Passwort
 python scripts/create_superadmin.py \
-  --email admin@overcloud.io \
+  --email admin@stackvertex.io \
   --name "Super Admin"
 
 # Mit eigenem Passwort
 python scripts/create_superadmin.py \
-  --email admin@overcloud.io \
+  --email admin@stackvertex.io \
   --name "Super Admin" \
   --password "YourSecurePassword123!"
 ```
@@ -279,7 +279,7 @@ python scripts/create_superadmin.py \
 ================================================================================
 SuperAdmin created successfully!
 ================================================================================
-Email:    admin@overcloud.io
+Email:    admin@stackvertex.io
 Name:     Super Admin
 User ID:  abc-123-def-456
 Password: X9$kL3m!pQ7&vN2@wR5
@@ -299,7 +299,7 @@ IMPORTANT:
 # 1. Login als SuperAdmin
 curl -X POST http://localhost:8000/api/v1/auth/login \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "username=admin@overcloud.io&password=YourPassword"
+  -d "username=admin@stackvertex.io&password=YourPassword"
 
 # 2. Promote User zu SuperAdmin
 curl -X PATCH http://localhost:8000/api/v1/admin/users/{user_id}/system-role \
@@ -321,8 +321,8 @@ curl -X PATCH http://localhost:8000/api/v1/admin/users/{user_id}/system-role \
 - Andy hat einen Account für reguläre Nutzung UND Admin-Tasks
 
 **✅ RICHTIG:**
-- Andy hat `andy@overcloud.io` (regular user)
-- Andy hat `andy.admin@overcloud.io` (superadmin)
+- Andy hat `andy@stackvertex.io` (regular user)
+- Andy hat `andy.admin@stackvertex.io` (superadmin)
 - Admin-Account nur für Admin-Tasks verwenden
 
 ### 2. 2FA Pflicht
@@ -361,7 +361,7 @@ resource "aws_security_group_rule" "admin_api" {
 
 ```json
 {
-  "user": "admin@overcloud.io",
+  "user": "admin@stackvertex.io",
   "action": "admin.view_user",
   "resource_type": "user",
   "resource_id": "abc-123",
@@ -553,7 +553,7 @@ if severity == "CRITICAL":
 2. Check User in Database:
    ```bash
    aws dynamodb get-item \
-     --table-name overcloud \
+     --table-name stackvertex \
      --key '{"PK": {"S": "USER#<user_id>"}, "SK": {"S": "METADATA"}}'
    ```
 
@@ -583,7 +583,7 @@ Keine Logs in `/admin/audit-logs`
 1. Check DynamoDB Table:
    ```bash
    aws dynamodb query \
-     --table-name overcloud \
+     --table-name stackvertex \
      --key-condition-expression "PK = :pk" \
      --expression-attribute-values '{":pk": {"S": "AUDIT#202601"}}'
    ```
@@ -628,11 +628,11 @@ Keine Logs in `/admin/audit-logs`
 ## Support
 
 Bei Fragen oder Problemen:
-- **Email**: support@overcloud.io
+- **Email**: support@stackvertex.io
 - **Slack**: #admin-system (interner Channel)
-- **Docs**: https://docs.overcloud.io/admin
+- **Docs**: https://docs.stackvertex.io/admin
 
 **Security Incidents:**
-- **Email**: security@overcloud.io (PGP-Key verfügbar)
+- **Email**: security@stackvertex.io (PGP-Key verfügbar)
 - **Phone**: +49 XXX XXXXXXX (24/7 Hotline)
 - **Severity**: CRITICAL (sofortiger Response)

@@ -24,7 +24,7 @@ Dieser Business Continuity Plan (BCP) definiert Strategien und Prozeduren zur Si
 ### 1.2 Scope
 
 **In Scope:**
-- OverCloud Platform (Frontend, Backend, API)
+- StackVertex Platform (Frontend, Backend, API)
 - AWS Infrastructure (eu-central-1 + DR in eu-west-1)
 - Critical Business Functions (Customer Support, Billing)
 - Data Recovery (Database, S3, Backups)
@@ -310,20 +310,20 @@ Dieser Business Continuity Plan (BCP) definiert Strategien und Prozeduren zur Si
    # Find latest snapshot
    aws rds describe-db-cluster-snapshots \
      --region eu-west-1 \
-     --query 'DBClusterSnapshots[?starts_with(DBClusterSnapshotIdentifier, `overcloud-prod`)]' \
+     --query 'DBClusterSnapshots[?starts_with(DBClusterSnapshotIdentifier, `stackvertex-prod`)]' \
      --output table
    
    # Restore from snapshot
    aws rds restore-db-cluster-from-snapshot \
      --region eu-west-1 \
-     --db-cluster-identifier overcloud-prod-dr \
+     --db-cluster-identifier stackvertex-prod-dr \
      --snapshot-identifier {LATEST_SNAPSHOT} \
      --engine aurora-postgresql
    
    # Wait for cluster to be available (5-10 min)
    aws rds wait db-cluster-available \
      --region eu-west-1 \
-     --db-cluster-identifier overcloud-prod-dr
+     --db-cluster-identifier stackvertex-prod-dr
    ```
 
 3. **Deploy Application in DR Region (10-20 min)**
@@ -347,7 +347,7 @@ Dieser Business Continuity Plan (BCP) definiert Strategien und Prozeduren zur Si
        "Changes": [{
          "Action": "UPSERT",
          "ResourceRecordSet": {
-           "Name": "api.overcloud.io",
+           "Name": "api.stackvertex.io",
            "Type": "CNAME",
            "TTL": 60,
            "ResourceRecords": [{"Value": "{DR_API_ENDPOINT}"}]
@@ -361,10 +361,10 @@ Dieser Business Continuity Plan (BCP) definiert Strategien und Prozeduren zur Si
 5. **Verify DR Systems (10 min)**
    ```bash
    # Health check
-   curl https://api.overcloud.io/health
+   curl https://api.stackvertex.io/health
    
    # Test authentication
-   curl -X POST https://api.overcloud.io/api/v1/auth/login \
+   curl -X POST https://api.stackvertex.io/api/v1/auth/login \
      -d '{"email":"test@example.com","password":"test123"}'
    
    # Test critical functionality
@@ -401,20 +401,20 @@ Dieser Business Continuity Plan (BCP) definiert Strategien und Prozeduren zur Si
    # Create snapshot of DR database
    aws rds create-db-cluster-snapshot \
      --region eu-west-1 \
-     --db-cluster-identifier overcloud-prod-dr \
-     --db-cluster-snapshot-identifier overcloud-dr-to-primary-{DATE}
+     --db-cluster-identifier stackvertex-prod-dr \
+     --db-cluster-snapshot-identifier stackvertex-dr-to-primary-{DATE}
    
    # Copy snapshot to primary region
    aws rds copy-db-cluster-snapshot \
      --region eu-central-1 \
      --source-db-cluster-snapshot-identifier arn:aws:rds:eu-west-1:...
-     --target-db-cluster-snapshot-identifier overcloud-fallback-{DATE}
+     --target-db-cluster-snapshot-identifier stackvertex-fallback-{DATE}
    
    # Restore in primary region
    aws rds restore-db-cluster-from-snapshot \
      --region eu-central-1 \
-     --db-cluster-identifier overcloud-prod \
-     --snapshot-identifier overcloud-fallback-{DATE}
+     --db-cluster-identifier stackvertex-prod \
+     --snapshot-identifier stackvertex-fallback-{DATE}
    ```
 
 3. **Gradual Traffic Shift**
@@ -492,8 +492,8 @@ Dieser Business Continuity Plan (BCP) definiert Strategien und Prozeduren zur Si
 
 # 1. Restore staging database from production backup
 aws rds restore-db-cluster-to-point-in-time \
-  --source-db-cluster-identifier overcloud-prod \
-  --db-cluster-identifier overcloud-staging-restore-test \
+  --source-db-cluster-identifier stackvertex-prod \
+  --db-cluster-identifier stackvertex-staging-restore-test \
   --restore-to-time $(date -u -d '1 hour ago' +%Y-%m-%dT%H:%M:%S)
 
 # 2. Verify data integrity
@@ -513,7 +513,7 @@ fi
 
 # 4. Cleanup test database
 aws rds delete-db-cluster \
-  --db-cluster-identifier overcloud-staging-restore-test \
+  --db-cluster-identifier stackvertex-staging-restore-test \
   --skip-final-snapshot
 ```
 
@@ -536,15 +536,15 @@ aws rds delete-db-cluster \
 
 **Communication Channels:**
 - **Slack:** `#incidents` (real-time updates)
-- **Email:** team@overcloud.io (formal notifications)
+- **Email:** team@stackvertex.io (formal notifications)
 - **Phone:** Emergency contact list (P1 only)
 
 ### 6.2 External Communication
 
 **Customer Communication Channels:**
-- **Status Page:** status.overcloud.io (automated updates)
+- **Status Page:** status.stackvertex.io (automated updates)
 - **Email:** Targeted to affected customers
-- **Twitter:** @OverCloud (major incidents only)
+- **Twitter:** @StackVertex (major incidents only)
 - **In-App Banner:** "Service Degradation" notice
 
 **Communication Templates:** See `INCIDENT_RESPONSE_PLAN.md`
@@ -569,9 +569,9 @@ aws rds delete-db-cluster \
 
 | Role | Name | Phone | Email | Availability |
 |------|------|-------|-------|--------------|
-| Incident Commander | Andy Schwarz | +49 XXX XXX XXXX | andy@overcloud.io | 24/7 |
-| Technical Lead | Andy Schwarz | +49 XXX XXX XXXX | andy@overcloud.io | 24/7 |
-| Business Owner | Andy Schwarz | +49 XXX XXX XXXX | andy@overcloud.io | 24/7 |
+| Incident Commander | Andy Schwarz | +49 XXX XXX XXXX | andy@stackvertex.io | 24/7 |
+| Technical Lead | Andy Schwarz | +49 XXX XXX XXXX | andy@stackvertex.io | 24/7 |
+| Business Owner | Andy Schwarz | +49 XXX XXX XXXX | andy@stackvertex.io | 24/7 |
 
 **Emergency Deputy (when team grows):**
 - TBD - Second engineer to be hired

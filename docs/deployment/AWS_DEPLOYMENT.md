@@ -1,6 +1,6 @@
 # AWS Serverless Deployment Guide
 
-Kompletter Guide für das Deployment von OverCloud auf AWS als Serverless Application.
+Kompletter Guide für das Deployment von StackVertex auf AWS als Serverless Application.
 
 ## Architektur Überblick
 
@@ -134,9 +134,9 @@ cd infrastructure/scripts
 ✅ Bootstrap Complete!
 
 📦 Created Resources:
-   - State Bucket: overcloud-terraform-state-123456789012
-   - Locks Table: overcloud-terraform-locks
-   - Deployment Bucket: overcloud-deployment-states-123456789012
+   - State Bucket: stackvertex-terraform-state-123456789012
+   - Locks Table: stackvertex-terraform-locks
+   - Deployment Bucket: stackvertex-deployment-states-123456789012
 
 📝 Next Steps:
    1. cd ../environments/dev
@@ -160,16 +160,16 @@ vim terraform.tfvars
 
 **Pflichtfelder:**
 ```hcl
-project_name = "overcloud"
+project_name = "stackvertex"
 environment  = "dev"
 aws_region   = "eu-central-1"
 
 # Database (CHANGE THESE!)
-db_master_username = "overcloud_admin"
+db_master_username = "stackvertex_admin"
 db_master_password = "IhrSicheresPasswortMin16Zeichen!"
 
 # From Bootstrap Output
-terraform_state_bucket = "overcloud-terraform-state-123456789012"
+terraform_state_bucket = "stackvertex-terraform-state-123456789012"
 ```
 
 **Passwort generieren:**
@@ -225,16 +225,16 @@ Outputs:
 
 deployment_summary = <<EOT
 
-✅ OverCloud Dev Environment Deployed!
+✅ StackVertex Dev Environment Deployed!
 
 🌐 API Endpoint:       https://abc123.execute-api.eu-central-1.amazonaws.com/
 🔌 WebSocket Endpoint: wss://xyz789.execute-api.eu-central-1.amazonaws.com/dev
 
-📦 ECR Repository:     123456789012.dkr.ecr.eu-central-1.amazonaws.com/overcloud-dev-lambda
-🗄️  Deployment Bucket:  overcloud-dev-deployment-states-123456789012
+📦 ECR Repository:     123456789012.dkr.ecr.eu-central-1.amazonaws.com/stackvertex-dev-lambda
+🗄️  Deployment Bucket:  stackvertex-dev-deployment-states-123456789012
 
-💾 Database Endpoint:  overcloud-dev-aurora.cluster-abc.eu-central-1.rds.amazonaws.com
-🔐 Database Secret:    arn:aws:secretsmanager:eu-central-1:123:secret:overcloud-dev-db-creds-abc123
+💾 Database Endpoint:  stackvertex-dev-aurora.cluster-abc.eu-central-1.rds.amazonaws.com
+🔐 Database Secret:    arn:aws:secretsmanager:eu-central-1:123:secret:stackvertex-dev-db-creds-abc123
 
 📋 Next Steps:
 1. Build & push Docker image to ECR
@@ -253,12 +253,12 @@ aws ecr get-login-password --region eu-central-1 | \
 
 # Build Image
 cd ../../../../../backend
-docker build -f Dockerfile.lambda -t overcloud-dev-lambda .
+docker build -f Dockerfile.lambda -t stackvertex-dev-lambda .
 
 # Tag
-ECR_REPO="123456789012.dkr.ecr.eu-central-1.amazonaws.com/overcloud-dev-lambda"
-docker tag overcloud-dev-lambda:latest $ECR_REPO:latest
-docker tag overcloud-dev-lambda:latest $ECR_REPO:$(git rev-parse --short HEAD)
+ECR_REPO="123456789012.dkr.ecr.eu-central-1.amazonaws.com/stackvertex-dev-lambda"
+docker tag stackvertex-dev-lambda:latest $ECR_REPO:latest
+docker tag stackvertex-dev-lambda:latest $ECR_REPO:$(git rev-parse --short HEAD)
 
 # Push
 docker push $ECR_REPO:latest
@@ -271,7 +271,7 @@ Lambda wurde von Terraform erstellt, aber ohne Image. Jetzt updaten:
 
 ```bash
 aws lambda update-function-code \
-  --function-name overcloud-dev-api \
+  --function-name stackvertex-dev-api \
   --image-uri $ECR_REPO:latest \
   --region eu-central-1
 ```
@@ -279,7 +279,7 @@ aws lambda update-function-code \
 **Warte auf Update:**
 ```bash
 aws lambda wait function-updated \
-  --function-name overcloud-dev-api \
+  --function-name stackvertex-dev-api \
   --region eu-central-1
 
 echo "✅ Lambda updated!"
@@ -294,7 +294,7 @@ Falls VPN oder Bastion Host existiert:
 ```bash
 # Get Database Secret
 DB_SECRET=$(aws secretsmanager get-secret-value \
-  --secret-id overcloud-dev-db-credentials \
+  --secret-id stackvertex-dev-db-credentials \
   --region eu-central-1 \
   --query SecretString \
   --output text)
@@ -393,9 +393,9 @@ gh auth login
 # Add Secrets
 gh secret set AWS_ACCESS_KEY_ID --body "YOUR_KEY_ID"
 gh secret set AWS_SECRET_ACCESS_KEY --body "YOUR_SECRET_KEY"
-gh secret set DB_MASTER_USERNAME --body "overcloud_admin"
+gh secret set DB_MASTER_USERNAME --body "stackvertex_admin"
 gh secret set DB_MASTER_PASSWORD --body "$(openssl rand -base64 24)"
-gh secret set TERRAFORM_STATE_BUCKET --body "overcloud-terraform-state-123456789012"
+gh secret set TERRAFORM_STATE_BUCKET --body "stackvertex-terraform-state-123456789012"
 ```
 
 2. **Workflow ist bereits konfiguriert:**
@@ -423,14 +423,14 @@ Siehe `.github/workflows/README.md` für Details.
 
 ```bash
 # Lambda Logs
-aws logs tail /aws/lambda/overcloud-dev-api --follow
+aws logs tail /aws/lambda/stackvertex-dev-api --follow
 
 # API Gateway Logs
-aws logs tail /aws/apigateway/overcloud-dev-http-api --follow
+aws logs tail /aws/apigateway/stackvertex-dev-http-api --follow
 
 # Filter für Errors
 aws logs filter-log-events \
-  --log-group-name /aws/lambda/overcloud-dev-api \
+  --log-group-name /aws/lambda/stackvertex-dev-api \
   --filter-pattern "ERROR"
 ```
 
@@ -439,7 +439,7 @@ aws logs filter-log-events \
 ```bash
 # Test Lambda direkt
 aws lambda invoke \
-  --function-name overcloud-dev-api \
+  --function-name stackvertex-dev-api \
   --payload '{"rawPath": "/health", "requestContext": {"http": {"method": "GET"}}}' \
   response.json
 
@@ -453,7 +453,7 @@ cat response.json
 DB_ENDPOINT=$(terraform output -raw database_endpoint)
 
 # Test Connection (from VPC or Bastion)
-psql -h $DB_ENDPOINT -U overcloud_admin -d overcloud
+psql -h $DB_ENDPOINT -U stackvertex_admin -d stackvertex
 ```
 
 ### Metrics Dashboard
@@ -462,7 +462,7 @@ CloudWatch Dashboard automatisch erstellt:
 
 ```bash
 # Open Dashboard
-open "https://console.aws.amazon.com/cloudwatch/home?region=eu-central-1#dashboards:name=OverCloud-Dev"
+open "https://console.aws.amazon.com/cloudwatch/home?region=eu-central-1#dashboards:name=StackVertex-Dev"
 ```
 
 **Wichtige Metriken:**
@@ -512,14 +512,14 @@ open "https://console.aws.amazon.com/cloudwatch/home?region=eu-central-1#dashboa
 2. Lambda ist im richtigen Subnet?
    ```bash
    aws lambda get-function-configuration \
-     --function-name overcloud-dev-api \
+     --function-name stackvertex-dev-api \
      --query VpcConfig
    ```
 
 3. Database Secret ist korrekt?
    ```bash
    aws secretsmanager get-secret-value \
-     --secret-id overcloud-dev-db-credentials
+     --secret-id stackvertex-dev-db-credentials
    ```
 
 ### Error: Terraform State Locked
@@ -546,7 +546,7 @@ lambda_memory_size = 1024  # war 512
 ```bash
 # Memory Report
 aws logs filter-log-events \
-  --log-group-name /aws/lambda/overcloud-dev-api \
+  --log-group-name /aws/lambda/stackvertex-dev-api \
   --filter-pattern "Max Memory Used"
 ```
 
@@ -569,12 +569,12 @@ Terraform State wird automatisch in S3 versioniert:
 ```bash
 # List State Versions
 aws s3api list-object-versions \
-  --bucket overcloud-terraform-state-123456789012 \
+  --bucket stackvertex-terraform-state-123456789012 \
   --prefix environments/dev/terraform.tfstate
 
 # Restore alte Version
 aws s3api get-object \
-  --bucket overcloud-terraform-state-123456789012 \
+  --bucket stackvertex-terraform-state-123456789012 \
   --key environments/dev/terraform.tfstate \
   --version-id <VERSION_ID> \
   terraform.tfstate.backup
@@ -587,17 +587,17 @@ Aurora automatische Backups sind aktiviert:
 ```bash
 # List Snapshots
 aws rds describe-db-cluster-snapshots \
-  --db-cluster-identifier overcloud-dev-aurora
+  --db-cluster-identifier stackvertex-dev-aurora
 
 # Create Manual Snapshot
 aws rds create-db-cluster-snapshot \
-  --db-cluster-identifier overcloud-dev-aurora \
-  --db-cluster-snapshot-identifier overcloud-dev-manual-$(date +%Y%m%d)
+  --db-cluster-identifier stackvertex-dev-aurora \
+  --db-cluster-snapshot-identifier stackvertex-dev-manual-$(date +%Y%m%d)
 
 # Restore from Snapshot
 aws rds restore-db-cluster-from-snapshot \
-  --db-cluster-identifier overcloud-dev-aurora-restored \
-  --snapshot-identifier overcloud-dev-manual-20260418 \
+  --db-cluster-identifier stackvertex-dev-aurora-restored \
+  --snapshot-identifier stackvertex-dev-manual-20260418 \
   --engine aurora-postgresql
 ```
 
@@ -612,10 +612,10 @@ cd infrastructure/scripts
 
 # 2. Restore Terraform State (from S3 version)
 cd ../terraform/environments/dev
-aws s3 cp s3://overcloud-terraform-state-123456789012/environments/dev/terraform.tfstate?versionId=<VERSION> terraform.tfstate
+aws s3 cp s3://stackvertex-terraform-state-123456789012/environments/dev/terraform.tfstate?versionId=<VERSION> terraform.tfstate
 
 # 3. Import existing resources (falls nötig)
-terraform import module.database.aws_rds_cluster.aurora overcloud-dev-aurora
+terraform import module.database.aws_rds_cluster.aurora stackvertex-dev-aurora
 
 # 4. Re-apply
 terraform init
@@ -673,12 +673,12 @@ NEW_PW=$(openssl rand -base64 24)
 
 # Update Secret
 aws secretsmanager update-secret \
-  --secret-id overcloud-dev-db-credentials \
-  --secret-string "{\"username\":\"overcloud_admin\",\"password\":\"$NEW_PW\",...}"
+  --secret-id stackvertex-dev-db-credentials \
+  --secret-string "{\"username\":\"stackvertex_admin\",\"password\":\"$NEW_PW\",...}"
 
 # Modify Aurora Master Password
 aws rds modify-db-cluster \
-  --db-cluster-identifier overcloud-dev-aurora \
+  --db-cluster-identifier stackvertex-dev-aurora \
   --master-user-password "$NEW_PW" \
   --apply-immediately
 ```
@@ -696,7 +696,7 @@ Lambda Execution Role sollte nur benötigte Permissions haben:
       "Action": [
         "secretsmanager:GetSecretValue"
       ],
-      "Resource": "arn:aws:secretsmanager:*:*:secret:overcloud-*"
+      "Resource": "arn:aws:secretsmanager:*:*:secret:stackvertex-*"
     },
     {
       "Effect": "Allow",
@@ -704,7 +704,7 @@ Lambda Execution Role sollte nur benötigte Permissions haben:
         "s3:GetObject",
         "s3:PutObject"
       ],
-      "Resource": "arn:aws:s3:::overcloud-*-deployment-states-*/*"
+      "Resource": "arn:aws:s3:::stackvertex-*-deployment-states-*/*"
     }
   ]
 }

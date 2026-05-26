@@ -1,6 +1,6 @@
-# OverCloud
+# StackVertex
 
-> Cloud infrastructure made understandable, versionable, and deployable.
+> The apex of your cloud stack — Multi-cloud infrastructure made understandable, versionable, and deployable.
 
 **Status:** 🚧 In Development (Phase 0: Foundation)
 
@@ -8,7 +8,7 @@
 
 ## Vision
 
-OverCloud transforms how developers and teams build cloud infrastructure:
+StackVertex transforms how developers and teams build cloud infrastructure:
 
 - 📋 **Requirements-driven** - Describe what you need, not how to build it
 - 📄 **JSON-first** - Versionable, inspectable, tool-agnostic source of truth
@@ -24,7 +24,7 @@ OverCloud transforms how developers and teams build cloud infrastructure:
 Terraform is generated output, not manually edited. Every architecture is stored as versionable JSON with complete metadata about requirements, decisions, and evaluations.
 
 ### 2. Requirements → Decisions → Resources
-Users describe **what they need** (public web app, high availability, budget constraints), and OverCloud translates that into **architectural decisions** and **cloud resources**.
+Users describe **what they need** (public web app, high availability, budget constraints), and StackVertex translates that into **architectural decisions** and **cloud resources**.
 
 ### 3. Transparency Over Abstraction
 No black boxes. Users see:
@@ -38,6 +38,14 @@ No black boxes. Users see:
 ### 4. Separation of Concerns
 **Platform manages:** Logic, UI, JSON schemas, IaC generation, orchestration
 **Customer manages:** Production data, storage, container images, secrets
+
+---
+
+## What is StackVertex?
+
+**StackVertex** = **Stack** (complete cloud infrastructure) + **Vertex** (apex, convergence point)
+
+The platform where all your cloud infrastructure layers converge into a unified, manageable stack — achieving excellence at the vertex of cloud orchestration.
 
 ---
 
@@ -239,4 +247,4 @@ TBD
 
 ---
 
-**Last Updated:** 2026-05-17
+**Last Updated:** 2026-05-26 - Rebranded to StackVertex

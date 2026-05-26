@@ -1,4 +1,4 @@
-# Security Best Practices für OverCloud Entwickler
+# Security Best Practices für StackVertex Entwickler
 
 **Version:** 1.0  
 **Last Updated:** 2026-05-16  
@@ -8,7 +8,7 @@
 
 ## Übersicht
 
-Dieses Dokument definiert verbindliche Security Best Practices für alle OverCloud-Entwickler. Diese Regeln müssen bei jedem Code-Commit eingehalten werden.
+Dieses Dokument definiert verbindliche Security Best Practices für alle StackVertex-Entwickler. Diese Regeln müssen bei jedem Code-Commit eingehalten werden.
 
 **Prinzipien:**
 1. **Security by Default** - Sichere Konfiguration ist der Standard
@@ -302,7 +302,7 @@ response = table.scan(
         "dynamodb:GetItem",
         "dynamodb:Query"
       ],
-      "Resource": "arn:aws:dynamodb:eu-central-1:123456789012:table/OverCloud-Users"
+      "Resource": "arn:aws:dynamodb:eu-central-1:123456789012:table/StackVertex-Users"
     }
   ]
 }
@@ -383,13 +383,13 @@ async def generic_exception_handler(request: Request, exc: Exception):
 
 **Custom Exceptions:**
 ```python
-class OverCloudException(Exception):
-    """Base exception für OverCloud."""
+class StackVertexException(Exception):
+    """Base exception für StackVertex."""
     def __init__(self, message: str, status_code: int = 500):
         self.message = message
         self.status_code = status_code
 
-class ArchitectureNotFoundError(OverCloudException):
+class ArchitectureNotFoundError(StackVertexException):
     """Architecture nicht gefunden."""
     def __init__(self, architecture_id: UUID):
         super().__init__(
@@ -659,7 +659,7 @@ secrets_mgr = get_secrets_manager()
 # Store AWS Role ARN encrypted
 secret_name = secrets_mgr.store_aws_role_arn(
     org_id="123e4567-e89b-12d3-a456-426614174000",
-    aws_role_arn="arn:aws:iam::123456789012:role/OverCloudCustomerRole"
+    aws_role_arn="arn:aws:iam::123456789012:role/StackVertexCustomerRole"
 )
 
 # Store in DynamoDB (reference only!)
@@ -683,7 +683,7 @@ aws_role_arn = secrets_mgr.retrieve_aws_role_arn(secret_name)
 sts_client = boto3.client("sts")
 response = sts_client.assume_role(
     RoleArn=aws_role_arn,
-    RoleSessionName=f"overcloud-{org_id}"
+    RoleSessionName=f"stackvertex-{org_id}"
 )
 ```
 
@@ -932,7 +932,7 @@ nano .env  # Replace SECRET_KEY
 
 # Update Secrets Manager (production)
 aws secretsmanager put-secret-value \
-  --secret-id overcloud/prod/secret-key \
+  --secret-id stackvertex/prod/secret-key \
   --secret-string "NEW_SECRET_KEY"
 
 # Redeploy

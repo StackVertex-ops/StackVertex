@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""OverCloud Backend - Database Seed Script.
+"""StackVertex Backend - Database Seed Script.
 
 Befüllt die Datenbank mit realistischen AWS-Beispiel-Architekturen.
 Diese Architekturen sind vollständig schema-konform und demonstrieren
@@ -132,7 +132,7 @@ def create_web_app_architecture() -> dict:
                         "enable_dns_hostnames": True,
                         "enable_dns_support": True
                     },
-                    "tags": {"Environment": "production", "ManagedBy": "OverCloud"}
+                    "tags": {"Environment": "production", "ManagedBy": "StackVertex"}
                 },
                 {
                     "id": "subnet-public-1a",
@@ -1307,7 +1307,7 @@ def seed_architectures(reset: bool = False):
 def main():
     """Hauptfunktion mit CLI-Argument-Parsing."""
     parser = argparse.ArgumentParser(
-        description="OverCloud Database Seed Script - Erstellt Beispiel-Architekturen"
+        description="StackVertex Database Seed Script - Erstellt Beispiel-Architekturen"
     )
     parser.add_argument(
         "--reset",
@@ -1319,7 +1319,7 @@ def main():
 
     print()
     print("=" * 60)
-    print("🌥️  OverCloud Database Seeding")
+    print("🌥️  StackVertex Database Seeding")
     print("=" * 60)
     print()
 

@@ -1,5 +1,5 @@
 /**
- * OverCloud - Billing API Client
+ * StackVertex - Billing API Client
  *
  * Handles all billing and payment related API calls.
  */

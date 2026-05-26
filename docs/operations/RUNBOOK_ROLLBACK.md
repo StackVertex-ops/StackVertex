@@ -87,7 +87,7 @@ terraform apply
 **Command:**
 ```bash
 # Check Sentry
-open https://sentry.io/organizations/overcloud/issues/
+open https://sentry.io/organizations/stackvertex/issues/
 
 # Check CloudWatch
 aws cloudwatch get-metric-statistics \
@@ -99,7 +99,7 @@ aws cloudwatch get-metric-statistics \
     --statistics Average
 
 # Check health endpoint
-curl -i https://api.overcloud.io/health
+curl -i https://api.stackvertex.io/health
 ```
 
 #### 1.2 Determine Severity
@@ -121,7 +121,7 @@ curl -i https://api.overcloud.io/health
 
 ```bash
 # Slack Nachricht (anpassen an euer Setup)
-# Channel: #overcloud-incidents
+# Channel: #stackvertex-incidents
 
 **INCIDENT: Production Rollback**
 Severity: P1
@@ -136,7 +136,7 @@ Owner: [dein Name]
 **Option A: GitHub Actions Re-run (empfohlen)**
 
 1. **Gehe zu GitHub Actions:**
-   - https://github.com/andyschwarz/overcloud/actions
+   - https://github.com/andyschwarz/stackvertex/actions
    
 2. **Finde letztes erfolgreiches Deployment:**
    - Filter: Workflows → "Deploy to Production"
@@ -155,8 +155,8 @@ Owner: [dein Name]
    
    # Watch ECS Service
    watch -n 5 'aws ecs describe-services \
-       --cluster overcloud-production \
-       --services overcloud-backend \
+       --cluster stackvertex-production \
+       --services stackvertex-backend \
        --query "services[0].deployments"'
    ```
 
@@ -193,7 +193,7 @@ less rollback.tfplan
 terraform apply rollback.tfplan
 
 # 5. Verify
-curl https://api.overcloud.io/health
+curl https://api.stackvertex.io/health
 ```
 
 #### 2.3 Verify Rollback
@@ -201,7 +201,7 @@ curl https://api.overcloud.io/health
 **Health Checks:**
 ```bash
 # 1. Health Endpoint
-curl -i https://api.overcloud.io/health
+curl -i https://api.stackvertex.io/health
 # Expected: 200 OK
 
 # 2. Check Sentry (neue Errors?)
@@ -209,14 +209,14 @@ curl -i https://api.overcloud.io/health
 
 # 3. Check Deployment Status
 aws ecs describe-services \
-    --cluster overcloud-production \
-    --services overcloud-backend \
+    --cluster stackvertex-production \
+    --services stackvertex-backend \
     --query 'services[0].deployments[0].status'
 # Expected: PRIMARY
 
 # 4. Smoke Tests
-curl https://api.overcloud.io/api/v1/auth/health
-curl https://api.overcloud.io/api/v1/architectures
+curl https://api.stackvertex.io/api/v1/auth/health
+curl https://api.stackvertex.io/api/v1/architectures
 ```
 
 **Success Criteria:**
@@ -263,7 +263,7 @@ Next steps:
 - Fix will be deployed after thorough testing
 - Post-mortem meeting: [Date, Time]
 
-Questions? Reply to this email or ping in #overcloud-incidents
+Questions? Reply to this email or ping in #stackvertex-incidents
 
 [Dein Name]
 DevOps Team
@@ -355,8 +355,8 @@ ENABLE_NEW_BILLING=false
 
 # 3. If infrastructure: Scale up (temporary)
 aws ecs update-service \
-    --cluster overcloud-production \
-    --service overcloud-backend \
+    --cluster stackvertex-production \
+    --service stackvertex-backend \
     --desired-count 10  # Double capacity
 
 # 4. Monitor
@@ -376,7 +376,7 @@ watch -n 5 'aws cloudwatch get-metric-statistics ...'
 
 # 2. Rotate secrets
 aws secretsmanager update-secret \
-    --secret-id overcloud/production/jwt-secret \
+    --secret-id stackvertex/production/jwt-secret \
     --secret-string "$(openssl rand -base64 32)"
 
 # 3. Invalidate all sessions
@@ -439,7 +439,7 @@ redis-cli FLUSHDB
 - Post-mortem coordination
 
 **Contact:**
-- Email: cto@overcloud.io
+- Email: cto@stackvertex.io
 
 ---
 
@@ -448,7 +448,7 @@ redis-cli FLUSHDB
 ### Pre-Rollback
 - [ ] Incident verified (not false alarm)
 - [ ] Severity determined (P1-P4)
-- [ ] Team notified (#overcloud-incidents)
+- [ ] Team notified (#stackvertex-incidents)
 - [ ] Last good commit identified
 
 ### During Rollback
@@ -493,7 +493,7 @@ redis-cli FLUSHDB
 gh run list --workflow=deploy-production --limit 5
 
 # Get ECS task logs
-aws logs tail /ecs/overcloud-production/backend --follow
+aws logs tail /ecs/stackvertex-production/backend --follow
 
 # Check Terraform state
 cd infrastructure/terraform/environments/production
@@ -501,8 +501,8 @@ terraform show
 
 # Force new ECS deployment (without code change)
 aws ecs update-service \
-    --cluster overcloud-production \
-    --service overcloud-backend \
+    --cluster stackvertex-production \
+    --service stackvertex-backend \
     --force-new-deployment
 ```
 

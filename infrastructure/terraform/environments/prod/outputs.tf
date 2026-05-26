@@ -97,7 +97,7 @@ output "deployment_summary" {
   description = "Deployment summary with all important URLs and resources"
   value = <<-EOT
 
-    ✅ OverCloud PRODUCTION Environment Deployed!
+    ✅ StackVertex PRODUCTION Environment Deployed!
 
     🌐 API Endpoint:       ${module.compute.http_api_invoke_url}
     🔌 WebSocket Endpoint: ${module.compute.websocket_api_invoke_url}
@@ -153,7 +153,7 @@ output "deployment_summary" {
     10. ✅ Document incident response procedures
 
     📋 Next Steps:
-    1. Configure DNS (app.overcloud.io → API Gateway)
+    1. Configure DNS (app.stackvertex.io → API Gateway)
     2. Setup SSL certificate in AWS Certificate Manager
     3. Run security scan (OWASP ZAP, Trivy)
     4. Load testing (Artillery, k6, or Gatling)

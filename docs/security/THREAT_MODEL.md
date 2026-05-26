@@ -1,4 +1,4 @@
-# OverCloud Threat Model
+# StackVertex Threat Model
 
 **Version:** 1.0  
 **Last Updated:** 2026-05-16  
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-Dieses Dokument identifiziert potenzielle Bedrohungen für die OverCloud Plattform und dokumentiert Mitigations. Threat Modeling ist ein kontinuierlicher Prozess und wird quartalsweise aktualisiert.
+Dieses Dokument identifiziert potenzielle Bedrohungen für die StackVertex Plattform und dokumentiert Mitigations. Threat Modeling ist ein kontinuierlicher Prozess und wird quartalsweise aktualisiert.
 
 **Methodology:** STRIDE
 - **S**poofing (Identity Fälschung)
@@ -66,8 +66,8 @@ Dieses Dokument identifiziert potenzielle Bedrohungen für die OverCloud Plattfo
 
 1. **Internet → CloudFront** - Externe Angreifer
 2. **CloudFront → Backend** - Authentifizierte User
-3. **Backend → AWS Services** - OverCloud Platform
-4. **OverCloud → Customer AWS** - Cross-Account Access
+3. **Backend → AWS Services** - StackVertex Platform
+4. **StackVertex → Customer AWS** - Cross-Account Access
 
 ---
 
@@ -538,11 +538,11 @@ User erhält SuperAdmin Access auf Platform-Ebene.
 #### Threat 6.3: IAM Role Compromise (Customer AWS)
 
 **Description:**  
-OverCloud IAM Role in Customer Account wird kompromittiert.
+StackVertex IAM Role in Customer Account wird kompromittiert.
 
 **Attack Scenario:**
-1. Customer erstellt OverCloud Role mit zu vielen Permissions
-2. OverCloud Account compromised
+1. Customer erstellt StackVertex Role mit zu vielen Permissions
+2. StackVertex Account compromised
 3. Angreifer nutzt AssumeRole → Full Access zu Customer AWS
 
 **Impact:** CRITICAL  

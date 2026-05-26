@@ -37,8 +37,8 @@ Erstellt automatisch die S3 Backend-Infrastruktur für Terraform State Managemen
 - Berechtigungen für S3 + DynamoDB
 
 **Erstellt:**
-- S3 Bucket: `overcloud-<env>-terraform-state`
-- DynamoDB Table: `overcloud-<env>-terraform-lock`
+- S3 Bucket: `stackvertex-<env>-terraform-state`
+- DynamoDB Table: `stackvertex-<env>-terraform-lock`
 - File: `../environments/<env>/backend.tf`
 
 **Nach dem Bootstrap:**
@@ -61,12 +61,12 @@ S3 Versioning ermöglicht Rollback:
 ```bash
 # Alle Versionen anzeigen
 aws s3api list-object-versions \
-  --bucket overcloud-prod-terraform-state \
+  --bucket stackvertex-prod-terraform-state \
   --prefix terraform.tfstate
 
 # Spezifische Version wiederherstellen
 aws s3api get-object \
-  --bucket overcloud-prod-terraform-state \
+  --bucket stackvertex-prod-terraform-state \
   --key terraform.tfstate \
   --version-id <version-id> \
   terraform.tfstate.backup

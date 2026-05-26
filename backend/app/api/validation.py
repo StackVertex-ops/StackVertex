@@ -67,7 +67,7 @@ class ValidationResponse(BaseModel):
     response_model=ValidationResponse,
     status_code=status.HTTP_200_OK,
     summary="Validiere Architekturdefinition",
-    description="Validiert eine JSON-Architekturdefinition gegen das OverCloud Schema v1.0.0",
+    description="Validiert eine JSON-Architekturdefinition gegen das StackVertex Schema v1.0.0",
     responses={
         200: {
             "description": "Validierung durchgeführt (kann Fehler enthalten)",

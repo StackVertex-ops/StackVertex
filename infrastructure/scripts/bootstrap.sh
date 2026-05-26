@@ -1,10 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
-# OverCloud AWS Infrastructure Bootstrap Script
+# StackVertex AWS Infrastructure Bootstrap Script
 # This script sets up the Terraform state backend (S3 + DynamoDB)
 
-echo "🚀 OverCloud AWS Infrastructure Bootstrap"
+echo "🚀 StackVertex AWS Infrastructure Bootstrap"
 echo "=========================================="
 echo ""
 
@@ -54,7 +54,7 @@ echo ""
 
 # Confirm
 echo -e "${YELLOW}📝 Configuration:${NC}"
-echo "   Project: overcloud"
+echo "   Project: stackvertex"
 echo "   AWS Account: $AWS_ACCOUNT_ID"
 echo "   AWS Region: $AWS_REGION"
 echo ""
@@ -80,7 +80,7 @@ echo "📝 Creating terraform.tfvars..."
 cat > terraform.tfvars <<EOF
 aws_account_id = "$AWS_ACCOUNT_ID"
 aws_region     = "$AWS_REGION"
-project_name   = "overcloud"
+project_name   = "stackvertex"
 EOF
 
 # Plan
@@ -155,8 +155,8 @@ TERRAFORM_STATE_BUCKET=$STATE_BUCKET
 DEPLOYMENT_STATE_BUCKET=$DEPLOYMENT_BUCKET
 
 # Application Settings
-DATABASE_URL=postgresql://\${DB_USER}:\${DB_PASSWORD}@\${DB_HOST}:5432/overcloud
-TERRAFORM_WORKSPACE_DIR=/tmp/overcloud/deployments
+DATABASE_URL=postgresql://\${DB_USER}:\${DB_PASSWORD}@\${DB_HOST}:5432/stackvertex
+TERRAFORM_WORKSPACE_DIR=/tmp/stackvertex/deployments
 EOF
 
 echo "   ✅ Created backend/.env.aws"

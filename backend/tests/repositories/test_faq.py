@@ -32,8 +32,8 @@ def sample_faq_data():
     """Sample FAQ data für Tests."""
     return {
         "category": "general",
-        "question": "Was ist OverCloud?",
-        "answer": "OverCloud ist eine Multi-Cloud Infrastructure Platform.",
+        "question": "Was ist StackVertex?",
+        "answer": "StackVertex ist eine Multi-Cloud Infrastructure Platform.",
         "sort_order": 0,
         "status": "published",
         "created_by": "admin_user_1",
@@ -129,7 +129,7 @@ def test_list_faqs_all(faq_repository, sample_faq_data):
     faq_repository.create_faq(**sample_faq_data)
     faq_repository.create_faq(
         category="pricing",
-        question="Wie viel kostet OverCloud?",
+        question="Wie viel kostet StackVertex?",
         answer="Pricing Information",
         sort_order=1,
         status="published",

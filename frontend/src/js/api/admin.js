@@ -1,5 +1,5 @@
 /**
- * OverCloud - Admin API Client
+ * StackVertex - Admin API Client
  *
  * Handles SuperAdmin-related API calls.
  */

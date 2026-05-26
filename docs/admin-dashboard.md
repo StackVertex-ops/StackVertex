@@ -2,7 +2,7 @@
 
 ## Überblick
 
-Das SuperAdmin Dashboard ermöglicht SuperAdmins die vollständige Verwaltung der OverCloud-Plattform.
+Das SuperAdmin Dashboard ermöglicht SuperAdmins die vollständige Verwaltung der StackVertex-Plattform.
 
 ## Features
 
@@ -211,7 +211,7 @@ SECRET_KEY=<random-secret-key>
 DATABASE_URL=<dynamodb-endpoint>
 
 # Frontend
-VITE_API_URL=https://api.overcloud.io
+VITE_API_URL=https://api.stackvertex.io
 ```
 
 ## Roadmap
@@ -230,4 +230,4 @@ VITE_API_URL=https://api.overcloud.io
 Bei Fragen oder Problemen:
 - Dokumentation: `/docs/`
 - API Docs: `http://localhost:8000/docs`
-- GitHub Issues: [OverCloud Issues](https://github.com/...)
+- GitHub Issues: [StackVertex Issues](https://github.com/...)

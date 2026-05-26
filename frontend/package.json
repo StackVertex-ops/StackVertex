@@ -1,5 +1,5 @@
 {
-  "name": "overcloud-frontend",
+  "name": "stackvertex-frontend",
   "version": "0.1.0",
   "type": "module",
   "scripts": {
@@ -19,7 +19,7 @@
   ],
   "author": "AndySchw",
   "license": "MIT",
-  "description": "OverCloud Frontend - Cloud infrastructure management UI",
+  "description": "StackVertex Frontend - The apex of your cloud stack UI",
   "devDependencies": {
     "@playwright/test": "^1.60.0",
     "@tailwindcss/vite": "^4.2.2",

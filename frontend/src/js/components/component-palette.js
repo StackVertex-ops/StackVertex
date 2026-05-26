@@ -1,5 +1,5 @@
 /**
- * OverCloud - Component Palette
+ * StackVertex - Component Palette
  *
  * Sidebar mit allen verfügbaren AWS-Components zum Hinzufügen zur Canvas
  */

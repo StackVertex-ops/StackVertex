@@ -1,44 +1,37 @@
-"""Lambda Handler für AWS Lambda Deployment.
+"""Lambda Handler für API Gateway.
 
-Nutzt Mangum um FastAPI ASGI App in Lambda zu wrappen.
+Verwendet Mangum um FastAPI in AWS Lambda zu wrappen.
+Handelt alle HTTP Requests via API Gateway HTTP API.
+
+Hybrid Serverless Architecture:
+- Lambda (99% Traffic): API Requests, schnelle Operationen
+- ECS (1% Traffic): Lange Terraform Deployments (>15 Min)
 """
 
+import logging
 import os
-import json
-import boto3
+
 from mangum import Mangum
+
 from app.main import app
 
-# Database Credentials aus AWS Secrets Manager holen
-def get_database_credentials():
-    """Holt Database Credentials aus AWS Secrets Manager."""
-    secret_arn = os.environ.get("DATABASE_SECRET_ARN")
+# Logger konfigurieren
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
-    if not secret_arn:
-        raise ValueError("DATABASE_SECRET_ARN environment variable not set")
+# Detect Lambda Environment
+IS_LAMBDA = os.environ.get("AWS_LAMBDA_FUNCTION_NAME") is not None
 
-    # Secrets Manager Client
-    client = boto3.client("secretsmanager")
+if IS_LAMBDA:
+    logger.info("Running in AWS Lambda environment")
+else:
+    logger.info("Running in local/container environment")
 
-    try:
-        response = client.get_secret_value(SecretId=secret_arn)
-        secret = json.loads(response["SecretString"])
-
-        # Setze DATABASE_URL Environment Variable
-        database_url = (
-            f"postgresql://{secret['username']}:{secret['password']}"
-            f"@{secret['host']}:{secret['port']}/{secret['database']}"
-        )
-        os.environ["DATABASE_URL"] = database_url
-
-        return secret
-    except Exception as e:
-        print(f"Error fetching database credentials: {e}")
-        raise
-
-
-# Credentials beim Start holen (Cold Start)
-get_database_credentials()
-
-# Mangum Handler (FastAPI → Lambda)
+# Mangum Adapter: FastAPI → Lambda
+# lifespan="off" da Lambda keine Background Tasks während Idle unterstützt
 handler = Mangum(app, lifespan="off")
+
+logger.info("Lambda Handler initialisiert - FastAPI via Mangum")

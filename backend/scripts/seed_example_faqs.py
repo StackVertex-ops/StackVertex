@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Seed Example FAQs.
 
-Erstellt Beispiel-FAQs für OverCloud.
+Erstellt Beispiel-FAQs für StackVertex.
 """
 
 import sys
@@ -18,10 +18,10 @@ EXAMPLE_FAQS = [
     # Allgemein
     {
         "category": "general",
-        "question": "Was ist OverCloud?",
-        "answer": """OverCloud ist eine Plattform zur **anforderungsbasierten Modellierung** von Cloud-Infrastruktur.
+        "question": "Was ist StackVertex?",
+        "answer": """StackVertex ist eine Plattform zur **anforderungsbasierten Modellierung** von Cloud-Infrastruktur.
 
-Statt Terraform-Code zu schreiben, beschreibst du in JSON **was** du brauchst - OverCloud generiert automatisch:
+Statt Terraform-Code zu schreiben, beschreibst du in JSON **was** du brauchst - StackVertex generiert automatisch:
 - Terraform/OpenTofu Code
 - Architektur-Diagramme
 - Kosten-Schätzungen
@@ -33,8 +33,8 @@ Alle Entscheidungen sind **versionierbar** und **transparent**.""",
     },
     {
         "category": "general",
-        "question": "Für wen ist OverCloud geeignet?",
-        "answer": """OverCloud ist ideal für:
+        "question": "Für wen ist StackVertex geeignet?",
+        "answer": """StackVertex ist ideal für:
 
 - **DevOps-Teams**, die Terraform-Code standardisieren wollen
 - **Startups**, die schnell produktionsreife Infrastruktur brauchen
@@ -63,8 +63,8 @@ Die JSON-basierte Architektur ermöglicht **Vendor-Lock-In-freien** Wechsel zwis
     # Preise
     {
         "category": "pricing",
-        "question": "Was kostet OverCloud?",
-        "answer": """OverCloud nutzt ein **nutzungsbasiertes** Pricing-Modell:
+        "question": "Was kostet StackVertex?",
+        "answer": """StackVertex nutzt ein **nutzungsbasiertes** Pricing-Modell:
 
 - **Free Tier**: 3 Architekturen, 5 Deployments/Monat - kostenlos
 - **Pro**: €29/Monat - unlimitiert
@@ -77,11 +77,11 @@ Die JSON-basierte Architektur ermöglicht **Vendor-Lock-In-freien** Wechsel zwis
     {
         "category": "pricing",
         "question": "Fallen zusätzliche Cloud-Kosten an?",
-        "answer": """Ja, aber **OverCloud ist transparent**:
+        "answer": """Ja, aber **StackVertex ist transparent**:
 
 - Vor jedem Deployment siehst du eine **Kosten-Schätzung**
 - Du zahlst nur die **tatsächlichen AWS-Kosten**
-- OverCloud hat **keine Aufschläge** auf deine Cloud-Kosten
+- StackVertex hat **keine Aufschläge** auf deine Cloud-Kosten
 
 Beispiel: Eine kleine Web-App kostet ca. **$20-50/Monat** auf AWS.""",
         "status": "published",
@@ -128,8 +128,8 @@ Für individuelle Anpassungen kannst du **Custom Templates** definieren.""",
     # Sicherheit
     {
         "category": "security",
-        "question": "Wie sicher ist OverCloud?",
-        "answer": """OverCloud folgt **Best Practices**:
+        "question": "Wie sicher ist StackVertex?",
+        "answer": """StackVertex folgt **Best Practices**:
 
 - 🔐 **Keine hardcoded Secrets** - alles über AWS Secrets Manager
 - ✅ **AssumeRole statt Access Keys** - IAM-basiert
@@ -146,10 +146,10 @@ Für individuelle Anpassungen kannst du **Custom Templates** definieren.""",
         "question": "Wo werden meine Daten gespeichert?",
         "answer": """**Separation of Concerns**:
 
-- **OverCloud (Plattform)**: Metadata, JSON-Schemas, Logs → EU (Frankfurt)
+- **StackVertex (Plattform)**: Metadata, JSON-Schemas, Logs → EU (Frankfurt)
 - **Deine Infrastruktur**: Produktions-Daten, Secrets → Dein AWS-Account
 
-OverCloud hat **keinen Zugriff** auf deine Produktionsdaten!""",
+StackVertex hat **keinen Zugriff** auf deine Produktionsdaten!""",
         "status": "published",
         "sort_order": 1,
     },
@@ -160,10 +160,10 @@ OverCloud hat **keinen Zugriff** auf deine Produktionsdaten!""",
         "question": "Wie erreiche ich den Support?",
         "answer": """**Mehrere Wege**:
 
-- 📧 **Email**: support@overcloud.io
+- 📧 **Email**: support@stackvertex.io
 - 💬 **Feedback-Widget** auf der Seite
-- 📚 **Dokumentation**: docs.overcloud.io
-- 🐛 **GitHub Issues**: github.com/AndySchw/OverCloud
+- 📚 **Dokumentation**: docs.stackvertex.io
+- 🐛 **GitHub Issues**: github.com/AndySchw/StackVertex
 
 **Response Time**:
 - Free: Best-Effort

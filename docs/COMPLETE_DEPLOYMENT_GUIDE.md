@@ -35,8 +35,8 @@ gh --version
 ### AWS Account
 
 - AWS Account mit Admin-Zugriff
-- Keine bestehenden OverCloud-Ressourcen (Fresh Start)
-- Empfohlen: Neuer AWS Account für OverCloud
+- Keine bestehenden StackVertex-Ressourcen (Fresh Start)
+- Empfohlen: Neuer AWS Account für StackVertex
 
 ---
 
@@ -46,15 +46,15 @@ gh --version
 
 ```bash
 # 1. IAM User erstellen
-aws iam create-user --user-name github-actions-overcloud
+aws iam create-user --user-name github-actions-stackvertex
 
 # 2. Access Keys generieren
-aws iam create-access-key --user-name github-actions-overcloud
+aws iam create-access-key --user-name github-actions-stackvertex
 
 # ⚠️ WICHTIG: Output SOFORT speichern! Keys werden NUR EINMAL angezeigt!
 # {
 #   "AccessKey": {
-#     "UserName": "github-actions-overcloud",
+#     "UserName": "github-actions-stackvertex",
 #     "AccessKeyId": "AKIAIOSFODNN7EXAMPLE",          <-- KOPIEREN!
 #     "SecretAccessKey": "wJalrXUtnFEMI/K7MDENG/...", <-- KOPIEREN!
 #     "Status": "Active",
@@ -64,7 +64,7 @@ aws iam create-access-key --user-name github-actions-overcloud
 
 # 3. Admin Policy anhängen (MVP - später least privilege)
 aws iam attach-user-policy \
-  --user-name github-actions-overcloud \
+  --user-name github-actions-stackvertex \
   --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
 
 # 4. Account ID anzeigen
@@ -96,8 +96,8 @@ echo "JWT_SECRET_KEY: $JWT_KEY"
 
 ```bash
 # Erstelle lokale secrets.txt (ist in .gitignore)
-cat > /Users/andyschwarz/Documents/Privat/OverCloud/secrets.txt <<EOF
-# OverCloud GitHub Secrets - $(date)
+cat > /Users/andyschwarz/Documents/Privat/StackVertex/secrets.txt <<EOF
+# StackVertex GitHub Secrets - $(date)
 # ⚠️ NIEMALS COMMITTEN! ⚠️
 
 AWS_ACCESS_KEY_ID=AKIA...
@@ -120,7 +120,7 @@ echo "✅ Secrets gespeichert in secrets.txt"
 
 ### Option A: Via Web UI
 
-1. Gehe zu: https://github.com/AndySchw/OverCloud/settings/secrets/actions
+1. Gehe zu: https://github.com/AndySchw/StackVertex/settings/secrets/actions
 2. Klicke **New repository secret**
 3. Füge ALLE 9 Secrets hinzu:
 
@@ -165,21 +165,21 @@ gh secret list
 ```bash
 # Dev Environment
 aws ecr create-repository \
-  --repository-name overcloud-dev-lambda \
+  --repository-name stackvertex-dev-lambda \
   --region eu-central-1 \
   --image-scanning-configuration scanOnPush=true \
   --encryption-configuration encryptionType=AES256
 
 # Staging Environment
 aws ecr create-repository \
-  --repository-name overcloud-staging-lambda \
+  --repository-name stackvertex-staging-lambda \
   --region eu-central-1 \
   --image-scanning-configuration scanOnPush=true \
   --encryption-configuration encryptionType=AES256
 
 # Production Environment
 aws ecr create-repository \
-  --repository-name overcloud-prod-lambda \
+  --repository-name stackvertex-prod-lambda \
   --region eu-central-1 \
   --image-scanning-configuration scanOnPush=true \
   --encryption-configuration encryptionType=AES256
@@ -192,9 +192,9 @@ aws ecr describe-repositories \
 
 # Sollte zeigen:
 # -------------------------
-# | overcloud-dev-lambda   |
-# | overcloud-staging-lambda|
-# | overcloud-prod-lambda   |
+# | stackvertex-dev-lambda   |
+# | stackvertex-staging-lambda|
+# | stackvertex-prod-lambda   |
 # -------------------------
 ```
 
@@ -210,12 +210,12 @@ aws ecr describe-repositories \
 
 ### Via GitHub Actions Web UI
 
-1. Gehe zu: https://github.com/AndySchw/OverCloud/actions/workflows/bootstrap.yml
+1. Gehe zu: https://github.com/AndySchw/StackVertex/actions/workflows/bootstrap.yml
 2. Klicke **Run workflow** (rechts oben, grüner Button)
 3. Eingaben:
    - **aws_account_id**: `123456789012` (deine AWS Account ID)
    - **aws_region**: `eu-central-1`
-   - **project_name**: `overcloud`
+   - **project_name**: `stackvertex`
 4. Klicke **Run workflow**
 5. Warte ~2-3 Minuten
 6. ✅ Workflow sollte grün sein
@@ -227,7 +227,7 @@ aws ecr describe-repositories \
 gh workflow run bootstrap.yml \
   --field aws_account_id="$AWS_ACCOUNT_ID" \
   --field aws_region="eu-central-1" \
-  --field project_name="overcloud"
+  --field project_name="stackvertex"
 
 # Workflow Status verfolgen
 gh run watch
@@ -244,7 +244,7 @@ gh run watch
 gh run view --log | grep TERRAFORM_STATE_BUCKET
 
 # Wichtige Zeile kopieren:
-# TERRAFORM_STATE_BUCKET = overcloud-terraform-state-123456789012
+# TERRAFORM_STATE_BUCKET = stackvertex-terraform-state-123456789012
 ```
 
 **WICHTIG:** Kopiere den `TERRAFORM_STATE_BUCKET` Namen aus dem Output!
@@ -255,7 +255,7 @@ gh run view --log | grep TERRAFORM_STATE_BUCKET
 
 ```bash
 # Aus Bootstrap Output (oder aus AWS)
-TERRAFORM_STATE_BUCKET="overcloud-terraform-state-$AWS_ACCOUNT_ID"
+TERRAFORM_STATE_BUCKET="stackvertex-terraform-state-$AWS_ACCOUNT_ID"
 
 # Secret setzen
 gh secret set TERRAFORM_STATE_BUCKET --body "$TERRAFORM_STATE_BUCKET"
@@ -284,7 +284,7 @@ git push origin develop
 # Workflow verfolgen
 gh run watch
 
-# Oder im Browser: https://github.com/AndySchw/OverCloud/actions
+# Oder im Browser: https://github.com/AndySchw/StackVertex/actions
 ```
 
 **Was passiert jetzt?** (Dauer: ~10-15 Minuten)
@@ -311,7 +311,7 @@ gh run watch
 
 ```bash
 # Terraform Outputs anschauen
-cd /Users/andyschwarz/Documents/Privat/OverCloud/infrastructure/terraform/environments/dev
+cd /Users/andyschwarz/Documents/Privat/StackVertex/infrastructure/terraform/environments/dev
 terraform init -backend-config="bucket=$TERRAFORM_STATE_BUCKET"
 terraform output
 
@@ -325,7 +325,7 @@ terraform output
 
 ```bash
 # API Health Check
-API_ENDPOINT=$(cd /Users/andyschwarz/Documents/Privat/OverCloud/infrastructure/terraform/environments/dev && terraform output -raw api_endpoint)
+API_ENDPOINT=$(cd /Users/andyschwarz/Documents/Privat/StackVertex/infrastructure/terraform/environments/dev && terraform output -raw api_endpoint)
 curl "$API_ENDPOINT/health"
 
 # Sollte JSON zurückgeben:
@@ -336,10 +336,10 @@ curl "$API_ENDPOINT/health"
 
 ```bash
 # Frontend URL öffnen
-FRONTEND_URL=$(cd /Users/andyschwarz/Documents/Privat/OverCloud/infrastructure/terraform/environments/dev && terraform output -raw frontend_url)
+FRONTEND_URL=$(cd /Users/andyschwarz/Documents/Privat/StackVertex/infrastructure/terraform/environments/dev && terraform output -raw frontend_url)
 open "$FRONTEND_URL"
 
-# Sollte OverCloud UI im Browser öffnen
+# Sollte StackVertex UI im Browser öffnen
 ```
 
 ---
@@ -375,7 +375,7 @@ git merge staging
 git push origin main
 
 # GitHub UI öffnen für Approval
-open "https://github.com/AndySchw/OverCloud/actions"
+open "https://github.com/AndySchw/StackVertex/actions"
 
 # ⚠️ WICHTIG: Production Deployment benötigt manuelle Freigabe!
 # Gehe zu Actions → Klicke auf laufenden Workflow → "Review deployments" → Approve
@@ -456,17 +456,17 @@ gh run list --status failure
 
 ```bash
 # Lambda Logs (Backend)
-aws logs tail /aws/lambda/overcloud-dev-api --follow --region eu-central-1
+aws logs tail /aws/lambda/stackvertex-dev-api --follow --region eu-central-1
 
 # API Gateway Logs
-aws logs tail /aws/apigateway/overcloud-dev --follow --region eu-central-1
+aws logs tail /aws/apigateway/stackvertex-dev --follow --region eu-central-1
 ```
 
 ### Terraform Outputs
 
 ```bash
 # Alle Outputs
-cd /Users/andyschwarz/Documents/Privat/OverCloud/infrastructure/terraform/environments/dev
+cd /Users/andyschwarz/Documents/Privat/StackVertex/infrastructure/terraform/environments/dev
 terraform output
 
 # Bestimmten Output
@@ -495,7 +495,7 @@ gh secret list | grep TERRAFORM_STATE_BUCKET
 
 **Lösung:**
 ```bash
-aws ecr create-repository --repository-name overcloud-dev-lambda --region eu-central-1
+aws ecr create-repository --repository-name stackvertex-dev-lambda --region eu-central-1
 ```
 
 ### Error: "Access Denied"
@@ -505,11 +505,11 @@ aws ecr create-repository --repository-name overcloud-dev-lambda --region eu-cen
 **Lösung:**
 ```bash
 # Prüfe Policy
-aws iam list-attached-user-policies --user-name github-actions-overcloud
+aws iam list-attached-user-policies --user-name github-actions-stackvertex
 
 # Policy anhängen
 aws iam attach-user-policy \
-  --user-name github-actions-overcloud \
+  --user-name github-actions-stackvertex \
   --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
 ```
 
@@ -521,7 +521,7 @@ aws iam attach-user-policy \
 ```bash
 # Lock entfernen
 aws dynamodb delete-item \
-  --table-name overcloud-terraform-locks \
+  --table-name stackvertex-terraform-locks \
   --key "{\"LockID\":{\"S\":\"$TERRAFORM_STATE_BUCKET/dev/terraform.tfstate-md5\"}}" \
   --region eu-central-1
 ```
@@ -585,7 +585,7 @@ Für Production statt AdministratorAccess:
 
 ### GitHub Environment Protection
 
-1. Gehe zu: https://github.com/AndySchw/OverCloud/settings/environments
+1. Gehe zu: https://github.com/AndySchw/StackVertex/settings/environments
 2. Erstelle Environment: `prod`
 3. Aktiviere **Required reviewers** (1-2 Personen)
 4. Aktiviere **Wait timer** (5 Minuten Bedenkzeit)
@@ -647,9 +647,9 @@ Frontend: https://<cf-id>.cloudfront.net
 ```
 
 **Später mit Custom Domain:**
-- Dev: `https://dev.overcloud.io`
-- Staging: `https://staging.overcloud.io`
-- Prod: `https://app.overcloud.io`
+- Dev: `https://dev.stackvertex.io`
+- Staging: `https://staging.stackvertex.io`
+- Prod: `https://app.stackvertex.io`
 
 ---
 
@@ -685,7 +685,7 @@ Nach erfolgreichem Setup:
 - [Security Workflow](../.github/workflows/security-scan.yml)
 
 **Bei Problemen:**
-- GitHub Issues: https://github.com/AndySchw/OverCloud/issues
+- GitHub Issues: https://github.com/AndySchw/StackVertex/issues
 - Email: schwarz23andy@gmail.com
 
 ---

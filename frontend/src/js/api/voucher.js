@@ -1,5 +1,5 @@
 /**
- * OverCloud - Voucher API Client
+ * StackVertex - Voucher API Client
  *
  * API calls für Voucher-Verwaltung.
  */

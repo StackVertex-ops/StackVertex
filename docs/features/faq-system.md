@@ -2,7 +2,7 @@
 
 ## Übersicht
 
-Das FAQ-System ermöglicht die Verwaltung und Darstellung von häufig gestellten Fragen auf der OverCloud-Startseite.
+Das FAQ-System ermöglicht die Verwaltung und Darstellung von häufig gestellten Fragen auf der StackVertex-Startseite.
 
 ## Features
 
@@ -196,7 +196,7 @@ Im Admin-Dashboard:
 ### Fragen schreiben
 
 ✅ **Kurz und spezifisch**
-- "Was kostet OverCloud?" ✅
+- "Was kostet StackVertex?" ✅
 - "Pricing-Informationen" ❌
 
 ✅ **User-Perspektive**
@@ -207,13 +207,13 @@ Im Admin-Dashboard:
 
 ✅ **Strukturiert mit Markdown**
 ```markdown
-OverCloud nutzt ein **nutzungsbasiertes** Pricing:
+StackVertex nutzt ein **nutzungsbasiertes** Pricing:
 
 - Free Tier: 3 Architekturen
 - Pro: €29/Monat
 - Enterprise: Custom
 
-Mehr Details: [Preise](https://overcloud.io/pricing)
+Mehr Details: [Preise](https://stackvertex.io/pricing)
 ```
 
 ✅ **Kurz und prägnant** (max. 300 Wörter)

@@ -1,6 +1,6 @@
-# OverCloud Quick Start Guide
+# StackVertex Quick Start Guide
 
-Schnellstart-Anleitung um OverCloud in 30 Minuten auf AWS zu deployen.
+Schnellstart-Anleitung um StackVertex in 30 Minuten auf AWS zu deployen.
 
 ## Voraussetzungen (5 Minuten)
 
@@ -47,8 +47,8 @@ Erstellt die Terraform State Backend Infrastruktur.
 
 ```bash
 # Clone Repository
-git clone https://github.com/YOUR_ORG/overcloud.git
-cd overcloud
+git clone https://github.com/YOUR_ORG/stackvertex.git
+cd stackvertex
 
 # Run Bootstrap
 cd infrastructure/scripts
@@ -67,9 +67,9 @@ cd infrastructure/scripts
 ✅ Bootstrap Complete!
 
 📦 Created Resources:
-   - State Bucket: overcloud-terraform-state-123456789012
-   - Locks Table: overcloud-terraform-locks
-   - Deployment Bucket: overcloud-deployment-states-123456789012
+   - State Bucket: stackvertex-terraform-state-123456789012
+   - Locks Table: stackvertex-terraform-locks
+   - Deployment Bucket: stackvertex-deployment-states-123456789012
 
 📝 Next Steps:
    1. cd ../terraform/environments/dev
@@ -96,16 +96,16 @@ vim terraform.tfvars
 
 ```hcl
 # terraform.tfvars
-project_name = "overcloud"
+project_name = "stackvertex"
 environment  = "dev"
 aws_region   = "eu-central-1"
 
 # Database Credentials (CHANGE THESE!)
-db_master_username = "overcloud_admin"
+db_master_username = "stackvertex_admin"
 db_master_password = "YOUR_SECURE_PASSWORD_MIN_16_CHARS"
 
 # From Bootstrap Output
-terraform_state_bucket = "overcloud-terraform-state-123456789012"
+terraform_state_bucket = "stackvertex-terraform-state-123456789012"
 
 # Alerts (optional for dev)
 alert_emails = ["your-email@example.com"]
@@ -139,10 +139,10 @@ Outputs:
 
 api_endpoint = "https://abc123.execute-api.eu-central-1.amazonaws.com/"
 websocket_endpoint = "wss://xyz789.execute-api.eu-central-1.amazonaws.com/dev"
-ecr_repository_url = "123456789012.dkr.ecr.eu-central-1.amazonaws.com/overcloud-dev-lambda"
-database_endpoint = "overcloud-dev-aurora.cluster-abc.eu-central-1.rds.amazonaws.com"
+ecr_repository_url = "123456789012.dkr.ecr.eu-central-1.amazonaws.com/stackvertex-dev-lambda"
+database_endpoint = "stackvertex-dev-aurora.cluster-abc.eu-central-1.rds.amazonaws.com"
 
-cloudwatch_dashboard_url = "https://console.aws.amazon.com/.../overcloud-dev-overview"
+cloudwatch_dashboard_url = "https://console.aws.amazon.com/.../stackvertex-dev-overview"
 ```
 
 ---
@@ -161,11 +161,11 @@ aws ecr get-login-password --region eu-central-1 | \
 
 # Build Image
 cd ../../../../../backend
-docker build -f Dockerfile.lambda -t overcloud-dev-lambda .
+docker build -f Dockerfile.lambda -t stackvertex-dev-lambda .
 
 # Tag
-docker tag overcloud-dev-lambda:latest $ECR_URL:latest
-docker tag overcloud-dev-lambda:latest $ECR_URL:$(git rev-parse --short HEAD)
+docker tag stackvertex-dev-lambda:latest $ECR_URL:latest
+docker tag stackvertex-dev-lambda:latest $ECR_URL:$(git rev-parse --short HEAD)
 
 # Push
 docker push $ECR_URL:latest
@@ -177,13 +177,13 @@ docker push $ECR_URL:$(git rev-parse --short HEAD)
 ```bash
 # Update Lambda Function
 aws lambda update-function-code \
-  --function-name overcloud-dev-api \
+  --function-name stackvertex-dev-api \
   --image-uri $ECR_URL:latest \
   --region eu-central-1
 
 # Wait for update
 aws lambda wait function-updated \
-  --function-name overcloud-dev-api \
+  --function-name stackvertex-dev-api \
   --region eu-central-1
 
 echo "✅ Lambda updated!"
@@ -196,7 +196,7 @@ echo "✅ Lambda updated!"
 ```bash
 # Get Database Credentials
 DB_SECRET=$(aws secretsmanager get-secret-value \
-  --secret-id overcloud-dev-db-credentials \
+  --secret-id stackvertex-dev-db-credentials \
   --region eu-central-1 \
   --query SecretString \
   --output text)
@@ -337,7 +337,7 @@ terraform apply
 ```bash
 # Verify CloudTrail is logging
 aws cloudtrail get-trail-status \
-  --name overcloud-dev-trail \
+  --name stackvertex-dev-trail \
   --region eu-central-1
 
 # Expected:
@@ -421,7 +421,7 @@ cd frontend
 npm run build
 
 # Deploy to S3 (static hosting)
-aws s3 sync dist/ s3://overcloud-dev-frontend --delete
+aws s3 sync dist/ s3://stackvertex-dev-frontend --delete
 
 # Setup CloudFront (optional)
 ```
@@ -432,9 +432,9 @@ aws s3 sync dist/ s3://overcloud-dev-frontend --delete
 # Setup GitHub Secrets
 gh secret set AWS_ACCESS_KEY_ID --body "YOUR_KEY"
 gh secret set AWS_SECRET_ACCESS_KEY --body "YOUR_SECRET"
-gh secret set DB_MASTER_USERNAME --body "overcloud_admin"
+gh secret set DB_MASTER_USERNAME --body "stackvertex_admin"
 gh secret set DB_MASTER_PASSWORD --body "YOUR_PASSWORD"
-gh secret set TERRAFORM_STATE_BUCKET --body "overcloud-terraform-state-123456789012"
+gh secret set TERRAFORM_STATE_BUCKET --body "stackvertex-terraform-state-123456789012"
 
 # Push to GitHub
 git push origin develop
@@ -486,7 +486,7 @@ aws ec2 describe-security-groups \
 
 # Verify Lambda can reach Aurora
 aws lambda get-function-configuration \
-  --function-name overcloud-dev-api \
+  --function-name stackvertex-dev-api \
   --query VpcConfig
 ```
 
@@ -562,9 +562,9 @@ terraform apply
 **Probleme?**
 
 1. Check [Troubleshooting](#troubleshooting) oben
-2. Check CloudWatch Logs: `aws logs tail /aws/lambda/overcloud-dev-api --follow`
-3. Check GitHub Issues: `https://github.com/YOUR_ORG/overcloud/issues`
-4. Slack: `#overcloud-support`
+2. Check CloudWatch Logs: `aws logs tail /aws/lambda/stackvertex-dev-api --follow`
+3. Check GitHub Issues: `https://github.com/YOUR_ORG/stackvertex/issues`
+4. Slack: `#stackvertex-support`
 
 ---
 

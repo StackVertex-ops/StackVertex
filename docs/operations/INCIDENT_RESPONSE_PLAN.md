@@ -390,10 +390,10 @@ Time: {TIMESTAMP} UTC
 
 ### 5.4 Customer Email (P1 Incident)
 
-**Subject:** [OverCloud] Incident Resolution - {DATE}
+**Subject:** [StackVertex] Incident Resolution - {DATE}
 
 ```
-Dear OverCloud Customer,
+Dear StackVertex Customer,
 
 We want to inform you about a service incident that occurred on {DATE}.
 
@@ -411,13 +411,13 @@ RESOLUTION:
 NEXT STEPS:
 - We have implemented additional monitoring to prevent recurrence
 - A detailed post-mortem will be shared within 5 business days
-- If you were affected, please contact support@overcloud.io
+- If you were affected, please contact support@stackvertex.io
 
 We sincerely apologize for the disruption and are committed to
 preventing similar incidents in the future.
 
 Best regards,
-The OverCloud Team
+The StackVertex Team
 ```
 
 ### 5.5 DSGVO Data Breach Notification (wenn erforderlich)
@@ -451,12 +451,12 @@ MEASURES RECOMMENDED FOR INDIVIDUALS:
 {Steps individuals should take, e.g., password reset}
 
 CONTACT:
-For questions, please contact: dpo@overcloud.io
+For questions, please contact: dpo@stackvertex.io
 
 Sincerely,
 Andy Schwarz
 CISO & Data Protection Officer (DPO)
-OverCloud
+StackVertex
 ```
 
 **Timeline:**
@@ -480,20 +480,20 @@ OverCloud
 aws apigatewayv2 get-api --api-id {API_ID}
 
 # Check Lambda
-aws lambda get-function --function-name overcloud-prod-lambda
+aws lambda get-function --function-name stackvertex-prod-lambda
 
 # Check Lambda errors
-aws logs tail /aws/lambda/overcloud-prod-lambda --follow
+aws logs tail /aws/lambda/stackvertex-prod-lambda --follow
 
 # Check Database
-aws rds describe-db-clusters --db-cluster-identifier overcloud-prod
+aws rds describe-db-clusters --db-cluster-identifier stackvertex-prod
 ```
 
 **Resolution:**
 ```bash
 # Option 1: Restart Lambda (update environment variable)
 aws lambda update-function-configuration \
-  --function-name overcloud-prod-lambda \
+  --function-name stackvertex-prod-lambda \
   --environment Variables={RESTART=true}
 
 # Option 2: Rollback deployment
@@ -503,7 +503,7 @@ git push origin main
 
 # Option 3: Scale up Aurora
 aws rds modify-db-cluster \
-  --db-cluster-identifier overcloud-prod \
+  --db-cluster-identifier stackvertex-prod \
   --serverless-v2-scaling-configuration MinCapacity=2,MaxCapacity=16
 ```
 
@@ -569,7 +569,7 @@ aws rds modify-db-cluster \
    ```bash
    # List available snapshots
    aws rds describe-db-cluster-snapshots \
-     --db-cluster-identifier overcloud-prod
+     --db-cluster-identifier stackvertex-prod
    
    # For PITR, use timestamp: 2026-05-15T14:30:00Z
    ```
@@ -577,7 +577,7 @@ aws rds modify-db-cluster \
 2. **Create new cluster from snapshot:**
    ```bash
    aws rds restore-db-cluster-from-snapshot \
-     --db-cluster-identifier overcloud-prod-restore \
+     --db-cluster-identifier stackvertex-prod-restore \
      --snapshot-identifier {SNAPSHOT_ID} \
      --engine aurora-postgresql
    ```
@@ -585,15 +585,15 @@ aws rds modify-db-cluster \
 3. **Or use PITR:**
    ```bash
    aws rds restore-db-cluster-to-point-in-time \
-     --source-db-cluster-identifier overcloud-prod \
-     --db-cluster-identifier overcloud-prod-restore \
+     --source-db-cluster-identifier stackvertex-prod \
+     --db-cluster-identifier stackvertex-prod-restore \
      --restore-to-time 2026-05-15T14:30:00Z
    ```
 
 4. **Validate restored data:**
    ```bash
    # Connect to restored cluster
-   psql -h {RESTORE_CLUSTER_ENDPOINT} -U overcloud_admin -d overcloud
+   psql -h {RESTORE_CLUSTER_ENDPOINT} -U stackvertex_admin -d stackvertex
    
    # Verify data integrity
    SELECT COUNT(*) FROM users;
@@ -679,7 +679,7 @@ Track monthly:
 
 | Role | Name | Phone | Email | Slack |
 |------|------|-------|-------|-------|
-| CISO | Andy Schwarz | +49 XXX | andy@overcloud.io | @andy |
+| CISO | Andy Schwarz | +49 XXX | andy@stackvertex.io | @andy |
 | AWS Support | - | - | - | Enterprise Support Portal |
 | External Security | - | - | security@example.com | - |
 
@@ -687,11 +687,11 @@ Track monthly:
 
 | Tool | Purpose | Access |
 |------|---------|--------|
-| AWS Console | Infrastructure | andy@overcloud.io (MFA) |
+| AWS Console | Infrastructure | andy@stackvertex.io (MFA) |
 | GitHub | Code, CI/CD | github.com/AndySchw |
-| Slack | Communication | overcloud.slack.com |
-| Status Page | Customer comms | status.overcloud.io |
-| Sentry | Error tracking | sentry.io/overcloud |
+| Slack | Communication | stackvertex.slack.com |
+| Status Page | Customer comms | status.stackvertex.io |
+| Sentry | Error tracking | sentry.io/stackvertex |
 
 ### Appendix C: Compliance Requirements
 

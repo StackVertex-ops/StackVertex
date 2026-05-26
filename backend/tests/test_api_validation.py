@@ -212,8 +212,8 @@ class TestValidationHealthEndpoint:
 
         assert response.status_code == 200
         result = response.json()
-        assert "OverCloud" in result["schema_title"]
-        assert "overcloud.io" in result["schema_version"]
+        assert "StackVertex" in result["schema_title"]
+        assert "stackvertex.io" in result["schema_version"]
 
 
 class TestValidationErrorDetails:

@@ -376,7 +376,7 @@ class TestOrganisationUpdate:
         )
 
         from uuid import UUID
-        aws_role_arn = "arn:aws:iam::123456789012:role/OverCloudRole"
+        aws_role_arn = "arn:aws:iam::123456789012:role/StackVertexRole"
 
         updated = organisation_repository.update_aws_credentials(
             UUID(org["id"]),

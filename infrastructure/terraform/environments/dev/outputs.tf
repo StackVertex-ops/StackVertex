@@ -87,7 +87,7 @@ output "deployment_summary" {
   description = "Deployment summary with all important URLs and resources"
   value = <<-EOT
 
-    ✅ OverCloud Dev Environment Deployed!
+    ✅ StackVertex Dev Environment Deployed!
 
     🌐 API Endpoint:       ${module.compute.http_api_invoke_url}
     🔌 WebSocket Endpoint: wss://${module.compute.websocket_api_invoke_url}

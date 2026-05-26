@@ -1,4 +1,4 @@
-# OverCloud Development Setup
+# StackVertex Development Setup
 
 > Complete guide to setting up your development environment with Claude Code tooling
 
@@ -164,7 +164,7 @@ GSD prevents context rot by using fresh agent sessions for each task.
 npm install -g @gsd-build/cli
 
 # Initialize GSD in project
-cd /Users/andyschwarz/Documents/Privat/OverCloud
+cd /Users/andyschwarz/Documents/Privat/StackVertex
 gsd init
 ```
 
@@ -265,7 +265,7 @@ Visual orchestration for multiple agents.
 npm install -g vibe-kanban
 
 # Initialize in project
-cd /Users/andyschwarz/Documents/Privat/OverCloud
+cd /Users/andyschwarz/Documents/Privat/StackVertex
 vibe-kanban init
 
 # Start Vibe Kanban UI
@@ -283,7 +283,7 @@ vibe-kanban start
 ### 1. Initialize Python Backend
 
 ```bash
-cd /Users/andyschwarz/Documents/Privat/OverCloud
+cd /Users/andyschwarz/Documents/Privat/StackVertex
 
 # Create backend directory
 mkdir -p backend
@@ -293,7 +293,7 @@ cd backend
 poetry config virtualenvs.in-project true
 
 # Initialize Poetry project
-poetry init --name overcloud-backend --python "^3.11" --no-interaction
+poetry init --name stackvertex-backend --python "^3.11" --no-interaction
 
 # Add core dependencies
 poetry add fastapi uvicorn pydantic boto3 pydantic-settings
@@ -320,7 +320,7 @@ ls -la .venv/  # Sollte existieren
 ### 2. Initialize Frontend (Vanilla JS)
 
 ```bash
-cd /Users/andyschwarz/Documents/Privat/OverCloud
+cd /Users/andyschwarz/Documents/Privat/StackVertex
 
 # Create frontend directory structure
 mkdir -p frontend/{src,public,dist}
@@ -353,7 +353,7 @@ ls -la node_modules/  # Sollte existieren in frontend/
 ### 3. Create .gitignore
 
 ```bash
-cd /Users/andyschwarz/Documents/Privat/OverCloud
+cd /Users/andyschwarz/Documents/Privat/StackVertex
 
 cat > .gitignore << 'EOF'
 # Python
@@ -435,7 +435,7 @@ EOF
 ### 4. Initialize Git Repository
 
 ```bash
-cd /Users/andyschwarz/Documents/Privat/OverCloud
+cd /Users/andyschwarz/Documents/Privat/StackVertex
 
 # Initialize git if not already done
 git init
@@ -444,14 +444,14 @@ git init
 git add .
 
 # Initial commit
-git commit -m "[setup] Initialize OverCloud project with Python backend + Vanilla JS frontend"
+git commit -m "[setup] Initialize StackVertex project with Python backend + Vanilla JS frontend"
 ```
 
 ---
 
 ## Phase 3: Custom Slash Commands
 
-Create custom commands for OverCloud workflows.
+Create custom commands for StackVertex workflows.
 
 ### 1. Create Slash Commands Directory
 
@@ -724,7 +724,7 @@ After setup is complete:
 
 ---
 
-**Setup Complete! Ready to build OverCloud.** 🚀
+**Setup Complete! Ready to build StackVertex.** 🚀
 
 ---
 

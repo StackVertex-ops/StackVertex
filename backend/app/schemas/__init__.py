@@ -1,4 +1,4 @@
-"""OverCloud Backend - Pydantic Schemas."""
+"""StackVertex Backend - Pydantic Schemas."""
 
 from app.schemas.architecture import (
     ArchitectureBase,

@@ -77,7 +77,7 @@ if __name__ == "__main__":
 ```bash
 cd backend
 poetry run python scripts/create_superadmin.py \
-  --email admin@overcloud.io \
+  --email admin@stackvertex.io \
   --name "Super Admin" \
   --password "YourSecurePassword123!"
 ```
@@ -98,12 +98,12 @@ HASHED_PASSWORD=$(python3 -c "from passlib.context import CryptContext; pwd_cont
 
 # 3. User Item erstellen
 aws dynamodb put-item \
-  --table-name overcloud-dev \
+  --table-name stackvertex-dev \
   --item '{
     "PK": {"S": "USER#'$USER_ID'"},
     "SK": {"S": "METADATA"},
     "id": {"S": "'$USER_ID'"},
-    "email": {"S": "admin@overcloud.io"},
+    "email": {"S": "admin@stackvertex.io"},
     "name": {"S": "Super Admin"},
     "password_hash": {"S": "'$HASHED_PASSWORD'"},
     "auth_provider": {"S": "local"},
@@ -113,12 +113,12 @@ aws dynamodb put-item \
     "created_at": {"S": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"},
     "updated_at": {"S": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"},
     "GSI1PK": {"S": "user_by_email"},
-    "GSI1SK": {"S": "admin@overcloud.io"}
+    "GSI1SK": {"S": "admin@stackvertex.io"}
   }'
 
 # 4. Personal Organisation erstellen
 aws dynamodb put-item \
-  --table-name overcloud-dev \
+  --table-name stackvertex-dev \
   --item '{
     "PK": {"S": "ORG#'$ORG_ID'"},
     "SK": {"S": "METADATA"},
@@ -135,7 +135,7 @@ aws dynamodb put-item \
   }'
 
 echo "✅ SuperAdmin user created!"
-echo "Email: admin@overcloud.io"
+echo "Email: admin@stackvertex.io"
 echo "Password: YourSecurePassword123!"
 ```
 
@@ -148,7 +148,7 @@ echo "Password: YourSecurePassword123!"
 curl -X POST http://localhost:8000/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "admin@overcloud.io",
+    "email": "admin@stackvertex.io",
     "name": "Super Admin",
     "password": "YourSecurePassword123!"
   }'
@@ -177,7 +177,7 @@ user_repo.update_system_role(
 ### 1. User in DB prüfen
 ```bash
 aws dynamodb get-item \
-  --table-name overcloud-dev \
+  --table-name stackvertex-dev \
   --key '{"PK": {"S": "USER#<user-id>"}, "SK": {"S": "METADATA"}}'
 ```
 
@@ -185,7 +185,7 @@ aws dynamodb get-item \
 ```json
 {
   "Item": {
-    "email": {"S": "admin@overcloud.io"},
+    "email": {"S": "admin@stackvertex.io"},
     "system_role": {"S": "superadmin"},
     "status": {"S": "active"}
   }
@@ -196,7 +196,7 @@ aws dynamodb get-item \
 ```bash
 curl -X POST http://localhost:8000/api/v1/auth/login \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "username=admin@overcloud.io&password=YourSecurePassword123!"
+  -d "username=admin@stackvertex.io&password=YourSecurePassword123!"
 ```
 
 **Erwartete Response:**
@@ -206,7 +206,7 @@ curl -X POST http://localhost:8000/api/v1/auth/login \
   "token_type": "bearer",
   "expires_in": 86400,
   "user": {
-    "email": "admin@overcloud.io",
+    "email": "admin@stackvertex.io",
     "system_role": "superadmin"
   }
 }
@@ -237,9 +237,9 @@ curl -H "Authorization: Bearer <access_token>" \
 ```bash
 # Production: Use AWS Secrets Manager
 aws secretsmanager create-secret \
-  --name overcloud/superadmin-credentials \
+  --name stackvertex/superadmin-credentials \
   --secret-string '{
-    "email": "admin@overcloud.io",
+    "email": "admin@stackvertex.io",
     "password": "GeneratedSecurePassword123!@#"
   }'
 ```

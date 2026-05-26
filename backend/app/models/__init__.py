@@ -1,4 +1,4 @@
-"""OverCloud Backend - Data Models.
+"""StackVertex Backend - Data Models.
 
 DynamoDB-basierte Repositories verwenden. SQLAlchemy wurde entfernt.
 """

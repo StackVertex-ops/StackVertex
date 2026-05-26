@@ -1,5 +1,5 @@
 /**
- * OverCloud - Admin Dashboard
+ * StackVertex - Admin Dashboard
  *
  * SuperAdmin Dashboard zur Verwaltung von Users, Orgs, und Audit Logs.
  */

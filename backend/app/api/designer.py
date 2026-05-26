@@ -1,4 +1,4 @@
-"""OverCloud Backend - Infrastructure Designer API Endpoints.
+"""StackVertex Backend - Infrastructure Designer API Endpoints.
 
 REST API für den Infrastructure Designer (Visual Canvas + Component-based Architecture).
 """

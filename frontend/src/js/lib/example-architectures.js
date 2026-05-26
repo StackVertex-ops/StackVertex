@@ -1,5 +1,5 @@
 /**
- * OverCloud - Example Architectures
+ * StackVertex - Example Architectures
  *
  * Vorgefertigte Beispiel-Architekturen für schnellen Einstieg
  */

@@ -40,7 +40,7 @@ class SecretsManager:
         Raises:
             ClientError: If AWS API call fails
         """
-        secret_name = f"overcloud/org/{org_id}/aws_role_arn"
+        secret_name = f"stackvertex/org/{org_id}/aws_role_arn"
 
         try:
             # Try to update existing secret
@@ -54,11 +54,11 @@ class SecretsManager:
             # Create new secret
             self.client.create_secret(
                 Name=secret_name,
-                Description=f"AWS Role ARN for OverCloud Organisation {org_id}",
+                Description=f"AWS Role ARN for StackVertex Organisation {org_id}",
                 SecretString=aws_role_arn,
                 Tags=[
                     {"Key": "organisation_id", "Value": org_id},
-                    {"Key": "managed_by", "Value": "overcloud"},
+                    {"Key": "managed_by", "Value": "stackvertex"},
                 ]
             )
             logger.info(f"Created AWS Role ARN secret for org {org_id}")

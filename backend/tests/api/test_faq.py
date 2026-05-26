@@ -35,7 +35,7 @@ def superadmin_user():
     """Mock SuperAdmin user für Auth."""
     return {
         "user_id": str(uuid4()),
-        "email": "admin@overcloud.io",
+        "email": "admin@stackvertex.io",
         "name": "Super Admin",
         "system_role": SystemRole.SUPERADMIN.value,
         "status": UserStatus.ACTIVE.value,
@@ -92,14 +92,14 @@ def setup_faqs(faq_repository, setup_categories):
         # Published FAQs
         {
             "category": "general",
-            "question": "Was ist OverCloud?",
-            "answer": "OverCloud ist eine Multi-Cloud Platform.",
+            "question": "Was ist StackVertex?",
+            "answer": "StackVertex ist eine Multi-Cloud Platform.",
             "sort_order": 0,
             "status": "published",
         },
         {
             "category": "pricing",
-            "question": "Wie viel kostet OverCloud?",
+            "question": "Wie viel kostet StackVertex?",
             "answer": "Pricing starts at $10/month.",
             "sort_order": 0,
             "status": "published",
@@ -161,29 +161,29 @@ def test_get_faqs_by_category(client, setup_faqs):
 
     assert result["category"] == "pricing"
     assert len(result["faqs"]) == 1
-    assert result["faqs"][0]["question"] == "Wie viel kostet OverCloud?"
+    assert result["faqs"][0]["question"] == "Wie viel kostet StackVertex?"
 
 
 def test_search_faqs(client, setup_faqs):
-    """Test: GET /faq/search?q=OverCloud - Suche."""
-    response = client.get("/api/v1/faq/search?q=OverCloud")
+    """Test: GET /faq/search?q=StackVertex - Suche."""
+    response = client.get("/api/v1/faq/search?q=StackVertex")
 
     assert response.status_code == status.HTTP_200_OK
 
     data = response.json()
     assert data["success"] is True
-    assert data["query"] == "OverCloud"
+    assert data["query"] == "StackVertex"
     assert data["total"] >= 1
     assert len(data["results"]) >= 1
 
     # Prüfe dass richtige FAQ gefunden wurde
     questions = [faq["question"] for faq in data["results"]]
-    assert "Was ist OverCloud?" in questions
+    assert "Was ist StackVertex?" in questions
 
 
 def test_search_faqs_case_insensitive(client, setup_faqs):
     """Test: Suche ist case-insensitive."""
-    response = client.get("/api/v1/faq/search?q=overcloud")
+    response = client.get("/api/v1/faq/search?q=stackvertex")
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["total"] >= 1
@@ -327,7 +327,7 @@ def test_create_faq_admin(authenticated_client):
     """Test: POST /admin/faq - FAQ erstellen."""
     request_data = {
         "category": "security",
-        "question": "Ist OverCloud sicher?",
+        "question": "Ist StackVertex sicher?",
         "answer": "Ja, mit End-to-End-Verschlüsselung.",
         "status": "published",
         "sort_order": 0,

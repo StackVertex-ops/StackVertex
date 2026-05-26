@@ -207,7 +207,7 @@ DATABASE_URL=<dynamodb-endpoint>
 AWS_REGION=eu-central-1
 
 # Frontend .env
-VITE_API_URL=https://api.overcloud.io
+VITE_API_URL=https://api.stackvertex.io
 ```
 
 ## Sign-Off

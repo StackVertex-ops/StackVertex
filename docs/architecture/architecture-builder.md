@@ -8,7 +8,7 @@
 
 ## Übersicht
 
-Der **Architecture Builder** ist das Herzstück von OverCloud. Hier erstellen und bearbeiten Benutzer ihre Cloud-Architekturen über ein benutzerfreundliches Formular. Die Architektur wird als JSON gespeichert und kann optional im JSON-Editor verfeinert werden.
+Der **Architecture Builder** ist das Herzstück von StackVertex. Hier erstellen und bearbeiten Benutzer ihre Cloud-Architekturen über ein benutzerfreundliches Formular. Die Architektur wird als JSON gespeichert und kann optional im JSON-Editor verfeinert werden.
 
 ### Hauptfunktionen
 

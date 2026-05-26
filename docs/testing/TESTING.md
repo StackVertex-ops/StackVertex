@@ -1,6 +1,6 @@
 # Infrastructure Designer - Testing Guide
 
-**Projekt:** OverCloud Infrastructure Designer  
+**Projekt:** StackVertex Infrastructure Designer  
 **Version:** 1.0.0 MVP
 
 ---
@@ -21,7 +21,7 @@ Dieser Guide beschreibt, wie man Tests für den Infrastructure Designer ausführ
 
 ### Backend
 ```bash
-cd /Users/andyschwarz/Documents/Privat/OverCloud/backend
+cd /Users/andyschwarz/Documents/Privat/StackVertex/backend
 
 # Virtual Environment aktivieren
 source .venv/bin/activate
@@ -35,7 +35,7 @@ poetry install --with test
 
 ### Frontend
 ```bash
-cd /Users/andyschwarz/Documents/Privat/OverCloud/frontend
+cd /Users/andyschwarz/Documents/Privat/StackVertex/frontend
 
 # Dependencies installieren
 npm install
@@ -50,7 +50,7 @@ npx playwright install
 
 ### Test-Script ausführen
 ```bash
-cd /Users/andyschwarz/Documents/Privat/OverCloud/backend
+cd /Users/andyschwarz/Documents/Privat/StackVertex/backend
 
 # Einfacher Test
 ./test_designer_api.sh
@@ -84,7 +84,7 @@ pytest tests/test_cidr_api.py::test_validate_cidr -v
 uvicorn app.main:app --reload
 
 # In neuem Terminal:
-cd /Users/andyschwarz/Documents/Privat/OverCloud/backend
+cd /Users/andyschwarz/Documents/Privat/StackVertex/backend
 ./test_designer_api.sh
 ```
 
@@ -101,7 +101,7 @@ cd /Users/andyschwarz/Documents/Privat/OverCloud/backend
 
 ### Test-Script ausführen
 ```bash
-cd /Users/andyschwarz/Documents/Privat/OverCloud/frontend
+cd /Users/andyschwarz/Documents/Privat/StackVertex/frontend
 
 # Dependency- & File-Checks
 ./test_infrastructure_designer.sh
@@ -148,7 +148,7 @@ npm run test:coverage
 
 ### E2E Tests ausführen
 ```bash
-cd /Users/andyschwarz/Documents/Privat/OverCloud/frontend
+cd /Users/andyschwarz/Documents/Privat/StackVertex/frontend
 
 # Playwright Tests
 npx playwright test
@@ -213,15 +213,15 @@ test('Load demo architecture', async ({ page }) => {
 ### Backend + Frontend Integration
 ```bash
 # Terminal 1: Backend starten
-cd /Users/andyschwarz/Documents/Privat/OverCloud/backend
+cd /Users/andyschwarz/Documents/Privat/StackVertex/backend
 uvicorn app.main:app --reload
 
 # Terminal 2: Frontend starten
-cd /Users/andyschwarz/Documents/Privat/OverCloud/frontend
+cd /Users/andyschwarz/Documents/Privat/StackVertex/frontend
 npm run dev
 
 # Terminal 3: Integration Tests
-cd /Users/andyschwarz/Documents/Privat/OverCloud/frontend
+cd /Users/andyschwarz/Documents/Privat/StackVertex/frontend
 npx playwright test tests/integration/
 ```
 
@@ -359,8 +359,8 @@ npm run build -- --analyze
 
 ### Manuelle Reports
 Siehe:
-- `/Users/andyschwarz/Documents/Privat/OverCloud/TEST_REPORT_INFRASTRUCTURE_DESIGNER.md`
-- `/Users/andyschwarz/Documents/Privat/OverCloud/INFRASTRUCTURE_DESIGNER_BUGS.md`
+- `/Users/andyschwarz/Documents/Privat/StackVertex/TEST_REPORT_INFRASTRUCTURE_DESIGNER.md`
+- `/Users/andyschwarz/Documents/Privat/StackVertex/INFRASTRUCTURE_DESIGNER_BUGS.md`
 
 ---
 

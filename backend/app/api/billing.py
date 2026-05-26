@@ -161,7 +161,7 @@ class CostTrendItem(BaseModel):
 
     month: str
     aws_costs: float
-    overcloud_fee: float
+    stackvertex_fee: float
     total: float
 
 
@@ -170,7 +170,7 @@ class CostProjectionResponse(BaseModel):
 
     current_aws_costs: float
     projected_aws_costs: float
-    projected_overcloud_fee: float
+    projected_stackvertex_fee: float
     projected_total: float
     days_elapsed: int
     days_in_month: int
@@ -521,7 +521,7 @@ async def get_current_month_costs(
         return {
             "month": current_month,
             "total_aws_costs": 0.0,
-            "overcloud_percentage_fee": 0.0,
+            "stackvertex_percentage_fee": 0.0,
             "deployment_costs": {}
         }
 

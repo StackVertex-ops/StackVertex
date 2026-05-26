@@ -102,7 +102,7 @@ terraform plan
 terraform apply
 
 # 5. Verify
-curl https://api.overcloud.io/health
+curl https://api.stackvertex.io/health
 ```
 
 ---
@@ -126,7 +126,7 @@ terraform apply prod-lean.tfplan
 
 # 5. Verify
 terraform output
-curl https://api.overcloud.io/health
+curl https://api.stackvertex.io/health
 ```
 
 ---

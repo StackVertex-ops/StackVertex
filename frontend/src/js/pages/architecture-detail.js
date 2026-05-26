@@ -1,5 +1,5 @@
 /**
- * OverCloud - Architecture Detail View Page
+ * StackVertex - Architecture Detail View Page
  *
  * Detailansicht einer einzelnen Architektur
  */

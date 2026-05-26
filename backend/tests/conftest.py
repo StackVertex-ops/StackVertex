@@ -1,4 +1,4 @@
-"""Zentrale pytest Fixtures für OverCloud Backend Tests.
+"""Zentrale pytest Fixtures für StackVertex Backend Tests.
 
 DynamoDB-basierte Tests mit Mocks oder DynamoDB Local.
 """
@@ -43,7 +43,7 @@ def mock_superadmin_user():
     """Mock SuperAdmin User für Admin-Tests."""
     return {
         "id": "admin-123",
-        "email": "admin@overcloud.com",
+        "email": "admin@stackvertex.com",
         "role": "superadmin"
     }
 
@@ -179,7 +179,7 @@ def mock_dynamodb_table(mock_dynamodb_resource):
     from mypy_boto3_dynamodb.service_resource import Table
 
     table: Table = mock_dynamodb_resource.create_table(
-        TableName="overcloud-test-table",
+        TableName="stackvertex-test-table",
         KeySchema=[
             {"AttributeName": "PK", "KeyType": "HASH"},
             {"AttributeName": "SK", "KeyType": "RANGE"}
@@ -254,7 +254,7 @@ def mock_dynamodb_table(mock_dynamodb_resource):
     )
 
     # Wait for table to be ready
-    table.meta.client.get_waiter("table_exists").wait(TableName="overcloud-test-table")
+    table.meta.client.get_waiter("table_exists").wait(TableName="stackvertex-test-table")
 
     return table
 
@@ -272,7 +272,7 @@ def mock_s3_resource(aws_credentials):
 @pytest.fixture
 def mock_s3_bucket(mock_s3_resource):
     """Mocked S3 Bucket für Large Item Testing."""
-    bucket_name = "overcloud-test-bucket"
+    bucket_name = "stackvertex-test-bucket"
     bucket = mock_s3_resource.create_bucket(Bucket=bucket_name)
     return bucket
 
@@ -442,7 +442,7 @@ def base_repository(mock_dynamodb_table, mock_s3_bucket):
     from app.db.s3_storage import S3Storage
 
     # Create S3Storage with mocked client
-    s3_storage = S3Storage(bucket_name="overcloud-test-bucket")
+    s3_storage = S3Storage(bucket_name="stackvertex-test-bucket")
 
     return BaseRepository(table=mock_dynamodb_table, s3_storage=s3_storage)
 
@@ -453,7 +453,7 @@ def architecture_repository(mock_dynamodb_table, mock_s3_bucket):
     from app.repositories.architecture import ArchitectureRepository
     from app.db.s3_storage import S3Storage
 
-    s3_storage = S3Storage(bucket_name="overcloud-test-bucket")
+    s3_storage = S3Storage(bucket_name="stackvertex-test-bucket")
     return ArchitectureRepository(table=mock_dynamodb_table, s3_storage=s3_storage)
 
 
@@ -463,7 +463,7 @@ def deployment_repository(mock_dynamodb_table, mock_s3_bucket):
     from app.repositories.deployment import DeploymentRepository
     from app.db.s3_storage import S3Storage
 
-    s3_storage = S3Storage(bucket_name="overcloud-test-bucket")
+    s3_storage = S3Storage(bucket_name="stackvertex-test-bucket")
     return DeploymentRepository(table=mock_dynamodb_table, s3_storage=s3_storage)
 
 
@@ -489,7 +489,7 @@ def organisation_repository(mock_dynamodb_table, mock_s3_bucket, mock_secrets_ma
     from app.repositories.organisation import OrganisationRepository
     from app.db.s3_storage import S3Storage
 
-    s3_storage = S3Storage(bucket_name="overcloud-test-bucket")
+    s3_storage = S3Storage(bucket_name="stackvertex-test-bucket")
     return OrganisationRepository(
         table=mock_dynamodb_table,
         s3_storage=s3_storage,

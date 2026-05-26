@@ -1,5 +1,5 @@
 /**
- * OverCloud - API Client
+ * StackVertex - API Client
  *
  * Wrapper around Fetch API for communicating with the FastAPI backend.
  * Supports automatic token refresh when Access Token expires (15 min).
@@ -85,7 +85,7 @@ export class APIClient {
             return await this._makeRequest(endpoint, options);
         } catch (error) {
             // Refresh failed -> redirect to login
-            localStorage.removeItem('overcloud-user');
+            localStorage.removeItem('stackvertex-user');
             window.location.href = '/login.html';
             throw error;
         } finally {

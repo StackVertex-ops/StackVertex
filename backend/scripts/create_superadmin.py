@@ -1,7 +1,7 @@
 """Script zum Erstellen eines SuperAdmin Users.
 
 Usage:
-    python scripts/create_superadmin.py --email admin@overcloud.io --name "Admin User"
+    python scripts/create_superadmin.py --email admin@stackvertex.io --name "Admin User"
 
 Wichtig:
     - Läuft nur wenn noch KEIN SuperAdmin existiert (Safety)
@@ -127,7 +127,7 @@ def create_superadmin(
 def main():
     """Main function."""
     parser = argparse.ArgumentParser(
-        description="Create SuperAdmin user for OverCloud"
+        description="Create SuperAdmin user for StackVertex"
     )
     parser.add_argument(
         "--email",

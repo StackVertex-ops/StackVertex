@@ -23,7 +23,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "OverCloud"
+      Project     = "StackVertex"
       ManagedBy   = "Terraform"
       Environment = "bootstrap"
     }
@@ -40,7 +40,7 @@ resource "aws_s3_bucket" "terraform_state" {
 
   tags = {
     Name        = "Terraform State Bucket"
-    Description = "Stores Terraform state files for OverCloud"
+    Description = "Stores Terraform state files for StackVertex"
   }
 }
 

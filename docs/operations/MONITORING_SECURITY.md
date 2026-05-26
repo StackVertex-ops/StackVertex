@@ -1,12 +1,12 @@
-# OverCloud Monitoring & Security Guide
+# StackVertex Monitoring & Security Guide
 
-Kompletter Guide für Monitoring, Alerting und Security der OverCloud Infrastruktur.
+Kompletter Guide für Monitoring, Alerting und Security der StackVertex Infrastruktur.
 
 ## Übersicht
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    OverCloud Infrastruktur                   │
+│                    StackVertex Infrastruktur                   │
 │  Lambda │ API Gateway │ Aurora │ S3 │ ...                   │
 └────────────────────┬────────────────────────────────────────┘
                      │
@@ -45,7 +45,7 @@ Nach dem Deployment ist ein zentrales Dashboard verfügbar:
 terraform output cloudwatch_dashboard_url
 
 # Oder manuell:
-open "https://console.aws.amazon.com/cloudwatch/home?region=eu-central-1#dashboards:name=overcloud-dev-overview"
+open "https://console.aws.amazon.com/cloudwatch/home?region=eu-central-1#dashboards:name=stackvertex-dev-overview"
 ```
 
 **Dashboard Widgets:**
@@ -81,7 +81,7 @@ open "https://console.aws.amazon.com/cloudwatch/home?region=eu-central-1#dashboa
 
 ### Custom Metrics
 
-Zusätzliche Custom Metrics in Namespace `OverCloud/{environment}`:
+Zusätzliche Custom Metrics in Namespace `StackVertex/{environment}`:
 
 ```python
 # Im Backend Code (app/services/metrics.py)
@@ -92,7 +92,7 @@ cloudwatch = boto3.client('cloudwatch')
 def track_deployment(deployment_id, status):
     """Track deployment metrics."""
     cloudwatch.put_metric_data(
-        Namespace=f'OverCloud/{os.getenv("ENVIRONMENT")}',
+        Namespace=f'StackVertex/{os.getenv("ENVIRONMENT")}',
         MetricData=[
             {
                 'MetricName': 'DeploymentCount',
@@ -153,7 +153,7 @@ CloudWatch → Logs → Insights → New query
 
 # Via CLI
 aws logs start-query \
-  --log-group-name /aws/lambda/overcloud-dev-api \
+  --log-group-name /aws/lambda/stackvertex-dev-api \
   --start-time $(date -u -d '1 hour ago' +%s) \
   --end-time $(date -u +%s) \
   --query-string 'fields @timestamp, @message | filter level = "ERROR" | sort @timestamp desc'
@@ -165,7 +165,7 @@ aws logs start-query \
 
 Drei Alert-Severity-Level:
 
-1. **Critical** (`overcloud-{env}-critical-alerts`)
+1. **Critical** (`stackvertex-{env}-critical-alerts`)
    - Lambda Errors > 10 (prod) / 20 (dev)
    - Lambda Throttles
    - API 5XX Errors > 5
@@ -175,7 +175,7 @@ Drei Alert-Severity-Level:
    - GuardDuty High/Critical Findings
    - Security Hub Critical Findings
 
-2. **Warning** (`overcloud-{env}-warning-alerts`)
+2. **Warning** (`stackvertex-{env}-warning-alerts`)
    - Lambda Duration > 80% of timeout
    - API 4XX Errors > 50 (prod) / 100 (dev)
    - API Latency > 2000ms
@@ -185,7 +185,7 @@ Drei Alert-Severity-Level:
    - IAM Policy Changes
    - S3 Bucket Policy Changes
 
-3. **Info** (`overcloud-{env}-info-alerts`)
+3. **Info** (`stackvertex-{env}-info-alerts`)
    - Alarm Recovery (OK state)
    - IAM Policy Changes (info)
 
@@ -211,7 +211,7 @@ Nach `terraform apply`:
 ```bash
 # In Slack:
 Apps → Incoming Webhooks → Add to Slack
-# Wähle Channel (z.B. #overcloud-alerts)
+# Wähle Channel (z.B. #stackvertex-alerts)
 # Kopiere Webhook URL
 ```
 
@@ -231,7 +231,7 @@ terraform apply
 
 ```json
 {
-  "AlarmName": "overcloud-prod-lambda-errors-critical",
+  "AlarmName": "stackvertex-prod-lambda-errors-critical",
   "NewStateValue": "ALARM",
   "NewStateReason": "Threshold Crossed: 15 datapoints > 10.0",
   "Trigger": {
@@ -404,7 +404,7 @@ Security Hub gibt automatische Remediation-Steps:
 ```bash
 # Example: Fix S3 Public Access
 aws s3api put-public-access-block \
-  --bucket overcloud-dev-customer-data-123456789012 \
+  --bucket stackvertex-dev-customer-data-123456789012 \
   --public-access-block-configuration \
     BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
 ```
@@ -487,7 +487,7 @@ async def get_architectures():
 
 ```bash
 # CloudWatch Logs
-aws logs tail /aws/lambda/overcloud-dev-api --follow --filter-pattern "ERROR"
+aws logs tail /aws/lambda/stackvertex-dev-api --follow --filter-pattern "ERROR"
 
 # Oder Logs Insights
 fields @timestamp, @message, level, error, traceback
@@ -507,12 +507,12 @@ fields @timestamp, @message, level, error, traceback
 ```bash
 # Rollback zu vorheriger Version
 aws lambda update-function-code \
-  --function-name overcloud-dev-api \
+  --function-name stackvertex-dev-api \
   --image-uri <PREVIOUS_IMAGE_URI>
 
 # Oder: Provisioned Concurrency erhöhen
 aws lambda put-provisioned-concurrency-config \
-  --function-name overcloud-dev-api \
+  --function-name stackvertex-dev-api \
   --provisioned-concurrent-executions 2
 ```
 
@@ -531,7 +531,7 @@ aws lambda put-provisioned-concurrency-config \
 aws cloudwatch get-metric-statistics \
   --namespace AWS/Lambda \
   --metric-name Errors \
-  --dimensions Name=FunctionName,Value=overcloud-dev-api \
+  --dimensions Name=FunctionName,Value=stackvertex-dev-api \
   --start-time $(date -u -d '1 hour ago' --iso-8601=seconds) \
   --end-time $(date -u --iso-8601=seconds) \
   --period 300 \
@@ -542,7 +542,7 @@ aws cloudwatch get-metric-statistics \
 
 ```bash
 # API Gateway Logs
-aws logs tail /aws/apigateway/overcloud-dev-http-api --follow
+aws logs tail /aws/apigateway/stackvertex-dev-http-api --follow
 ```
 
 **3. Check Aurora:**
@@ -550,7 +550,7 @@ aws logs tail /aws/apigateway/overcloud-dev-http-api --follow
 ```bash
 # Database Connection Errors?
 aws rds describe-db-clusters \
-  --db-cluster-identifier overcloud-dev-aurora \
+  --db-cluster-identifier stackvertex-dev-aurora \
   --query 'DBClusters[0].Status'
 ```
 
@@ -660,7 +660,7 @@ aws securityhub get-findings \
 
 # Unauthorized API Calls
 aws cloudwatch get-metric-statistics \
-  --namespace OverCloud/Security \
+  --namespace StackVertex/Security \
   --metric-name UnauthorizedAPICalls \
   --start-time $(date -u -d '7 days ago' --iso-8601=seconds) \
   --end-time $(date -u --iso-8601=seconds) \

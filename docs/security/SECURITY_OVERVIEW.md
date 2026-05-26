@@ -1,4 +1,4 @@
-# OverCloud Security Overview
+# StackVertex Security Overview
 
 **Version:** 1.0  
 **Last Updated:** 2026-05-16  
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-OverCloud ist eine cloud-native IaC-Management-Plattform, die höchste Sicherheitsstandards implementiert. Diese Übersicht dokumentiert unsere Security-Architektur, implementierte Maßnahmen und Compliance-Status.
+StackVertex ist eine cloud-native IaC-Management-Plattform, die höchste Sicherheitsstandards implementiert. Diese Übersicht dokumentiert unsere Security-Architektur, implementierte Maßnahmen und Compliance-Status.
 
 **Security Posture:**
 - ✅ Authentication: JWT-basiert, bcrypt-hashed Passwörter
@@ -326,7 +326,7 @@ allow_origins=["http://localhost:5173"]
 
 **Production:**
 ```python
-allow_origins=["https://app.overcloud.io"]
+allow_origins=["https://app.stackvertex.io"]
 # NO wildcards!
 ```
 
@@ -402,7 +402,7 @@ allow_origins=["https://app.overcloud.io"]
 
 ### 2. Audit Log Schema
 
-**DynamoDB Table: `OverCloud-AuditLogs`**
+**DynamoDB Table: `StackVertex-AuditLogs`**
 ```json
 {
   "PK": "AUDIT#202605",         // Partition Key (Time-partitioned)
@@ -623,7 +623,7 @@ aws_role_arn = secrets_mgr.retrieve_aws_role_arn(secret_name)
 
 ### 4. Responsible Disclosure
 
-**Contact:** security@overcloud.io (planned)
+**Contact:** security@stackvertex.io (planned)
 
 **Process:**
 1. Report received → Acknowledge within 24h
@@ -662,7 +662,7 @@ aws_role_arn = secrets_mgr.retrieve_aws_role_arn(secret_name)
 
 **Phase 1: Detection**
 - Automated alerts (CloudWatch, Sentry)
-- User reports (support@overcloud.io)
+- User reports (support@stackvertex.io)
 - Security scans (GitHub Security)
 
 **Phase 2: Containment**
@@ -698,7 +698,7 @@ aws_role_arn = secrets_mgr.retrieve_aws_role_arn(secret_name)
 
 **External:**
 - Affected users (Email)
-- Public status page (status.overcloud.io - planned)
+- Public status page (status.stackvertex.io - planned)
 - Blog post (if major incident)
 
 ---

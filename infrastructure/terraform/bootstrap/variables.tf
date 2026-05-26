@@ -3,7 +3,7 @@
 variable "project_name" {
   description = "Project name (used for resource naming)"
   type        = string
-  default     = "overcloud"
+  default     = "stackvertex"
 }
 
 variable "aws_region" {

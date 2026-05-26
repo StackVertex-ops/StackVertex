@@ -113,14 +113,14 @@ async def test_submit_feedback_with_browser_info(feedback_service, mock_feedback
         feedback_type="bug",
         title="Layout broken",
         description="Layout issue",
-        url="https://app.overcloud.dev/dashboard",
+        url="https://app.stackvertex.dev/dashboard",
         user_agent="Mozilla/5.0 ...",
         browser_info=browser_info
     )
 
     # Verify browser info was passed
     call_kwargs = mock_feedback_repo.create_feedback.call_args.kwargs
-    assert call_kwargs["url"] == "https://app.overcloud.dev/dashboard"
+    assert call_kwargs["url"] == "https://app.stackvertex.dev/dashboard"
     assert call_kwargs["user_agent"] == "Mozilla/5.0 ..."
     assert call_kwargs["browser_info"] == browser_info
 
@@ -299,7 +299,7 @@ def test_update_feedback_status_without_note(feedback_service, mock_feedback_rep
     feedback = feedback_service.update_feedback_status(
         feedback_id="test-id",
         admin_id="admin-123",
-        admin_email="admin@overcloud.dev",
+        admin_email="admin@stackvertex.dev",
         status="in_progress"
     )
 
@@ -331,7 +331,7 @@ def test_update_feedback_status_with_note(feedback_service, mock_feedback_repo):
     feedback = feedback_service.update_feedback_status(
         feedback_id="test-id",
         admin_id="admin-123",
-        admin_email="admin@overcloud.dev",
+        admin_email="admin@stackvertex.dev",
         status="in_progress",
         note="Working on it"
     )
@@ -343,7 +343,7 @@ def test_update_feedback_status_with_note(feedback_service, mock_feedback_repo):
     mock_feedback_repo.add_note.assert_called_once_with(
         feedback_id="test-id",
         admin_id="admin-123",
-        admin_email="admin@overcloud.dev",
+        admin_email="admin@stackvertex.dev",
         note="Working on it"
     )
 
@@ -357,7 +357,7 @@ def test_update_feedback_status_not_found(feedback_service, mock_feedback_repo):
     feedback = feedback_service.update_feedback_status(
         feedback_id="non-existent-id",
         admin_id="admin-123",
-        admin_email="admin@overcloud.dev",
+        admin_email="admin@stackvertex.dev",
         status="closed"
     )
 
@@ -376,7 +376,7 @@ def test_add_note(feedback_service, mock_feedback_repo):
         "notes": [
             {
                 "note_id": "note-1",
-                "admin_email": "admin@overcloud.dev",
+                "admin_email": "admin@stackvertex.dev",
                 "note": "Looking into this"
             }
         ]
@@ -385,7 +385,7 @@ def test_add_note(feedback_service, mock_feedback_repo):
     feedback = feedback_service.add_note(
         feedback_id="test-id",
         admin_id="admin-123",
-        admin_email="admin@overcloud.dev",
+        admin_email="admin@stackvertex.dev",
         note="Looking into this"
     )
 
@@ -393,7 +393,7 @@ def test_add_note(feedback_service, mock_feedback_repo):
     mock_feedback_repo.add_note.assert_called_once_with(
         feedback_id="test-id",
         admin_id="admin-123",
-        admin_email="admin@overcloud.dev",
+        admin_email="admin@stackvertex.dev",
         note="Looking into this"
     )
 
@@ -407,7 +407,7 @@ def test_add_note_not_found(feedback_service, mock_feedback_repo):
     feedback = feedback_service.add_note(
         feedback_id="non-existent-id",
         admin_id="admin-123",
-        admin_email="admin@overcloud.dev",
+        admin_email="admin@stackvertex.dev",
         note="This should fail"
     )
 
@@ -435,7 +435,7 @@ def test_resolve_feedback(feedback_service, mock_feedback_repo):
     feedback = feedback_service.resolve_feedback(
         feedback_id="test-id",
         admin_id="admin-123",
-        admin_email="admin@overcloud.dev",
+        admin_email="admin@stackvertex.dev",
         resolution_note="Fixed in v1.2.0"
     )
 
@@ -443,7 +443,7 @@ def test_resolve_feedback(feedback_service, mock_feedback_repo):
     mock_feedback_repo.mark_resolved.assert_called_once_with(
         feedback_id="test-id",
         admin_id="admin-123",
-        admin_email="admin@overcloud.dev",
+        admin_email="admin@stackvertex.dev",
         resolution_note="Fixed in v1.2.0"
     )
 
@@ -458,7 +458,7 @@ def test_resolve_feedback_not_found(feedback_service, mock_feedback_repo):
     feedback = feedback_service.resolve_feedback(
         feedback_id="non-existent-id",
         admin_id="admin-123",
-        admin_email="admin@overcloud.dev",
+        admin_email="admin@stackvertex.dev",
         resolution_note="This should fail"
     )
 

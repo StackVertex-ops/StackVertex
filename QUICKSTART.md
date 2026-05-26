@@ -1,6 +1,6 @@
-# OverCloud - Quick Start Guide
+# StackVertex - Quick Start Guide
 
-> Get OverCloud running locally in ~30 minutes
+> Get StackVertex running locally in ~30 minutes
 
 ---
 
@@ -48,7 +48,7 @@ poetry --version
 
 ```bash
 # Navigate to project directory
-cd /Users/andyschwarz/Documents/Privat/OverCloud
+cd /Users/andyschwarz/Documents/Privat/StackVertex
 
 # Initialize git (if not done)
 git init
@@ -104,7 +104,7 @@ Edit `~/.claude/settings.json` (create if doesn't exist):
 npm install -g @gsd-build/cli
 
 # Initialize in project
-cd /Users/andyschwarz/Documents/Privat/OverCloud
+cd /Users/andyschwarz/Documents/Privat/StackVertex
 gsd init
 
 # Verify
@@ -135,7 +135,7 @@ echo $CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS  # Should print: 1
 ### Step 4: Initialize Backend (Python)
 
 ```bash
-cd /Users/andyschwarz/Documents/Privat/OverCloud
+cd /Users/andyschwarz/Documents/Privat/StackVertex
 
 # Create backend directory
 mkdir -p backend
@@ -184,7 +184,7 @@ poetry show
 ### Step 5: Initialize Frontend (Vanilla JS)
 
 ```bash
-cd /Users/andyschwarz/Documents/Privat/OverCloud
+cd /Users/andyschwarz/Documents/Privat/StackVertex
 
 # Create frontend structure
 mkdir -p frontend/{src,public,dist}
@@ -217,7 +217,7 @@ npm list --depth=0  # Shows installed packages
 #### Backend Test:
 
 ```bash
-cd /Users/andyschwarz/Documents/Privat/OverCloud/backend
+cd /Users/andyschwarz/Documents/Privat/StackVertex/backend
 
 # Check Python environment
 poetry run python --version
@@ -232,7 +232,7 @@ poetry run ruff check .
 #### Frontend Test:
 
 ```bash
-cd /Users/andyschwarz/Documents/Privat/OverCloud/frontend
+cd /Users/andyschwarz/Documents/Privat/StackVertex/frontend
 
 # Check Vite
 npx vite --version
@@ -286,7 +286,7 @@ I will then:
 ### Backend (Python)
 
 ```bash
-cd /Users/andyschwarz/Documents/Privat/OverCloud/backend
+cd /Users/andyschwarz/Documents/Privat/StackVertex/backend
 
 # Option 1: Activate venv (dann kannst du commands direkt ausführen)
 poetry shell
@@ -416,4 +416,4 @@ poetry install
 
 ---
 
-**You're all set! Time to build OverCloud.** 🚀
+**You're all set! Time to build StackVertex.** 🚀

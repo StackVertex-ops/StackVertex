@@ -723,5 +723,5 @@ Bei Fragen oder Problemen:
 - **Implementierung:** `backend/app/api/voucher.py`
 - **Tests:** `backend/tests/test_voucher_*.py`
 
-**Entwickler:** Claude Sonnet 4.5 via OverCloud Agent Team  
-**Projekt:** OverCloud - Cloud Infrastructure Management Platform
+**Entwickler:** Claude Sonnet 4.5 via StackVertex Agent Team  
+**Projekt:** StackVertex - Cloud Infrastructure Management Platform

@@ -1,5 +1,5 @@
 /**
- * OverCloud - Architecture Builder Canvas Page
+ * StackVertex - Architecture Builder Canvas Page
  *
  * Haupt-Controller für den visuellen Architecture Builder
  */

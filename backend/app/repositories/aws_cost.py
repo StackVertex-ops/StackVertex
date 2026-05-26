@@ -29,7 +29,7 @@ class AWSCostRepository(BaseRepository):
             month: Month in format YYYY-MM
             deployment_costs: Dict[deployment_id] -> Dict[service] -> cost
             total_aws_costs: Total AWS costs for month
-            percentage_fee: OverCloud markup fee
+            percentage_fee: StackVertex markup fee
 
         Returns:
             Stored cost record
@@ -41,7 +41,7 @@ class AWSCostRepository(BaseRepository):
             "month": month,
             "deployment_costs": deployment_costs,
             "total_aws_costs": total_aws_costs,
-            "overcloud_percentage_fee": percentage_fee,
+            "stackvertex_percentage_fee": percentage_fee,
             # GSI für Cross-Org Cost Analysis
             "GSI1PK": f"MONTH#{month}",
             "GSI1SK": f"ORG#{org_id}",
@@ -138,7 +138,7 @@ class AWSCostRepository(BaseRepository):
             Dict with totals
         """
         total_aws_costs = 0.0
-        total_overcloud_fees = 0.0
+        total_stackvertex_fees = 0.0
 
         for month in range(1, 13):
             month_str = f"{year}-{month:02d}"
@@ -146,13 +146,13 @@ class AWSCostRepository(BaseRepository):
 
             if cost_record:
                 total_aws_costs += cost_record.get("total_aws_costs", 0.0)
-                total_overcloud_fees += cost_record.get("overcloud_percentage_fee", 0.0)
+                total_stackvertex_fees += cost_record.get("stackvertex_percentage_fee", 0.0)
 
         return {
             "year": year,
             "total_aws_costs": round(total_aws_costs, 2),
-            "total_overcloud_fees": round(total_overcloud_fees, 2),
-            "total": round(total_aws_costs + total_overcloud_fees, 2)
+            "total_stackvertex_fees": round(total_stackvertex_fees, 2),
+            "total": round(total_aws_costs + total_stackvertex_fees, 2)
         }
 
     def get_top_spending_deployments(
@@ -214,10 +214,10 @@ class AWSCostRepository(BaseRepository):
             trend.append({
                 "month": record["month"],
                 "aws_costs": round(record.get("total_aws_costs", 0.0), 2),
-                "overcloud_fee": round(record.get("overcloud_percentage_fee", 0.0), 2),
+                "stackvertex_fee": round(record.get("stackvertex_percentage_fee", 0.0), 2),
                 "total": round(
                     record.get("total_aws_costs", 0.0) +
-                    record.get("overcloud_percentage_fee", 0.0),
+                    record.get("stackvertex_percentage_fee", 0.0),
                     2
                 )
             })

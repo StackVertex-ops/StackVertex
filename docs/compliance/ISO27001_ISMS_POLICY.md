@@ -12,7 +12,7 @@
 
 ## 1. Executive Summary
 
-Dieses Dokument definiert die Information Security Management System (ISMS) Policy von OverCloud gemäß ISO/IEC 27001:2022. Das ISMS stellt sicher, dass alle Informationssicherheitsrisiken systematisch identifiziert, bewertet und behandelt werden.
+Dieses Dokument definiert die Information Security Management System (ISMS) Policy von StackVertex gemäß ISO/IEC 27001:2022. Das ISMS stellt sicher, dass alle Informationssicherheitsrisiken systematisch identifiziert, bewertet und behandelt werden.
 
 ### 1.1 Zweck
 
@@ -24,7 +24,7 @@ Dieses Dokument definiert die Information Security Management System (ISMS) Poli
 ### 1.2 Geltungsbereich
 
 **In Scope:**
-- OverCloud Platform (Frontend, Backend, API)
+- StackVertex Platform (Frontend, Backend, API)
 - Cloud-Infrastruktur (AWS eu-central-1, eu-west-1)
 - Kundendaten (Architecture JSON, Deployment States, Logs)
 - Mitarbeiterdaten (wenn Team wächst)

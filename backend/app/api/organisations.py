@@ -568,7 +568,7 @@ async def connect_aws_account(
 
     Requires: OWNER role (security-critical operation)
 
-    User provides IAM Role ARN with Trust Policy to OverCloud Platform.
+    User provides IAM Role ARN with Trust Policy to StackVertex Platform.
     """
     await check_org_permission(org_id, current_user, UserRole.OWNER, org_repo)
 

@@ -1,4 +1,4 @@
-"""OverCloud Backend - Configuration.
+"""StackVertex Backend - Configuration.
 
 Loads configuration from environment variables using Pydantic Settings.
 """
@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     # App Settings
-    APP_NAME: str = "OverCloud API"
+    APP_NAME: str = "StackVertex API"
     # SECURITY: DEBUG=True zeigt Stack Traces in Production - NIEMALS True in Prod!
     # Set via .env: DEBUG=false
     DEBUG: bool = False  # Secure default: False
@@ -45,18 +45,18 @@ class Settings(BaseSettings):
 
     # Database Settings (PostgreSQL - Legacy, being replaced by DynamoDB)
     # Format: postgresql://user:password@host:port/database
-    DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/overcloud"
+    DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/stackvertex"
 
     # DynamoDB Settings
-    DYNAMODB_TABLE_NAME: str = "overcloud-dev-main"
+    DYNAMODB_TABLE_NAME: str = "stackvertex-dev-main"
     DYNAMODB_ENDPOINT_URL: str | None = None  # Use for DynamoDB Local testing
 
     # S3 Settings
-    S3_LARGE_ITEMS_BUCKET: str = "overcloud-dev-large-items"
+    S3_LARGE_ITEMS_BUCKET: str = "stackvertex-dev-large-items"
     LARGE_ITEM_THRESHOLD: int = 300_000  # 300KB - items larger than this go to S3
 
     # User Data Storage (für Uploads)
-    USER_DATA_BUCKET: str = "overcloud-user-data-dev"
+    USER_DATA_BUCKET: str = "stackvertex-user-data-dev"
 
     # AWS Settings (for Boto3)
     AWS_REGION: str = "us-east-1"
@@ -91,7 +91,7 @@ class Settings(BaseSettings):
     # Terraform Settings
     TERRAFORM_BINARY: str = "terraform"
     # Use system temp dir by default (secure, cross-platform)
-    TERRAFORM_WORKSPACE_DIR: str = str(Path(tempfile.gettempdir()) / "overcloud" / "deployments")
+    TERRAFORM_WORKSPACE_DIR: str = str(Path(tempfile.gettempdir()) / "stackvertex" / "deployments")
     TERRAFORM_TEMPLATE_DIR: str = "backend/templates/terraform"
     TERRAFORM_TIMEOUT: int = 600  # seconds (10 minutes)
 
@@ -111,6 +111,25 @@ class Settings(BaseSettings):
     ENABLE_CLOUDWATCH: bool = False  # Send logs to AWS CloudWatch
     ENABLE_SENTRY: bool = False  # Enable Sentry error tracking
     SENTRY_DSN: str | None = None  # Sentry DSN (https://xxx@sentry.io/xxx)
+
+    # ECS Configuration (Hybrid Serverless Architecture)
+    ECS_CLUSTER_NAME: str = ""  # ECS Cluster Name für Deployment Workers
+    ECS_TASK_DEFINITION: str = ""  # ECS Task Definition ARN
+    ECS_SUBNETS: str = ""  # Comma-separated Subnet IDs
+    ECS_SECURITY_GROUP: str = ""  # Security Group ID für ECS Tasks
+
+    # Lambda Configuration
+    IS_LAMBDA: bool = False  # Automatisch gesetzt wenn in Lambda Environment
+
+    @field_validator("IS_LAMBDA", mode="before")
+    @classmethod
+    def detect_lambda_environment(cls, v):
+        """Detect Lambda environment automatically."""
+        import os
+        return os.environ.get("AWS_LAMBDA_FUNCTION_NAME") is not None
+
+    # WebSocket API (für API Gateway Management API)
+    WEBSOCKET_API_ENDPOINT: str = ""  # API Gateway WebSocket Endpoint
 
     model_config = SettingsConfigDict(
         env_file=".env",

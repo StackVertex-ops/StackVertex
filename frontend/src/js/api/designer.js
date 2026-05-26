@@ -1,5 +1,5 @@
 /**
- * OverCloud - Infrastructure Designer API Module
+ * StackVertex - Infrastructure Designer API Module
  *
  * Funktionen für den Zugriff auf Designer-Endpoints des Backends
  */

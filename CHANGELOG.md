@@ -1,4 +1,4 @@
-# OverCloud - Changelog
+# StackVertex - Changelog
 
 Alle wichtigen Änderungen, Bugfixes und neuen Features werden hier dokumentiert.
 

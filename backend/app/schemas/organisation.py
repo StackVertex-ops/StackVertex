@@ -139,7 +139,7 @@ class OrganisationAWSCredentialsCreate(BaseModel):
 
     aws_role_arn: str = Field(
         ...,
-        description="IAM Role ARN with Trust to OverCloud Platform Account",
+        description="IAM Role ARN with Trust to StackVertex Platform Account",
         pattern=r"^arn:aws:iam::\d{12}:role/.+$"
     )
 

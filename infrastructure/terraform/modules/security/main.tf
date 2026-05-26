@@ -301,7 +301,7 @@ resource "aws_cloudwatch_log_metric_filter" "root_account_usage" {
 
   metric_transformation {
     name      = "RootAccountUsage"
-    namespace = "OverCloud/Security"
+    namespace = "StackVertex/Security"
     value     = "1"
     unit      = "Count"
   }
@@ -312,7 +312,7 @@ resource "aws_cloudwatch_metric_alarm" "root_account_usage" {
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
   metric_name         = "RootAccountUsage"
-  namespace           = "OverCloud/Security"
+  namespace           = "StackVertex/Security"
   period              = 300
   statistic           = "Sum"
   threshold           = 1
@@ -332,7 +332,7 @@ resource "aws_cloudwatch_log_metric_filter" "unauthorized_api_calls" {
 
   metric_transformation {
     name      = "UnauthorizedAPICalls"
-    namespace = "OverCloud/Security"
+    namespace = "StackVertex/Security"
     value     = "1"
     unit      = "Count"
   }
@@ -343,7 +343,7 @@ resource "aws_cloudwatch_metric_alarm" "unauthorized_api_calls" {
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 1
   metric_name         = "UnauthorizedAPICalls"
-  namespace           = "OverCloud/Security"
+  namespace           = "StackVertex/Security"
   period              = 300
   statistic           = "Sum"
   threshold           = 5
@@ -363,7 +363,7 @@ resource "aws_cloudwatch_log_metric_filter" "iam_policy_changes" {
 
   metric_transformation {
     name      = "IAMPolicyChanges"
-    namespace = "OverCloud/Security"
+    namespace = "StackVertex/Security"
     value     = "1"
     unit      = "Count"
   }
@@ -374,7 +374,7 @@ resource "aws_cloudwatch_metric_alarm" "iam_policy_changes" {
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
   metric_name         = "IAMPolicyChanges"
-  namespace           = "OverCloud/Security"
+  namespace           = "StackVertex/Security"
   period              = 300
   statistic           = "Sum"
   threshold           = 1
@@ -395,7 +395,7 @@ resource "aws_cloudwatch_log_metric_filter" "s3_bucket_policy_changes" {
 
   metric_transformation {
     name      = "S3BucketPolicyChanges"
-    namespace = "OverCloud/Security"
+    namespace = "StackVertex/Security"
     value     = "1"
     unit      = "Count"
   }
@@ -406,7 +406,7 @@ resource "aws_cloudwatch_metric_alarm" "s3_bucket_policy_changes" {
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
   metric_name         = "S3BucketPolicyChanges"
-  namespace           = "OverCloud/Security"
+  namespace           = "StackVertex/Security"
   period              = 300
   statistic           = "Sum"
   threshold           = 1

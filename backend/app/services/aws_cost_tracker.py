@@ -131,8 +131,8 @@ class AWSCostTracker:
 
         try:
             # Query Cost Explorer
-            # WICHTIG: Filter NUR OverCloud-managed Ressourcen (via Tag)
-            # Group by Service AND by Tag (overcloud:deployment_id)
+            # WICHTIG: Filter NUR StackVertex-managed Ressourcen (via Tag)
+            # Group by Service AND by Tag (stackvertex:deployment_id)
             response = ce_client.get_cost_and_usage(
                 TimePeriod={
                     'Start': start_date,
@@ -140,16 +140,16 @@ class AWSCostTracker:
                 },
                 Granularity='MONTHLY',
                 Metrics=['UnblendedCost'],
-                # ✅ Filter: Nur Ressourcen mit overcloud:managed Tag
+                # ✅ Filter: Nur Ressourcen mit stackvertex:managed Tag
                 Filter={
                     "Tags": {
-                        "Key": "overcloud:managed",
+                        "Key": "stackvertex:managed",
                         "Values": ["true"]
                     }
                 },
                 GroupBy=[
                     {'Type': 'DIMENSION', 'Key': 'SERVICE'},
-                    {'Type': 'TAG', 'Key': 'overcloud:deployment_id'}
+                    {'Type': 'TAG', 'Key': 'stackvertex:deployment_id'}
                 ]
             )
 
@@ -241,7 +241,7 @@ class AWSCostTracker:
             return {
                 "current_aws_costs": 0.0,
                 "projected_aws_costs": 0.0,
-                "projected_overcloud_fee": 0.0,
+                "projected_stackvertex_fee": 0.0,
                 "projected_total": 0.0
             }
 
@@ -263,7 +263,7 @@ class AWSCostTracker:
         return {
             "current_aws_costs": round(current_costs, 2),
             "projected_aws_costs": round(projected_costs, 2),
-            "projected_overcloud_fee": round(projected_fee, 2),
+            "projected_stackvertex_fee": round(projected_fee, 2),
             "projected_total": round(projected_costs + projected_fee, 2),
             "days_elapsed": days_elapsed,
             "days_in_month": days_in_month

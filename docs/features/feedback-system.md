@@ -85,10 +85,10 @@ GSI1SK: {created_at}
     "metadata": {
         "browser": "Safari 15.0",
         "device": "iPhone 13",
-        "url": "https://overcloud.io/login",
+        "url": "https://stackvertex.io/login",
         "screen_size": "390x844"
     },
-    "screenshot_url": "https://s3.amazonaws.com/overcloud-feedback/550e8400.png",
+    "screenshot_url": "https://s3.amazonaws.com/stackvertex-feedback/550e8400.png",
     "admin_notes": "Bug confirmed, assigned to Frontend Team",
     "resolved_at": null,
     "created_at": "2026-05-19T10:30:00Z",
@@ -125,7 +125,7 @@ metadata: {"browser": "Safari 15.0", "device": "iPhone 13", ...}
 - metadata: Optional JSON
 
 **S3 Upload:**
-- Bucket: `overcloud-feedback-{env}`
+- Bucket: `stackvertex-feedback-{env}`
 - Key: `screenshots/{feedback_id}.{ext}`
 - Public Read Access: NO (nur Admin via Presigned URL)
 
@@ -173,7 +173,7 @@ Alle Admin-Endpoints erfordern SuperAdmin-Berechtigung.
     "metadata": {
         "browser": "Safari 15.0",
         "device": "iPhone 13",
-        "url": "https://overcloud.io/login"
+        "url": "https://stackvertex.io/login"
     },
     "admin_notes": "Bug confirmed, assigned to Frontend Team",
     "created_at": "2026-05-19T10:30:00Z",
@@ -224,7 +224,7 @@ Sets `status = "open"` und `resolved_at = null`.
 sequenceDiagram
     User->>Frontend: Submit Feedback (with screenshot)
     Frontend->>API: POST /api/v1/feedback (multipart/form-data)
-    API->>S3: Upload screenshot to overcloud-feedback bucket
+    API->>S3: Upload screenshot to stackvertex-feedback bucket
     S3-->>API: Return S3 URL
     API->>DynamoDB: Save Feedback mit screenshot_url
     API-->>Frontend: 201 Created
@@ -281,7 +281,7 @@ feedbackWidget.render();
 ## Deployment Checklist
 
 - [ ] DynamoDB Table mit GSI1 (status) erstellt
-- [ ] S3 Bucket `overcloud-feedback-{env}` erstellt
+- [ ] S3 Bucket `stackvertex-feedback-{env}` erstellt
 - [ ] S3 Bucket Policy (Private, nur Backend-Access)
 - [ ] IAM Role für S3 Upload (Backend Lambda/ECS)
 - [ ] Admin User mit SuperAdmin-Rolle erstellt

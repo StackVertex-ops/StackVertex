@@ -237,7 +237,7 @@ async def download_data_export(
             iter([file_content]),
             media_type="application/json",
             headers={
-                "Content-Disposition": f'attachment; filename="overcloud_data_export_{export_id}.json"'
+                "Content-Disposition": f'attachment; filename="stackvertex_data_export_{export_id}.json"'
             },
         )
 

@@ -327,7 +327,7 @@ curl -X POST http://localhost:8000/api/v1/cidr/plan \
 > "Der finale Plan zeigt die komplette IP-Allocation visuell. Ich sehe auf einen Blick: 9 Subnets, keine Overlaps, 28.000 IPs noch frei für zukünftiges Wachstum."
 
 **Outro (30 Sek.)**
-> "Der Calculator ist vollständig getestet, hat eine REST API und kann später in den OverCloud Architecture Builder integriert werden. Alle Features sind production-ready."
+> "Der Calculator ist vollständig getestet, hat eine REST API und kann später in den StackVertex Architecture Builder integriert werden. Alle Features sind production-ready."
 
 ---
 
