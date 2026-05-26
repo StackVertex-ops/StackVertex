@@ -253,13 +253,13 @@ jobs:
         run: |
           if [ "${{ github.ref }}" == "refs/heads/main" ]; then
             echo "environment=prod" >> $GITHUB_OUTPUT
-            echo "target_url=https://api.overcloud.io" >> $GITHUB_OUTPUT
+            echo "target_url=https://api.stackvertex.io" >> $GITHUB_OUTPUT
           elif [ "${{ github.ref }}" == "refs/heads/staging" ]; then
             echo "environment=staging" >> $GITHUB_OUTPUT
-            echo "target_url=https://staging-api.overcloud.io" >> $GITHUB_OUTPUT
+            echo "target_url=https://staging-api.stackvertex.io" >> $GITHUB_OUTPUT
           else
             echo "environment=dev" >> $GITHUB_OUTPUT
-            echo "target_url=https://dev-api.overcloud.io" >> $GITHUB_OUTPUT
+            echo "target_url=https://dev-api.stackvertex.io" >> $GITHUB_OUTPUT
           fi
 
       - name: ZAP Baseline Scan

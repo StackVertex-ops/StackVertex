@@ -18,7 +18,7 @@ on:
       project_name:
         description: 'Projekt Name (lowercase)'
         required: true
-        default: 'overcloud'
+        default: 'stackvertex'
         type: string
 
 env:

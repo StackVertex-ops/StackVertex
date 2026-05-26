@@ -1,4 +1,4 @@
-name: Deploy OverCloud to AWS
+name: Deploy StackVertex to AWS
 
 on:
   push:
@@ -163,7 +163,7 @@ jobs:
         working-directory: backend
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: overcloud-${{ steps.env.outputs.environment }}-lambda
+          ECR_REPOSITORY: stackvertex-${{ steps.env.outputs.environment }}-lambda
           IMAGE_TAG: ${{ github.sha }}
         run: |
           # Build Docker image
@@ -219,7 +219,7 @@ jobs:
       - name: Create terraform.tfvars
         run: |
           cat > terraform.tfvars <<EOF
-          project_name           = "overcloud"
+          project_name           = "stackvertex"
           environment            = "${{ steps.env.outputs.environment }}"
           aws_region             = "${{ env.AWS_REGION }}"
           db_master_username     = "${{ secrets.DB_MASTER_USERNAME }}"
@@ -326,7 +326,7 @@ jobs:
       - name: Create terraform.tfvars
         run: |
           cat > terraform.tfvars <<EOF
-          project_name           = "overcloud"
+          project_name           = "stackvertex"
           environment            = "${{ steps.env.outputs.environment }}"
           aws_region             = "${{ env.AWS_REGION }}"
           db_master_username     = "${{ secrets.DB_MASTER_USERNAME }}"
@@ -421,7 +421,7 @@ jobs:
         working-directory: infrastructure/terraform/environments/${{ steps.env.outputs.environment }}
         run: |
           # Get S3 bucket name from Terraform state
-          BUCKET_NAME=$(terraform output -raw frontend_bucket_name 2>/dev/null || echo "overcloud-${{ steps.env.outputs.environment }}-frontend")
+          BUCKET_NAME=$(terraform output -raw frontend_bucket_name 2>/dev/null || echo "stackvertex-${{ steps.env.outputs.environment }}-frontend")
           echo "bucket_name=$BUCKET_NAME" >> $GITHUB_OUTPUT
 
       - name: Sync to S3
@@ -443,7 +443,7 @@ jobs:
         id: cloudfront
         run: |
           DISTRIBUTION_ID=$(aws cloudfront list-distributions \
-            --query "DistributionList.Items[?Comment=='overcloud-${{ steps.env.outputs.environment }}-frontend'].Id | [0]" \
+            --query "DistributionList.Items[?Comment=='stackvertex-${{ steps.env.outputs.environment }}-frontend'].Id | [0]" \
             --output text)
           echo "distribution_id=$DISTRIBUTION_ID" >> $GITHUB_OUTPUT
 
@@ -493,14 +493,14 @@ jobs:
         run: |
           echo "🔍 Testing API health endpoint..."
           # TODO: Get actual API endpoint from Terraform outputs
-          # curl -f https://api-${{ steps.env.outputs.environment }}.overcloud.io/health || exit 1
+          # curl -f https://api-${{ steps.env.outputs.environment }}.stackvertex.io/health || exit 1
           echo "✅ API Health Check würde hier laufen"
 
       - name: Health Check Frontend
         run: |
           echo "🔍 Testing Frontend availability..."
           # TODO: Get actual CloudFront URL from Terraform outputs
-          # curl -f https://${{ steps.env.outputs.environment }}.overcloud.io/ || exit 1
+          # curl -f https://${{ steps.env.outputs.environment }}.stackvertex.io/ || exit 1
           echo "✅ Frontend Health Check würde hier laufen"
 
       - name: Deployment Complete
@@ -541,7 +541,7 @@ jobs:
       - name: Create terraform.tfvars
         run: |
           cat > terraform.tfvars <<EOF
-          project_name           = "overcloud"
+          project_name           = "stackvertex"
           environment            = "${{ github.event.inputs.environment }}"
           aws_region             = "${{ env.AWS_REGION }}"
           db_master_username     = "${{ secrets.DB_MASTER_USERNAME }}"

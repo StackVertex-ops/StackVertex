@@ -65,12 +65,12 @@ jobs:
         env:
           TESTING: 'true'
           SECRET_KEY: ${{ secrets.TEST_SECRET_KEY || 'test-secret-key-min-32-chars-long-for-jwt-signing' }}
-          DYNAMODB_TABLE_NAME: 'overcloud-test-main'
+          DYNAMODB_TABLE_NAME: 'stackvertex-test-main'
           DYNAMODB_ENDPOINT_URL: 'http://localhost:8000'
           AWS_REGION: 'us-east-1'
           AWS_ACCESS_KEY_ID: 'test'
           AWS_SECRET_ACCESS_KEY: 'test'
-          S3_LARGE_ITEMS_BUCKET: 'overcloud-test-bucket'
+          S3_LARGE_ITEMS_BUCKET: 'stackvertex-test-bucket'
         run: poetry run pytest tests/ -v --cov=app --cov-report=xml --cov-report=term
 
       - name: Upload coverage to Codecov
@@ -144,7 +144,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKER_USERNAME }}/overcloud-backend
+          images: ${{ secrets.DOCKER_USERNAME }}/stackvertex-backend
           tags: |
             type=ref,event=branch
             type=sha,prefix={{branch}}-
@@ -191,7 +191,7 @@ jobs:
       - name: Health check
         run: |
           echo "Health check would verify deployment"
-          # curl -f https://api.overcloud.com/health || exit 1
+          # curl -f https://api.stackvertex.com/health || exit 1
 
       - name: Notify deployment
         if: success()
