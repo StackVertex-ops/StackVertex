@@ -32,5 +32,5 @@ jobs:
           show-openssf-scorecard: true
 
       - name: Upload SBOM
-        uses: advanced-security/component-detection-dependency-submission-action@v0.0.2
+        uses: advanced-security/component-detection-dependency-submission-action@v0.1.1
         continue-on-error: true
