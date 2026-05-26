@@ -25,30 +25,32 @@ variable "vpc_cidr" {
   default     = "10.0.0.0/16"
 }
 
-# Database
-variable "database_name" {
-  description = "Database name"
-  type        = string
-  default     = "stackvertex"
-}
-
-variable "db_master_username" {
-  description = "Database master username"
-  type        = string
-  default     = "stackvertex_admin"
-  sensitive   = true
-}
-
-variable "db_master_password" {
-  description = "Database master password (min 16 chars)"
-  type        = string
-  sensitive   = true
-
-  validation {
-    condition     = length(var.db_master_password) >= 16
-    error_message = "Database password must be at least 16 characters"
-  }
-}
+# Database (LEGACY - PostgreSQL variables, not used anymore)
+# DynamoDB hat keine Credentials - serverless!
+# Diese Variables nur für Migration behalten:
+# variable "database_name" {
+#   description = "Database name"
+#   type        = string
+#   default     = "stackvertex"
+# }
+#
+# variable "db_master_username" {
+#   description = "Database master username"
+#   type        = string
+#   default     = "stackvertex_admin"
+#   sensitive   = true
+# }
+#
+# variable "db_master_password" {
+#   description = "Database master password (min 16 chars)"
+#   type        = string
+#   sensitive   = true
+#
+#   validation {
+#     condition     = length(var.db_master_password) >= 16
+#     error_message = "Database password must be at least 16 characters"
+#   }
+# }
 
 # Lambda
 variable "lambda_image_uri" {

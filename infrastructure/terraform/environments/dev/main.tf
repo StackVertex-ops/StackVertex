@@ -81,30 +81,55 @@ module "storage" {
   customer_data_version_retention_days = 30    # Dev: 30 Tage Versionen
 }
 
-# Database Module
-module "database" {
-  source = "../../modules/database"
+# Database Module (LEGACY - PostgreSQL)
+# ❌ DISABLED: Ersetzt durch DynamoDB (siehe database-dynamodb module)
+# Uncomment nur für Migration von alten Daten
+# module "database" {
+#   source = "../../modules/database"
+#
+#   project_name       = var.project_name
+#   environment        = var.environment
+#   private_subnet_ids = module.networking.private_subnet_ids
+#   security_group_id  = module.networking.aurora_security_group_id
+#
+#   postgres_version   = "15.4"
+#   database_name      = var.database_name
+#   master_username    = var.db_master_username
+#   master_password    = var.db_master_password
+#
+#   # Dev: Kleine Kapazität
+#   min_capacity = 0.5
+#   max_capacity = 1
+#
+#   # Dev: Kürzere Retention
+#   backup_retention_days = 3
+#   skip_final_snapshot   = true
+#
+#   enable_performance_insights = false
+#   enable_cloudwatch_alarms    = false
+# }
 
-  project_name       = var.project_name
-  environment        = var.environment
-  private_subnet_ids = module.networking.private_subnet_ids
-  security_group_id  = module.networking.aurora_security_group_id
+# DynamoDB Module (Primary Database)
+module "database_dynamodb" {
+  source = "../../modules/database-dynamodb"
 
-  postgres_version   = "15.4"
-  database_name      = var.database_name
-  master_username    = var.db_master_username
-  master_password    = var.db_master_password
+  project_name   = var.project_name
+  environment    = var.environment
+  aws_region     = local.aws_region
+  aws_account_id = local.aws_account_id
 
-  # Dev: Kleine Kapazität
-  min_capacity = 0.5
-  max_capacity = 1
+  # Dev: On-Demand Billing
+  billing_mode = "PAY_PER_REQUEST"
 
-  # Dev: Kürzere Retention
-  backup_retention_days = 3
-  skip_final_snapshot   = true
+  # Dev: Point-in-Time Recovery disabled (cost-saving)
+  enable_point_in_time_recovery = false
 
-  enable_performance_insights = false
-  enable_cloudwatch_alarms    = false
+  # Dev: No backups
+  enable_automated_backups = false
+
+  # TTL enabled für auto-cleanup
+  enable_ttl = true
+  ttl_attribute_name = "ttl"
 }
 
 # Compute Module
@@ -126,8 +151,9 @@ module "compute" {
   private_subnet_ids        = module.networking.private_subnet_ids
   lambda_security_group_id  = module.networking.lambda_security_group_id
 
-  # Database
-  db_secret_arn = module.database.secret_arn
+  # DynamoDB (ersetzt PostgreSQL)
+  dynamodb_table_name = module.database_dynamodb.table_name
+  dynamodb_table_arn  = module.database_dynamodb.table_arn
 
   # S3
   deployment_bucket_name   = module.storage.deployment_states_bucket_id
