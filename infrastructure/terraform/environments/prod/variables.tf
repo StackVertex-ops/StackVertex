@@ -31,30 +31,32 @@ variable "vpc_cidr" {
   default     = "10.2.0.0/16" # Prod: 10.2.x.x (unterscheidet sich von dev 10.0.x.x und staging 10.1.x.x)
 }
 
-# Database
-variable "database_name" {
-  description = "Database name"
-  type        = string
-  default     = "stackvertex"
-}
-
-variable "db_master_username" {
-  description = "Database master username"
-  type        = string
-  default     = "stackvertex_admin"
-  sensitive   = true
-}
-
-variable "db_master_password" {
-  description = "Database master password (min 16 chars)"
-  type        = string
-  sensitive   = true
-
-  validation {
-    condition     = length(var.db_master_password) >= 16
-    error_message = "Database password must be at least 16 characters"
-  }
-}
+# Database (LEGACY - PostgreSQL variables, not used anymore)
+# DynamoDB hat keine Credentials - serverless!
+# Diese Variables nur für Migration behalten:
+# variable "database_name" {
+#   description = "Database name"
+#   type        = string
+#   default     = "stackvertex"
+# }
+#
+# variable "db_master_username" {
+#   description = "Database master username"
+#   type        = string
+#   default     = "stackvertex_admin"
+#   sensitive   = true
+# }
+#
+# variable "db_master_password" {
+#   description = "Database master password (min 16 chars)"
+#   type        = string
+#   sensitive   = true
+#
+#   validation {
+#     condition     = length(var.db_master_password) >= 16
+#     error_message = "Database password must be at least 16 characters"
+#   }
+# }
 
 # Lambda
 variable "lambda_image_uri" {
@@ -94,4 +96,35 @@ variable "cors_origins" {
   description = "Allowed CORS origins for API"
   type        = string
   default     = "https://app.stackvertex.io" # Prod Frontend URL
+}
+
+# Domain & DNS
+variable "domain_name" {
+  description = "Primary domain name (e.g., stackvertex.io)"
+  type        = string
+  default     = "stackvertex.io"
+}
+
+variable "create_acm_certificate" {
+  description = "Create ACM certificate for domain (requires Route53 hosted zone)"
+  type        = bool
+  default     = true
+}
+
+variable "create_route53_zone" {
+  description = "Create Route53 hosted zone for domain"
+  type        = bool
+  default     = true
+}
+
+variable "enable_cloudfront" {
+  description = "Enable CloudFront CDN for frontend"
+  type        = bool
+  default     = true
+}
+
+variable "cloudfront_price_class" {
+  description = "CloudFront price class (PriceClass_All, PriceClass_200, PriceClass_100)"
+  type        = string
+  default     = "PriceClass_100" # US, Canada, Europe (günstiger als worldwide)
 }
