@@ -67,9 +67,9 @@ The platform where all your cloud infrastructure layers converge into a unified,
 │   ├── json-schemas/   # JSON Schema definitions
 │   ├── api/            # API documentation
 │   └── user-guides/    # User guides
-├── backend/             # Node.js/TypeScript backend (TBD)
-├── frontend/            # Next.js frontend (TBD)
-└── infrastructure/      # Platform infrastructure (TBD)
+├── backend/             # Python FastAPI backend (AWS Lambda/ECS)
+├── frontend/            # Vanilla JS frontend (Vite build)
+└── infrastructure/      # Terraform IaC (AWS Serverless + Hybrid)
 ```
 
 ---
@@ -79,10 +79,10 @@ The platform where all your cloud infrastructure layers converge into a unified,
 ### Backend (Python)
 - **Runtime:** Python 3.11+
 - **Framework:** FastAPI (async, modern, type-safe)
-- **Database:** DynamoDB (primary), PostgreSQL (legacy migrations)
-- **ORM:** Custom DynamoDB repositories + SQLAlchemy 2.0 (legacy)
+- **Database:** DynamoDB (NoSQL, Serverless) - Single Table Design
+- **ORM:** Custom DynamoDB repositories (boto3)
 - **Validation:** Pydantic v2
-- **AWS SDK:** Boto3 (DynamoDB, S3, Lambda)
+- **AWS SDK:** Boto3 (DynamoDB, S3, Lambda, ECS)
 - **Testing:** pytest + pytest-asyncio + httpx + moto (AWS mocking)
 - **Code Quality:** Black, Ruff, mypy
 - **Dependency Management:** Poetry
@@ -99,7 +99,10 @@ The platform where all your cloud infrastructure layers converge into a unified,
 ### DevOps
 - **IaC:** Terraform (generated from Python)
 - **CI/CD:** GitHub Actions
-- **Hosting:** AWS S3 + CloudFront (frontend), AWS Lambda or ECS (backend)
+- **Architecture:** Hybrid Serverless (Lambda + ECS Fargate on-demand)
+- **Frontend:** AWS S3 + CloudFront (CDN)
+- **Backend:** AWS Lambda (API) + API Gateway (HTTP/WebSocket)
+- **Deployments:** ECS Fargate Spot Tasks (long-running deployments >15min)
 - **Monitoring:** AWS CloudWatch + Sentry
 
 ---

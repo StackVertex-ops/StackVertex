@@ -1,0 +1,302 @@
+name: Manual Destroy - StackVertex Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to destroy (dev, staging, prod)'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+      confirm_destroy:
+        description: 'Type "DESTROY" to confirm'
+        required: true
+        type: string
+      skip_approval:
+        description: 'Skip manual approval (dangerous!)'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  AWS_REGION: us-east-1
+  TERRAFORM_VERSION: 1.5.7
+
+jobs:
+  # Job 1: Validation
+  validate:
+    name: Validate Destroy Request
+    runs-on: ubuntu-latest
+    outputs:
+      can_proceed: ${{ steps.check.outputs.can_proceed }}
+
+    steps:
+      - name: Check confirmation
+        id: check
+        run: |
+          if [ "${{ github.event.inputs.confirm_destroy }}" != "DESTROY" ]; then
+            echo "❌ Confirmation failed. Must type 'DESTROY' to proceed."
+            echo "can_proceed=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          echo "✅ Confirmation validated"
+          echo "can_proceed=true" >> $GITHUB_OUTPUT
+
+      - name: Display destroy info
+        run: |
+          echo "🗑️  DESTROY Request"
+          echo "Environment: ${{ github.event.inputs.environment }}"
+          echo "Triggered by: ${{ github.actor }}"
+          echo "Skip approval: ${{ github.event.inputs.skip_approval }}"
+
+  # Job 2: Manual Approval (unless skipped)
+  approval:
+    name: Manual Approval
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event.inputs.skip_approval != 'true'
+    environment:
+      name: destroy-approval
+    steps:
+      - name: Wait for approval
+        run: |
+          echo "⏳ Waiting for manual approval..."
+          echo "Environment: ${{ github.event.inputs.environment }}"
+
+  # Job 3: Terraform Destroy
+  terraform_destroy:
+    name: Terraform Destroy
+    runs-on: ubuntu-latest
+    needs: [validate, approval]
+    if: |
+      always() &&
+      needs.validate.outputs.can_proceed == 'true' &&
+      (needs.approval.result == 'success' || github.event.inputs.skip_approval == 'true')
+    defaults:
+      run:
+        working-directory: infrastructure/terraform/environments/${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Destroy (with retries)
+        id: destroy
+        continue-on-error: true
+        run: |
+          echo "🗑️  Starting Terraform Destroy..."
+
+          # Try normal destroy
+          terraform destroy -auto-approve || {
+            echo "⚠️  First attempt failed, trying force-unlock..."
+
+            # Get lock info
+            LOCK_ID=$(terraform state list 2>&1 | grep -oP 'ID: \K[^"]+' | head -1 || echo "")
+
+            if [ -n "$LOCK_ID" ]; then
+              echo "Found lock: $LOCK_ID"
+              terraform force-unlock -force "$LOCK_ID"
+            fi
+
+            # Retry destroy
+            echo "Retrying destroy..."
+            terraform destroy -auto-approve
+          }
+
+      - name: Upload destroy log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: destroy-log-${{ github.event.inputs.environment }}
+          path: |
+            infrastructure/terraform/environments/${{ github.event.inputs.environment }}/*.tfstate
+            infrastructure/terraform/environments/${{ github.event.inputs.environment }}/.terraform/
+          retention-days: 7
+
+  # Job 4: Manual Cleanup (Resources Terraform missed)
+  manual_cleanup:
+    name: Manual Cleanup
+    runs-on: ubuntu-latest
+    needs: terraform_destroy
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Empty S3 Buckets
+        continue-on-error: true
+        run: |
+          echo "🗑️  Emptying S3 Buckets..."
+
+          BUCKETS=$(aws s3api list-buckets \
+            --query "Buckets[?contains(Name, 'stackvertex-${{ github.event.inputs.environment }}')].Name" \
+            --output text)
+
+          if [ -n "$BUCKETS" ]; then
+            for bucket in $BUCKETS; do
+              echo "   Emptying s3://$bucket..."
+              aws s3 rm "s3://$bucket" --recursive || true
+
+              echo "   Deleting s3://$bucket..."
+              aws s3 rb "s3://$bucket" || true
+            done
+          fi
+
+      - name: Delete DynamoDB Tables
+        continue-on-error: true
+        run: |
+          echo "🗑️  Deleting DynamoDB Tables..."
+
+          TABLES=$(aws dynamodb list-tables \
+            --query "TableNames[?contains(@, 'stackvertex-${{ github.event.inputs.environment }}')]" \
+            --output text)
+
+          if [ -n "$TABLES" ]; then
+            for table in $TABLES; do
+              echo "   Deleting table: $table..."
+              aws dynamodb delete-table --table-name "$table" || true
+            done
+          fi
+
+      - name: Delete Lambda Functions
+        continue-on-error: true
+        run: |
+          echo "🗑️  Deleting Lambda Functions..."
+
+          FUNCTIONS=$(aws lambda list-functions \
+            --query "Functions[?starts_with(FunctionName, 'stackvertex-${{ github.event.inputs.environment }}')].FunctionName" \
+            --output text)
+
+          if [ -n "$FUNCTIONS" ]; then
+            for func in $FUNCTIONS; do
+              echo "   Deleting function: $func..."
+              aws lambda delete-function --function-name "$func" || true
+            done
+          fi
+
+      - name: Delete API Gateways
+        continue-on-error: true
+        run: |
+          echo "🗑️  Deleting API Gateways..."
+
+          API_IDS=$(aws apigatewayv2 get-apis \
+            --query "Items[?contains(Name, 'stackvertex-${{ github.event.inputs.environment }}')].ApiId" \
+            --output text)
+
+          if [ -n "$API_IDS" ]; then
+            for api_id in $API_IDS; do
+              echo "   Deleting API: $api_id..."
+              aws apigatewayv2 delete-api --api-id "$api_id" || true
+            done
+          fi
+
+      - name: Stop ECS Tasks & Delete Cluster
+        continue-on-error: true
+        run: |
+          echo "🗑️  Cleaning ECS..."
+
+          CLUSTER="stackvertex-${{ github.event.inputs.environment }}"
+
+          # Stop all tasks
+          TASKS=$(aws ecs list-tasks --cluster "$CLUSTER" --query 'taskArns' --output text || echo "")
+          if [ -n "$TASKS" ]; then
+            for task in $TASKS; do
+              echo "   Stopping task: $task..."
+              aws ecs stop-task --cluster "$CLUSTER" --task "$task" || true
+            done
+          fi
+
+          # Delete cluster
+          echo "   Deleting cluster: $CLUSTER..."
+          aws ecs delete-cluster --cluster "$CLUSTER" || true
+
+      - name: Delete CloudWatch Log Groups
+        continue-on-error: true
+        run: |
+          echo "🗑️  Deleting CloudWatch Logs..."
+
+          LOG_GROUPS=$(aws logs describe-log-groups \
+            --query "logGroups[?contains(logGroupName, 'stackvertex-${{ github.event.inputs.environment }}')].logGroupName" \
+            --output text)
+
+          if [ -n "$LOG_GROUPS" ]; then
+            for log_group in $LOG_GROUPS; do
+              echo "   Deleting log group: $log_group..."
+              aws logs delete-log-group --log-group-name "$log_group" || true
+            done
+          fi
+
+  # Job 5: Verification
+  verify:
+    name: Verify Cleanup
+    runs-on: ubuntu-latest
+    needs: manual_cleanup
+    if: always()
+
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Check remaining resources
+        run: |
+          echo "🔍 Checking for remaining resources..."
+
+          REMAINING=$(aws resourcegroupstaggingapi get-resources \
+            --tag-filters \
+              Key=Project,Values=stackvertex \
+              Key=Environment,Values=${{ github.event.inputs.environment }} \
+            --query 'ResourceTagMappingList[].ResourceARN' \
+            --output text || echo "")
+
+          if [ -z "$REMAINING" ]; then
+            echo "✅ No tagged resources remaining"
+          else
+            echo "⚠️  Some resources still exist:"
+            echo "$REMAINING"
+          fi
+
+      - name: Summary
+        run: |
+          echo "=================================================="
+          echo "🗑️  DESTROY COMPLETE"
+          echo "=================================================="
+          echo "Environment: ${{ github.event.inputs.environment }}"
+          echo "Triggered by: ${{ github.actor }}"
+          echo ""
+          echo "⚠️  Manual cleanup may be needed for:"
+          echo "  - CloudFront Distributions (15-20 min to disable)"
+          echo "  - Route53 Hosted Zones (\$0.50/month)"
+          echo "  - IAM Roles (check manually)"
+          echo ""
+          echo "Check logs for details."
