@@ -20,6 +20,21 @@ output "deployment_states_bucket" {
   value       = aws_s3_bucket.deployment_states.id
 }
 
+output "ecr_repository_dev" {
+  description = "ECR repository URL for dev environment"
+  value       = aws_ecr_repository.lambda_dev.repository_url
+}
+
+output "ecr_repository_staging" {
+  description = "ECR repository URL for staging environment"
+  value       = aws_ecr_repository.lambda_staging.repository_url
+}
+
+output "ecr_repository_prod" {
+  description = "ECR repository URL for prod environment"
+  value       = aws_ecr_repository.lambda_prod.repository_url
+}
+
 output "backend_config" {
   description = "Backend configuration for other Terraform projects"
   value = <<-EOT
@@ -41,15 +56,24 @@ output "next_steps" {
 
     ✅ Bootstrap Complete!
 
-    S3 Bucket: ${aws_s3_bucket.terraform_state.id}
-    DynamoDB Table: ${aws_dynamodb_table.terraform_locks.name}
-    Region: ${var.aws_region}
+    📦 S3 Buckets:
+      - Terraform State: ${aws_s3_bucket.terraform_state.id}
+      - Deployment States: ${aws_s3_bucket.deployment_states.id}
+
+    🔒 DynamoDB Lock Table: ${aws_dynamodb_table.terraform_locks.name}
+
+    🐳 ECR Repositories:
+      - Dev: ${aws_ecr_repository.lambda_dev.repository_url}
+      - Staging: ${aws_ecr_repository.lambda_staging.repository_url}
+      - Prod: ${aws_ecr_repository.lambda_prod.repository_url}
+
+    🌍 Region: ${var.aws_region}
 
     Next Steps:
-    1. Backend config files will be auto-generated
-    2. Run: cd ../environments/dev && terraform init
-    3. Verify state is in S3
-    4. Start deployment
+    1. Backend config files auto-generated ✅
+    2. ECR repositories ready for Docker images ✅
+    3. Run: cd ../environments/dev && terraform init
+    4. Start deployment with GitHub Actions workflow
 
     Backend Config Example:
     terraform {

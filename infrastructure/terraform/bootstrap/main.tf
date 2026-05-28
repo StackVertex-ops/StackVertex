@@ -157,3 +157,122 @@ resource "aws_s3_bucket_public_access_block" "deployment_states" {
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
+
+# ECR Repositories for Lambda Container Images (per environment)
+resource "aws_ecr_repository" "lambda_dev" {
+  name                 = "${var.project_name}-dev-lambda"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  encryption_configuration {
+    encryption_type = "AES256"
+  }
+
+  tags = {
+    Name        = "Lambda Container Repository (Dev)"
+    Environment = "dev"
+  }
+}
+
+resource "aws_ecr_repository" "lambda_staging" {
+  name                 = "${var.project_name}-staging-lambda"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  encryption_configuration {
+    encryption_type = "AES256"
+  }
+
+  tags = {
+    Name        = "Lambda Container Repository (Staging)"
+    Environment = "staging"
+  }
+}
+
+resource "aws_ecr_repository" "lambda_prod" {
+  name                 = "${var.project_name}-prod-lambda"
+  image_tag_mutability = "IMMUTABLE" # Prod: immutable tags
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  encryption_configuration {
+    encryption_type = "AES256"
+  }
+
+  tags = {
+    Name        = "Lambda Container Repository (Prod)"
+    Environment = "prod"
+  }
+}
+
+# Lifecycle policies to clean up old images
+resource "aws_ecr_lifecycle_policy" "lambda_dev" {
+  repository = aws_ecr_repository.lambda_dev.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep last 10 images"
+        selection = {
+          tagStatus   = "any"
+          countType   = "imageCountMoreThan"
+          countNumber = 10
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_ecr_lifecycle_policy" "lambda_staging" {
+  repository = aws_ecr_repository.lambda_staging.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep last 20 images"
+        selection = {
+          tagStatus   = "any"
+          countType   = "imageCountMoreThan"
+          countNumber = 20
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_ecr_lifecycle_policy" "lambda_prod" {
+  repository = aws_ecr_repository.lambda_prod.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep last 50 images"
+        selection = {
+          tagStatus   = "any"
+          countType   = "imageCountMoreThan"
+          countNumber = 50
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
+}
