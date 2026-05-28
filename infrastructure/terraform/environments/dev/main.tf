@@ -218,10 +218,10 @@ module "security" {
   cloudtrail_log_retention_days = 30
   enable_multi_region_trail     = false
 
-  # GuardDuty
-  enable_guardduty            = true
-  guardduty_finding_frequency = "ONE_HOUR" # Dev: 1x pro Stunde
+  # GuardDuty (DISABLED in dev - cost saving, enable in prod)
+  enable_guardduty            = false
+  guardduty_finding_frequency = "ONE_HOUR"
 
-  # Security Hub
-  enable_security_hub = var.enable_security_hub # Optional für dev
+  # Security Hub (DISABLED in dev - cost saving)
+  enable_security_hub = false
 }
