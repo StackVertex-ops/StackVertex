@@ -183,9 +183,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-backend, build-frontend]
     if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'plan')
-    defaults:
-      run:
-        working-directory: infrastructure/terraform/environments/${{ steps.env.outputs.environment }}
 
     steps:
       - name: Checkout code
@@ -217,6 +214,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Create terraform.tfvars
+        working-directory: infrastructure/terraform/environments/${{ steps.env.outputs.environment }}
         run: |
           cat > terraform.tfvars <<EOF
           project_name           = "stackvertex"
@@ -237,15 +235,19 @@ jobs:
           fi
 
       - name: Terraform Init
+        working-directory: infrastructure/terraform/environments/${{ steps.env.outputs.environment }}
         run: terraform init
 
       - name: Terraform Format Check
+        working-directory: infrastructure/terraform/environments/${{ steps.env.outputs.environment }}
         run: terraform fmt -check
 
       - name: Terraform Validate
+        working-directory: infrastructure/terraform/environments/${{ steps.env.outputs.environment }}
         run: terraform validate
 
       - name: Terraform Plan
+        working-directory: infrastructure/terraform/environments/${{ steps.env.outputs.environment }}
         run: terraform plan -out=tfplan
 
       - name: Comment Plan on PR
@@ -284,12 +286,6 @@ jobs:
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply')
-    environment:
-      name: ${{ steps.env.outputs.environment }}
-      url: ${{ steps.deploy.outputs.api_endpoint }}
-    defaults:
-      run:
-        working-directory: infrastructure/terraform/environments/${{ steps.env.outputs.environment }}
 
     steps:
       - name: Checkout code
@@ -324,6 +320,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Create terraform.tfvars
+        working-directory: infrastructure/terraform/environments/${{ steps.env.outputs.environment }}
         run: |
           cat > terraform.tfvars <<EOF
           project_name           = "stackvertex"
@@ -344,10 +341,12 @@ jobs:
           fi
 
       - name: Terraform Init
+        working-directory: infrastructure/terraform/environments/${{ steps.env.outputs.environment }}
         run: terraform init
 
       - name: Terraform Apply
         id: deploy
+        working-directory: infrastructure/terraform/environments/${{ steps.env.outputs.environment }}
         run: |
           terraform apply -auto-approve
 
@@ -518,9 +517,6 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
     environment:
       name: ${{ github.event.inputs.environment }}-destroy
-    defaults:
-      run:
-        working-directory: infrastructure/terraform/environments/${{ github.event.inputs.environment }}
 
     steps:
       - name: Checkout code
@@ -539,6 +535,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Create terraform.tfvars
+        working-directory: infrastructure/terraform/environments/${{ github.event.inputs.environment }}
         run: |
           cat > terraform.tfvars <<EOF
           project_name           = "stackvertex"
@@ -550,9 +547,11 @@ jobs:
           EOF
 
       - name: Terraform Init
+        working-directory: infrastructure/terraform/environments/${{ github.event.inputs.environment }}
         run: terraform init
 
       - name: Terraform Destroy
+        working-directory: infrastructure/terraform/environments/${{ github.event.inputs.environment }}
         run: terraform destroy -auto-approve
 
       - name: Cleanup Summary
