@@ -53,23 +53,18 @@ fi
 echo -e "${GREEN}✅ GitHub Secrets OK${NC}"
 echo ""
 
-# Check if Bootstrap needed
-echo "🔍 Prüfe ob Bootstrap nötig ist..."
-ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text 2>/dev/null)
+# Ask if Bootstrap needed
+echo "❓ Wurde Bootstrap bereits durchgeführt?"
+echo "   (Erstes Deployment in diesem AWS Account = Nein)"
+echo ""
+read -p "Bootstrap überspringen? (yes/no): " skip_bootstrap
 
-if [ -z "$ACCOUNT_ID" ]; then
-    echo -e "${RED}❌ AWS Credentials ungültig${NC}"
-    echo "Bitte zuerst AWS Credentials konfigurieren"
-    exit 1
-fi
-
-BUCKET_NAME="stackvertex-dev-terraform-state-${ACCOUNT_ID}"
-if aws s3 ls "s3://$BUCKET_NAME" &>/dev/null; then
-    echo -e "${GREEN}✅ Bootstrap bereits durchgeführt (Bucket existiert)${NC}"
+if [ "$skip_bootstrap" = "yes" ]; then
     SKIP_BOOTSTRAP=true
+    echo -e "${GREEN}✅ Bootstrap wird übersprungen${NC}"
 else
-    echo -e "${YELLOW}⚠️  Bootstrap noch nicht durchgeführt${NC}"
     SKIP_BOOTSTRAP=false
+    echo -e "${BLUE}ℹ️  Bootstrap wird durchgeführt${NC}"
 fi
 
 # Confirm
@@ -89,12 +84,22 @@ if [ "$SKIP_BOOTSTRAP" = false ]; then
 else
     echo ""
     echo "=================================================="
-    echo "Phase 1: Bootstrap (übersprungen - bereits vorhanden)"
+    echo "Phase 1: Bootstrap (übersprungen)"
     echo "=================================================="
     echo ""
 fi
 
 if [ "$SKIP_BOOTSTRAP" = false ]; then
+    # Get Account ID from user
+    echo "📋 Bitte AWS Account ID eingeben (12 Stellen):"
+    echo "   (Findest du in Pluralsight Sandbox oder AWS Console)"
+    read -p "Account ID: " ACCOUNT_ID
+
+    if [ -z "$ACCOUNT_ID" ]; then
+        echo -e "${RED}❌ Account ID darf nicht leer sein${NC}"
+        exit 1
+    fi
+
     # Bootstrap
     echo "🏗️  Triggere Bootstrap Workflow..."
     gh workflow run bootstrap.yml \
