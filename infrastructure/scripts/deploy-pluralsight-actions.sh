@@ -53,45 +53,78 @@ fi
 echo -e "${GREEN}✅ GitHub Secrets OK${NC}"
 echo ""
 
+# Check if Bootstrap needed
+echo "🔍 Prüfe ob Bootstrap nötig ist..."
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text 2>/dev/null)
+
+if [ -z "$ACCOUNT_ID" ]; then
+    echo -e "${RED}❌ AWS Credentials ungültig${NC}"
+    echo "Bitte zuerst AWS Credentials konfigurieren"
+    exit 1
+fi
+
+BUCKET_NAME="stackvertex-dev-terraform-state-${ACCOUNT_ID}"
+if aws s3 ls "s3://$BUCKET_NAME" &>/dev/null; then
+    echo -e "${GREEN}✅ Bootstrap bereits durchgeführt (Bucket existiert)${NC}"
+    SKIP_BOOTSTRAP=true
+else
+    echo -e "${YELLOW}⚠️  Bootstrap noch nicht durchgeführt${NC}"
+    SKIP_BOOTSTRAP=false
+fi
+
 # Confirm
+echo ""
 read -p "Deployment starten? (yes/no): " confirm
 if [ "$confirm" != "yes" ]; then
     echo "Abgebrochen."
     exit 0
 fi
 
-echo ""
-echo "=================================================="
-echo "Phase 1: Bootstrap"
-echo "=================================================="
-echo ""
-
-# Bootstrap
-echo "🏗️  Triggere Bootstrap Workflow..."
-gh workflow run bootstrap.yml -f environment=dev
-
-echo "⏳ Warte auf Workflow Start..."
-sleep 5
-
-# Get latest run
-RUN_ID=$(gh run list --workflow=bootstrap.yml --limit 1 --json databaseId --jq '.[0].databaseId')
-echo -e "${BLUE}Run ID: $RUN_ID${NC}"
-
-# Watch bootstrap
-echo "👀 Watching bootstrap workflow..."
-gh run watch $RUN_ID
-
-# Check status
-STATUS=$(gh run view $RUN_ID --json conclusion --jq '.conclusion')
-if [ "$STATUS" != "success" ]; then
-    echo -e "${RED}❌ Bootstrap failed!${NC}"
-    echo "Logs:"
-    gh run view $RUN_ID --log
-    exit 1
+if [ "$SKIP_BOOTSTRAP" = false ]; then
+    echo ""
+    echo "=================================================="
+    echo "Phase 1: Bootstrap"
+    echo "=================================================="
+    echo ""
+else
+    echo ""
+    echo "=================================================="
+    echo "Phase 1: Bootstrap (übersprungen - bereits vorhanden)"
+    echo "=================================================="
+    echo ""
 fi
 
-echo -e "${GREEN}✅ Bootstrap erfolgreich!${NC}"
-echo ""
+if [ "$SKIP_BOOTSTRAP" = false ]; then
+    # Bootstrap
+    echo "🏗️  Triggere Bootstrap Workflow..."
+    gh workflow run bootstrap.yml \
+      -f aws_account_id="$ACCOUNT_ID" \
+      -f aws_region="eu-central-1" \
+      -f project_name="stackvertex"
+
+    echo "⏳ Warte auf Workflow Start..."
+    sleep 5
+
+    # Get latest run
+    RUN_ID=$(gh run list --workflow=bootstrap.yml --limit 1 --json databaseId --jq '.[0].databaseId')
+    echo -e "${BLUE}Run ID: $RUN_ID${NC}"
+
+    # Watch bootstrap
+    echo "👀 Watching bootstrap workflow..."
+    gh run watch $RUN_ID
+
+    # Check status
+    STATUS=$(gh run view $RUN_ID --json conclusion --jq '.conclusion')
+    if [ "$STATUS" != "success" ]; then
+        echo -e "${RED}❌ Bootstrap failed!${NC}"
+        echo "Logs:"
+        gh run view $RUN_ID --log
+        exit 1
+    fi
+
+    echo -e "${GREEN}✅ Bootstrap erfolgreich!${NC}"
+    echo ""
+fi
 
 echo "=================================================="
 echo "Phase 2: Infrastructure Deployment"
