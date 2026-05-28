@@ -24,6 +24,9 @@ on:
 env:
   TERRAFORM_VERSION: 1.5.7
 
+permissions:
+  contents: write  # Erlaubt git push von backend.tf files
+
 jobs:
   bootstrap:
     name: Bootstrap Terraform State Backend
