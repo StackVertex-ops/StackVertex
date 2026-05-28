@@ -174,7 +174,7 @@ def test_search_faqs_case_insensitive(faq_service, setup_faqs):
     """Test: Suche ist case-insensitive."""
     # Suche mit verschiedenen Cases
     results_lower = faq_service.search_faqs(query="stackvertex")
-    results_upper = faq_service.search_faqs(query="OVERCLOUD")
+    results_upper = faq_service.search_faqs(query="STACKVERTEX")
     results_mixed = faq_service.search_faqs(query="StackVertex")
 
     # Sollten alle gleich viele Ergebnisse liefern

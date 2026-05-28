@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://overcloud.io/schemas/architecture/v1.0.0",
-  "title": "OverCloud Architecture Definition",
+  "$id": "https://stackvertex.io/schemas/architecture/v1.0.0",
+  "title": "StackVertex Architecture Definition",
   "description": "Complete definition of a cloud infrastructure architecture, including requirements, decisions, components, and evaluations.",
   "type": "object",
   "required": ["version", "metadata", "requirements", "architecture"],
