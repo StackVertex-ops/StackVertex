@@ -41,13 +41,25 @@ output "next_steps" {
 
     ✅ Bootstrap Complete!
 
-    Next Steps:
-    1. Update backend config in environments/*/backend.tf
-    2. Run: terraform init -migrate-state (in environments/dev)
-    3. Verify state is in S3
-    4. Delete local terraform.tfstate file
+    S3 Bucket: ${aws_s3_bucket.terraform_state.id}
+    DynamoDB Table: ${aws_dynamodb_table.terraform_locks.name}
+    Region: ${var.aws_region}
 
-    Backend Config:
-    ${self.backend_config}
+    Next Steps:
+    1. Backend config files will be auto-generated
+    2. Run: cd ../environments/dev && terraform init
+    3. Verify state is in S3
+    4. Start deployment
+
+    Backend Config Example:
+    terraform {
+      backend "s3" {
+        bucket         = "${aws_s3_bucket.terraform_state.id}"
+        key            = "dev/terraform.tfstate"
+        region         = "${var.aws_region}"
+        encrypt        = true
+        dynamodb_table = "${aws_dynamodb_table.terraform_locks.name}"
+      }
+    }
   EOT
 }
