@@ -27,17 +27,22 @@ output "dashboard_url" {
 
 output "all_alarm_names" {
   description = "List of all CloudWatch alarm names"
-  value = [
-    aws_cloudwatch_metric_alarm.lambda_errors_critical.alarm_name,
-    aws_cloudwatch_metric_alarm.lambda_throttles.alarm_name,
-    aws_cloudwatch_metric_alarm.lambda_duration.alarm_name,
-    aws_cloudwatch_metric_alarm.api_5xx_errors.alarm_name,
-    aws_cloudwatch_metric_alarm.api_4xx_errors.alarm_name,
-    aws_cloudwatch_metric_alarm.api_latency.alarm_name,
-    aws_cloudwatch_metric_alarm.aurora_cpu.alarm_name,
-    aws_cloudwatch_metric_alarm.aurora_connections.alarm_name,
-    aws_cloudwatch_metric_alarm.aurora_storage.alarm_name,
-    aws_cloudwatch_metric_alarm.deployment_failures.alarm_name,
-    aws_cloudwatch_metric_alarm.unauthorized_access.alarm_name
-  ]
+  value = concat(
+    [
+      aws_cloudwatch_metric_alarm.lambda_errors_critical.alarm_name,
+      aws_cloudwatch_metric_alarm.lambda_throttles.alarm_name,
+      aws_cloudwatch_metric_alarm.lambda_duration.alarm_name,
+      aws_cloudwatch_metric_alarm.api_5xx_errors.alarm_name,
+      aws_cloudwatch_metric_alarm.api_4xx_errors.alarm_name,
+      aws_cloudwatch_metric_alarm.api_latency.alarm_name,
+      aws_cloudwatch_metric_alarm.deployment_failures.alarm_name,
+      aws_cloudwatch_metric_alarm.unauthorized_access.alarm_name
+    ],
+    # Aurora Alarms nur wenn db_cluster_id gesetzt
+    var.db_cluster_id != "" ? [
+      aws_cloudwatch_metric_alarm.aurora_cpu[0].alarm_name,
+      aws_cloudwatch_metric_alarm.aurora_connections[0].alarm_name,
+      aws_cloudwatch_metric_alarm.aurora_storage[0].alarm_name
+    ] : []
+  )
 }
