@@ -170,42 +170,48 @@ resource "aws_kms_key_policy" "customer_data" {
 
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "Enable IAM User Permissions"
-        Effect = "Allow"
-        Principal = {
-          AWS = "arn:aws:iam::${var.aws_account_id}:root"
+    Statement = concat(
+      [
+        {
+          Sid    = "Enable IAM User Permissions"
+          Effect = "Allow"
+          Principal = {
+            AWS = "arn:aws:iam::${var.aws_account_id}:root"
+          }
+          Action   = "kms:*"
+          Resource = "*"
         }
-        Action   = "kms:*"
-        Resource = "*"
-      },
-      {
-        Sid    = "Allow Lambda to use the key"
-        Effect = "Allow"
-        Principal = {
-          AWS = var.lambda_execution_role_arn
+      ],
+      var.lambda_execution_role_arn != "" ? [
+        {
+          Sid    = "Allow Lambda to use the key"
+          Effect = "Allow"
+          Principal = {
+            AWS = var.lambda_execution_role_arn
+          }
+          Action = [
+            "kms:Decrypt",
+            "kms:Encrypt",
+            "kms:GenerateDataKey",
+            "kms:DescribeKey"
+          ]
+          Resource = "*"
         }
-        Action = [
-          "kms:Decrypt",
-          "kms:Encrypt",
-          "kms:GenerateDataKey",
-          "kms:DescribeKey"
-        ]
-        Resource = "*"
-      },
-      {
-        Sid    = "Allow S3 to use the key for server-side encryption"
-        Effect = "Allow"
-        Principal = {
-          Service = "s3.amazonaws.com"
+      ] : [],
+      [
+        {
+          Sid    = "Allow S3 to use the key for server-side encryption"
+          Effect = "Allow"
+          Principal = {
+            Service = "s3.amazonaws.com"
+          }
+          Action = [
+            "kms:Decrypt",
+            "kms:GenerateDataKey"
+          ]
+          Resource = "*"
         }
-        Action = [
-          "kms:Decrypt",
-          "kms:GenerateDataKey"
-        ]
-        Resource = "*"
-      }
-    ]
+      ]
+    )
   })
 }

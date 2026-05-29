@@ -16,16 +16,15 @@ output "private_subnet_ids" {
   value       = module.networking.private_subnet_ids
 }
 
-# Database
-output "database_endpoint" {
-  description = "Aurora database endpoint"
-  value       = module.database.cluster_endpoint
-  sensitive   = true
+# Database (DynamoDB)
+output "dynamodb_table_name" {
+  description = "DynamoDB main table name"
+  value       = module.database_dynamodb.table_name
 }
 
-output "database_secret_arn" {
-  description = "ARN of database credentials secret"
-  value       = module.database.secret_arn
+output "dynamodb_table_arn" {
+  description = "DynamoDB main table ARN"
+  value       = module.database_dynamodb.table_arn
 }
 
 # Compute
@@ -96,8 +95,9 @@ output "deployment_summary" {
     🗄️  Deployment Bucket:  ${module.storage.deployment_states_bucket_id}
     💾 Customer Data:      ${module.storage.customer_data_bucket_id}
 
-    💾 Database Endpoint:  ${module.database.cluster_endpoint}
-    🔐 Database Secret:    ${module.database.secret_arn}
+    📊 DynamoDB Tables:
+    - Main Table:         ${module.database_dynamodb.table_name}
+    - WebSocket Table:    ${module.database_dynamodb.websocket_table_name}
 
     📊 Monitoring:
     - CloudWatch Dashboard: ${module.monitoring.dashboard_url}
@@ -107,7 +107,7 @@ output "deployment_summary" {
     🔔 Alerts configured for:
     - Lambda Errors, Throttles, Timeouts
     - API Gateway 4XX/5XX Errors
-    - Aurora CPU, Connections, Storage
+    - DynamoDB Throttles
     - Deployment Failures
     - Unauthorized Access
     - IAM/S3 Policy Changes
@@ -116,9 +116,8 @@ output "deployment_summary" {
     📋 Next Steps:
     1. Build & push Docker image to ECR
     2. Update Lambda function with new image
-    3. Run database migrations (alembic upgrade head)
+    3. Test API endpoint
     4. Configure alert emails (terraform.tfvars: alert_emails)
-    5. Test API endpoint
 
   EOT
 }

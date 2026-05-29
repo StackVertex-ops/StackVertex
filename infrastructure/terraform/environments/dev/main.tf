@@ -79,6 +79,8 @@ module "storage" {
   enable_customer_data_lifecycle       = true
   enable_customer_data_archival        = false # Dev: kein Glacier
   customer_data_version_retention_days = 30    # Dev: 30 Tage Versionen
+
+  # Lambda execution role wird nach compute-Modul hinzugefügt (siehe unten)
 }
 
 # Database Module (LEGACY - PostgreSQL)
@@ -191,7 +193,7 @@ module "monitoring" {
   lambda_function_name  = module.compute.lambda_function_name
   lambda_log_group_name = module.compute.lambda_log_group_name
   api_gateway_id        = module.compute.http_api_id
-  db_cluster_id         = module.database.cluster_id
+  # db_cluster_id ist nur für Aurora, nicht für DynamoDB
 
   # Thresholds (dev: toleranter)
   lambda_error_threshold_critical = 20  # Dev: 20 Fehler

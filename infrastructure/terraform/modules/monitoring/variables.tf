@@ -63,8 +63,9 @@ variable "api_gateway_id" {
 }
 
 variable "db_cluster_id" {
-  description = "Aurora cluster ID to monitor"
+  description = "Aurora cluster ID to monitor (optional, nur für Aurora)"
   type        = string
+  default     = ""
 }
 
 # Alarm Thresholds - Lambda

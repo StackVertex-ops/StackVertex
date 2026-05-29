@@ -342,8 +342,9 @@ resource "aws_cloudwatch_metric_alarm" "api_latency" {
   }
 }
 
-# Aurora Database Alarms
+# Aurora Database Alarms (nur wenn Aurora genutzt wird)
 resource "aws_cloudwatch_metric_alarm" "aurora_cpu" {
+  count               = var.db_cluster_id != "" ? 1 : 0
   alarm_name          = "${var.project_name}-${var.environment}-aurora-cpu-critical"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 3
@@ -366,6 +367,7 @@ resource "aws_cloudwatch_metric_alarm" "aurora_cpu" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "aurora_connections" {
+  count               = var.db_cluster_id != "" ? 1 : 0
   alarm_name          = "${var.project_name}-${var.environment}-aurora-connections-warning"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 2
@@ -388,6 +390,7 @@ resource "aws_cloudwatch_metric_alarm" "aurora_connections" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "aurora_storage" {
+  count               = var.db_cluster_id != "" ? 1 : 0
   alarm_name          = "${var.project_name}-${var.environment}-aurora-storage-warning"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 1

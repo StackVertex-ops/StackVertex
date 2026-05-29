@@ -98,3 +98,9 @@ variable "customer_data_notification_lambda_arn" {
   type        = string
   default     = null
 }
+
+variable "lambda_execution_role_arn" {
+  description = "Lambda execution role ARN for KMS key policy"
+  type        = string
+  default     = ""
+}
