@@ -220,13 +220,10 @@ jobs:
           project_name           = "stackvertex"
           environment            = "${{ steps.env.outputs.environment }}"
           aws_region             = "${{ env.AWS_REGION }}"
-          db_master_username     = "${{ secrets.DB_MASTER_USERNAME }}"
-          db_master_password     = "${{ secrets.DB_MASTER_PASSWORD }}"
           terraform_state_bucket = "${{ secrets.TERRAFORM_STATE_BUCKET }}"
           lambda_image_uri       = "${{ needs.build-backend.outputs.image_uri }}"
           alert_emails           = [$(echo "${{ secrets.ALERT_EMAILS }}" | sed 's/,/", "/g' | sed 's/^/"/' | sed 's/$/"/')]
           slack_webhook_url      = "${{ secrets.SLACK_WEBHOOK_URL }}"
-          cors_origins           = "${{ secrets.CORS_ORIGINS }}"
           EOF
 
           # Add optional secrets (only if defined)
@@ -326,13 +323,10 @@ jobs:
           project_name           = "stackvertex"
           environment            = "${{ steps.env.outputs.environment }}"
           aws_region             = "${{ env.AWS_REGION }}"
-          db_master_username     = "${{ secrets.DB_MASTER_USERNAME }}"
-          db_master_password     = "${{ secrets.DB_MASTER_PASSWORD }}"
           terraform_state_bucket = "${{ secrets.TERRAFORM_STATE_BUCKET }}"
           lambda_image_uri       = "${{ needs.build-backend.outputs.image_uri }}"
           alert_emails           = [$(echo "${{ secrets.ALERT_EMAILS }}" | sed 's/,/", "/g' | sed 's/^/"/' | sed 's/$/"/')]
           slack_webhook_url      = "${{ secrets.SLACK_WEBHOOK_URL }}"
-          cors_origins           = "${{ secrets.CORS_ORIGINS }}"
           EOF
 
           # Add optional secrets (only if defined)
@@ -541,8 +535,6 @@ jobs:
           project_name           = "stackvertex"
           environment            = "${{ github.event.inputs.environment }}"
           aws_region             = "${{ env.AWS_REGION }}"
-          db_master_username     = "${{ secrets.DB_MASTER_USERNAME }}"
-          db_master_password     = "${{ secrets.DB_MASTER_PASSWORD }}"
           terraform_state_bucket = "${{ secrets.TERRAFORM_STATE_BUCKET }}"
           EOF
 

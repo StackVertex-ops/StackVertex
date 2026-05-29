@@ -65,10 +65,17 @@ variable "lambda_security_group_id" {
   default     = ""
 }
 
-# Database Configuration
-variable "db_secret_arn" {
-  description = "ARN of Secrets Manager secret containing database credentials"
+# Database Configuration (DynamoDB)
+variable "dynamodb_table_name" {
+  description = "DynamoDB table name for application data"
   type        = string
+  default     = ""
+}
+
+variable "dynamodb_table_arn" {
+  description = "DynamoDB table ARN for IAM permissions"
+  type        = string
+  default     = ""
 }
 
 # S3 Configuration

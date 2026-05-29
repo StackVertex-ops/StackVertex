@@ -50,9 +50,19 @@ resource "aws_iam_policy" "lambda_custom" {
       {
         Effect = "Allow"
         Action = [
-          "secretsmanager:GetSecretValue"
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:DeleteItem",
+          "dynamodb:Query",
+          "dynamodb:Scan",
+          "dynamodb:BatchGetItem",
+          "dynamodb:BatchWriteItem"
         ]
-        Resource = var.db_secret_arn
+        Resource = [
+          var.dynamodb_table_arn,
+          "${var.dynamodb_table_arn}/index/*"
+        ]
       },
       {
         Effect = "Allow"
@@ -184,7 +194,7 @@ resource "aws_lambda_function" "api" {
     variables = merge(
       {
         ENVIRONMENT             = var.environment
-        DATABASE_SECRET_ARN     = var.db_secret_arn
+        DYNAMODB_TABLE_NAME     = var.dynamodb_table_name
         DEPLOYMENT_BUCKET       = var.deployment_bucket_name
         CUSTOMER_DATA_BUCKET    = var.customer_data_bucket_name != null ? var.customer_data_bucket_name : ""
         TERRAFORM_STATE_BUCKET  = var.terraform_state_bucket
