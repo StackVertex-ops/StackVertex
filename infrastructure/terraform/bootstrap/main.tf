@@ -21,13 +21,7 @@ terraform {
 provider "aws" {
   region = var.aws_region
 
-  default_tags {
-    tags = {
-      Project     = "StackVertex"
-      ManagedBy   = "Terraform"
-      Environment = "bootstrap"
-    }
-  }
+  # No default_tags - ECR doesn't accept "Environment" tag key
 }
 
 # S3 Bucket for Terraform State
