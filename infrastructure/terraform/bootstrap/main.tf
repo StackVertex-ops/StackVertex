@@ -164,10 +164,6 @@ resource "aws_ecr_repository" "lambda_dev" {
   encryption_configuration {
     encryption_type = "AES256"
   }
-
-  tags = {
-    Name = "Lambda Container Repository (Dev)"
-  }
 }
 
 resource "aws_ecr_repository" "lambda_staging" {
@@ -181,10 +177,6 @@ resource "aws_ecr_repository" "lambda_staging" {
   encryption_configuration {
     encryption_type = "AES256"
   }
-
-  tags = {
-    Name = "Lambda Container Repository (Staging)"
-  }
 }
 
 resource "aws_ecr_repository" "lambda_prod" {
@@ -197,10 +189,6 @@ resource "aws_ecr_repository" "lambda_prod" {
 
   encryption_configuration {
     encryption_type = "AES256"
-  }
-
-  tags = {
-    Name = "Lambda Container Repository (Prod)"
   }
 }
 
