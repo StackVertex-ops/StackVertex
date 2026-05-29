@@ -102,7 +102,7 @@ output "deployment_summary" {
     📊 Monitoring:
     - CloudWatch Dashboard: ${module.monitoring.dashboard_url}
     - CloudTrail: ${module.security.security_monitoring_urls.cloudtrail}
-    - GuardDuty: ${try(module.security.security_monitoring_urls.guardduty, "disabled")}
+    - GuardDuty: ${coalesce(module.security.security_monitoring_urls.guardduty, "disabled")}
 
     🔔 Alerts configured for:
     - Lambda Errors, Throttles, Timeouts
