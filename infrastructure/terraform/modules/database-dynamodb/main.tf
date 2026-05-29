@@ -8,7 +8,7 @@ terraform {
 # Single DynamoDB Table für alle Entities
 resource "aws_dynamodb_table" "main" {
   name           = "${var.project_name}-${var.environment}-main"
-  billing_mode   = "PAY_PER_REQUEST" # Keine Fixkosten!
+  billing_mode   = var.billing_mode
   hash_key       = "PK"
   range_key      = "SK"
 
@@ -42,13 +42,13 @@ resource "aws_dynamodb_table" "main" {
 
   # Time-To-Live für automatische Cleanup
   ttl {
-    attribute_name = "ttl"
-    enabled        = true
+    attribute_name = var.ttl_attribute_name
+    enabled        = var.enable_ttl
   }
 
   # Point-in-Time Recovery (Backup)
   point_in_time_recovery {
-    enabled = var.enable_pitr
+    enabled = var.enable_point_in_time_recovery
   }
 
   # Server-Side Encryption
@@ -65,7 +65,7 @@ resource "aws_dynamodb_table" "main" {
 # DynamoDB für WebSocket Connections
 resource "aws_dynamodb_table" "websocket_connections" {
   name           = "${var.project_name}-${var.environment}-websocket-connections"
-  billing_mode   = "PAY_PER_REQUEST"
+  billing_mode   = var.billing_mode
   hash_key       = "connectionId"
 
   attribute {
@@ -75,8 +75,8 @@ resource "aws_dynamodb_table" "websocket_connections" {
 
   # TTL: Connections älter als 2 Stunden werden automatisch gelöscht
   ttl {
-    attribute_name = "ttl"
-    enabled        = true
+    attribute_name = var.ttl_attribute_name
+    enabled        = var.enable_ttl
   }
 
   tags = {

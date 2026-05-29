@@ -10,10 +10,46 @@ variable "environment" {
   type        = string
 }
 
-variable "enable_pitr" {
+variable "aws_region" {
+  description = "AWS Region (übernommen vom Provider, hier nur für Konsistenz)"
+  type        = string
+  default     = ""
+}
+
+variable "aws_account_id" {
+  description = "AWS Account ID (übernommen vom Provider, hier nur für Konsistenz)"
+  type        = string
+  default     = ""
+}
+
+variable "billing_mode" {
+  description = "DynamoDB billing mode (PAY_PER_REQUEST or PROVISIONED)"
+  type        = string
+  default     = "PAY_PER_REQUEST"
+}
+
+variable "enable_point_in_time_recovery" {
   description = "Enable Point-in-Time Recovery (Backup)"
   type        = bool
-  default     = false # True für prod
+  default     = false
+}
+
+variable "enable_automated_backups" {
+  description = "Enable AWS Backup für DynamoDB (zusätzlich zu PITR)"
+  type        = bool
+  default     = false
+}
+
+variable "enable_ttl" {
+  description = "Enable Time-To-Live für automatische Löschung"
+  type        = bool
+  default     = true
+}
+
+variable "ttl_attribute_name" {
+  description = "TTL attribute name"
+  type        = string
+  default     = "ttl"
 }
 
 variable "kms_key_arn" {
