@@ -420,11 +420,15 @@ resource "aws_cloudwatch_composite_alarm" "system_health" {
   alarm_actions       = [aws_sns_topic.critical_alerts.arn]
   ok_actions          = [aws_sns_topic.info_alerts.arn]
 
-  alarm_rule = join(" OR ", [
-    "ALARM(${aws_cloudwatch_metric_alarm.lambda_errors_critical.alarm_name})",
-    "ALARM(${aws_cloudwatch_metric_alarm.api_5xx_errors.alarm_name})",
-    "ALARM(${aws_cloudwatch_metric_alarm.aurora_cpu.alarm_name})"
-  ])
+  alarm_rule = join(" OR ", concat(
+    [
+      "ALARM(${aws_cloudwatch_metric_alarm.lambda_errors_critical.alarm_name})",
+      "ALARM(${aws_cloudwatch_metric_alarm.api_5xx_errors.alarm_name})"
+    ],
+    var.db_cluster_id != "" ? [
+      "ALARM(${aws_cloudwatch_metric_alarm.aurora_cpu[0].alarm_name})"
+    ] : []
+  ))
 
   tags = {
     Severity = "critical"
