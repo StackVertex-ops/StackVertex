@@ -51,6 +51,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "deployment_states" {
     id     = "archive-old-deployments"
     status = "Enabled"
 
+    filter {}
+
     # Nach 30 Tagen → Infrequent Access
     transition {
       days          = 30
@@ -78,6 +80,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "deployment_states" {
   rule {
     id     = "delete-old-versions"
     status = "Enabled"
+
+    filter {}
 
     noncurrent_version_transition {
       noncurrent_days = 30
@@ -129,6 +133,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "terraform_workspaces" {
   rule {
     id     = "auto-delete-temp-files"
     status = "Enabled"
+
+    filter {}
 
     expiration {
       days = 7
@@ -184,6 +190,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "large_items" {
     id     = "intelligent-tiering"
     status = "Enabled"
 
+    filter {}
+
     # Nach 30 Tagen → Intelligent Tiering (auto-optimize)
     transition {
       days          = 30
@@ -194,6 +202,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "large_items" {
   rule {
     id     = "delete-old-versions"
     status = "Enabled"
+
+    filter {}
 
     # Alte Versionen nach 90 Tagen löschen
     noncurrent_version_expiration {
