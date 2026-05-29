@@ -150,12 +150,17 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
-          git add ../environments/dev/backend.tf
-          git add ../environments/staging/backend.tf
-          git add ../environments/prod/backend.tf
+          git add ../environments/dev/backend.tf || true
+          git add ../environments/staging/backend.tf || true
+          git add ../environments/prod/backend.tf || true
 
-          git commit -m "[infra] Bootstrap: Generate backend.tf for all environments
+          # Nur committen wenn es Änderungen gibt
+          if git diff --cached --quiet; then
+            echo "✅ Keine Änderungen - backend.tf Dateien bereits aktuell"
+          else
+            git commit -m "[infra] Bootstrap: Generate backend.tf for all environments
 
           Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
-
-          git push
+            git push
+            echo "✅ backend.tf Dateien committed und gepusht"
+          fi
