@@ -230,7 +230,7 @@ resource "aws_lambda_function_url" "api" {
   authorization_type = "NONE" # Öffentlich, FastAPI macht Auth
 
   cors {
-    allow_credentials = true
+    allow_credentials = var.cors_origins == "*" ? false : true
     allow_origins     = split(",", var.cors_origins)
     allow_methods     = ["*"]
     allow_headers     = ["*"]
@@ -292,7 +292,7 @@ resource "aws_apigatewayv2_api" "http" {
   protocol_type = "HTTP"
 
   cors_configuration {
-    allow_credentials = true
+    allow_credentials = var.cors_origins == "*" ? false : true
     allow_origins     = split(",", var.cors_origins)
     allow_methods     = ["*"]
     allow_headers     = ["*"]
