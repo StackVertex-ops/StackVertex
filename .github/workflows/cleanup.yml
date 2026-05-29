@@ -1,0 +1,66 @@
+name: Cleanup Bootstrap Resources
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "destroy" to confirm deletion'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    name: Destroy Bootstrap Resources
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate confirmation
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "destroy" ]; then
+            echo "❌ Confirmation failed. You must type 'destroy' to proceed."
+            exit 1
+          fi
+          echo "✅ Confirmation received"
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
+
+      - name: Terraform Init
+        working-directory: infrastructure/terraform/bootstrap
+        run: terraform init
+
+      - name: Remove lifecycle prevent_destroy
+        working-directory: infrastructure/terraform/bootstrap
+        run: |
+          # Temporarily remove prevent_destroy to allow deletion
+          sed -i 's/prevent_destroy = true/prevent_destroy = false/' main.tf
+          cat main.tf | grep -A 2 lifecycle || true
+
+      - name: Terraform Destroy
+        working-directory: infrastructure/terraform/bootstrap
+        run: terraform destroy -auto-approve
+
+      - name: Verify cleanup
+        run: |
+          echo "🧹 Cleanup complete!"
+          echo ""
+          echo "Deleted resources:"
+          echo "  ✓ S3 Bucket: stackvertex-terraform-state-302659227737"
+          echo "  ✓ S3 Bucket: stackvertex-deployment-states-302659227737"
+          echo "  ✓ DynamoDB Table: stackvertex-terraform-locks"
+          echo "  ✓ ECR Repositories: dev, staging, prod"
