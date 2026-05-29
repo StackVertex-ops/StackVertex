@@ -33,11 +33,10 @@ resource "aws_iam_role_policy_attachment" "lambda_basic" {
 }
 
 # Lambda VPC Execution Policy (wenn Lambda in VPC)
-resource "aws_iam_role_policy_attachment" "lambda_vpc" {
-  count      = var.enable_vpc ? 1 : 0
-  role       = aws_iam_role.lambda.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionPolicy"
-}
+# NOTE: AWSLambdaVPCAccessExecutionPolicy wurde deprecated
+# ENI Management wird jetzt via Custom Policy oder AWSLambdaENIManagementAccess gehandhabt
+# Für jetzt: BasicExecutionRole reicht (CloudWatch Logs) + Custom Policy
+
 
 # Custom IAM Policy für Lambda (Secrets Manager, S3, etc.)
 resource "aws_iam_policy" "lambda_custom" {
@@ -132,54 +131,12 @@ resource "aws_s3_bucket_public_access_block" "lambda_code" {
 }
 
 # ECR Repository für Lambda Docker Images
-resource "aws_ecr_repository" "lambda" {
-  name                 = "${var.project_name}-${var.environment}-lambda"
-  image_tag_mutability = "MUTABLE"
-
-  image_scanning_configuration {
-    scan_on_push = true
-  }
-
-  tags = {
-    Name = "${var.project_name}-${var.environment}-lambda-ecr"
-  }
+# NOTE: Wird vom Bootstrap Workflow erstellt, hier nur als data source
+data "aws_ecr_repository" "lambda" {
+  name = "${var.project_name}-${var.environment}-lambda"
 }
 
-# ECR Lifecycle Policy (alte Images löschen)
-resource "aws_ecr_lifecycle_policy" "lambda" {
-  repository = aws_ecr_repository.lambda.name
-
-  policy = jsonencode({
-    rules = [
-      {
-        rulePriority = 1
-        description  = "Keep last 5 images"
-        selection = {
-          tagStatus     = "tagged"
-          tagPrefixList = ["v"]
-          countType     = "imageCountMoreThan"
-          countNumber   = 5
-        }
-        action = {
-          type = "expire"
-        }
-      },
-      {
-        rulePriority = 2
-        description  = "Delete untagged images after 7 days"
-        selection = {
-          tagStatus   = "untagged"
-          countType   = "sinceImagePushed"
-          countUnit   = "days"
-          countNumber = 7
-        }
-        action = {
-          type = "expire"
-        }
-      }
-    ]
-  })
-}
+# ECR Lifecycle Policy wird vom Bootstrap Workflow erstellt
 
 # Lambda Function (Container Image)
 resource "aws_lambda_function" "api" {

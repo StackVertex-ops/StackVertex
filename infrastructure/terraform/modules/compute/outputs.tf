@@ -24,12 +24,12 @@ output "lambda_function_url" {
 # ECR
 output "ecr_repository_url" {
   description = "ECR repository URL for Lambda Docker images"
-  value       = aws_ecr_repository.lambda.repository_url
+  value       = data.aws_ecr_repository.lambda.repository_url
 }
 
 output "ecr_repository_name" {
   description = "ECR repository name"
-  value       = aws_ecr_repository.lambda.name
+  value       = data.aws_ecr_repository.lambda.name
 }
 
 # S3

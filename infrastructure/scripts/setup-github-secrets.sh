@@ -88,5 +88,5 @@ if [ -n "$SLACK_URL" ]; then
     echo "  - SLACK_WEBHOOK_URL"
 fi
 echo ""
-echo "Nächster Schritt: ./deploy-pluralsight.sh"
+echo "Nächster Schritt: ./deploy-pluralsight-actions.sh"
 echo ""

@@ -52,7 +52,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "cloudtrail" {
     filter {}
 
     transition {
-      days          = 90
+      days          = 30
       storage_class = "GLACIER"
     }
 
@@ -118,11 +118,7 @@ resource "aws_cloudtrail" "main" {
       values = ["arn:aws:s3:::${var.project_name}-*/*"]
     }
 
-    # Lambda Data Events
-    data_resource {
-      type   = "AWS::Lambda::Function"
-      values = ["arn:aws:lambda:${var.aws_region}:${var.aws_account_id}:function:${var.project_name}-*"]
-    }
+    # Lambda Data Events - Wildcard ARN nicht unterstützt, nutze management events
   }
 
   # Advanced Event Selectors (für detailliertere Logs)

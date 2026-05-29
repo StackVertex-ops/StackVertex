@@ -59,19 +59,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "deployment_states" {
       storage_class = "STANDARD_IA"
     }
 
-    # Nach 90 Tagen → Glacier
-    transition {
-      days          = 90
-      storage_class = "GLACIER"
-    }
-
-    # Nach 365 Tagen → Deep Archive
-    transition {
-      days          = 365
-      storage_class = "DEEP_ARCHIVE"
-    }
-
-    # Nach 730 Tagen löschen (2 Jahre Retention)
+    # Expiration muss größer sein als alle Transitions
     expiration {
       days = var.deployment_retention_days
     }

@@ -42,23 +42,23 @@ resource "aws_sns_topic" "info_alerts" {
 
 # Email Subscription für Critical Alerts
 resource "aws_sns_topic_subscription" "critical_email" {
-  count     = length(var.critical_alert_emails)
+  count     = length([for email in var.critical_alert_emails : email if email != ""])
   topic_arn = aws_sns_topic.critical_alerts.arn
   protocol  = "email"
-  endpoint  = var.critical_alert_emails[count.index]
+  endpoint  = [for email in var.critical_alert_emails : email if email != ""][count.index]
 }
 
 # Email Subscription für Warnings
 resource "aws_sns_topic_subscription" "warning_email" {
-  count     = length(var.warning_alert_emails)
+  count     = length([for email in var.warning_alert_emails : email if email != ""])
   topic_arn = aws_sns_topic.warning_alerts.arn
   protocol  = "email"
-  endpoint  = var.warning_alert_emails[count.index]
+  endpoint  = [for email in var.warning_alert_emails : email if email != ""][count.index]
 }
 
 # Slack Webhook (Optional)
 resource "aws_sns_topic_subscription" "critical_slack" {
-  count     = var.slack_webhook_url != null ? 1 : 0
+  count     = var.slack_webhook_url != null && var.slack_webhook_url != "" ? 1 : 0
   topic_arn = aws_sns_topic.critical_alerts.arn
   protocol  = "https"
   endpoint  = var.slack_webhook_url
