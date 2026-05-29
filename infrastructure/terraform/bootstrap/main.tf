@@ -172,8 +172,7 @@ resource "aws_ecr_repository" "lambda_dev" {
   }
 
   tags = {
-    Name        = "Lambda Container Repository (Dev)"
-    Environment = "dev"
+    Name = "Lambda Container Repository (Dev)"
   }
 }
 
@@ -190,8 +189,7 @@ resource "aws_ecr_repository" "lambda_staging" {
   }
 
   tags = {
-    Name        = "Lambda Container Repository (Staging)"
-    Environment = "staging"
+    Name = "Lambda Container Repository (Staging)"
   }
 }
 
@@ -208,8 +206,7 @@ resource "aws_ecr_repository" "lambda_prod" {
   }
 
   tags = {
-    Name        = "Lambda Container Repository (Prod)"
-    Environment = "prod"
+    Name = "Lambda Container Repository (Prod)"
   }
 }
 
