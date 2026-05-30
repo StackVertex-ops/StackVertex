@@ -215,8 +215,23 @@ if [ "$VPC_ID" != "None" ] && [ -n "$VPC_ID" ]; then
                 fi
             }
         done
-        echo "   Waiting for ENIs to be deleted (30s)..."
-        sleep 30
+        echo "   Waiting for ENIs to be deleted..."
+        echo "   (Lambda ENIs brauchen oft 5-10 Min zum vollständigen Löschen)"
+
+        # Wait up to 5 minutes for ENIs to be fully deleted
+        for i in {1..10}; do
+            REMAINING=$(aws ec2 describe-network-interfaces \
+              --filters "Name=vpc-id,Values=$VPC_ID" "Name=description,Values=AWS Lambda VPC ENI*" \
+              --query "NetworkInterfaces[*].NetworkInterfaceId" --output text 2>/dev/null || echo "")
+
+            if [ -z "$REMAINING" ]; then
+                echo "   ✅ All Lambda ENIs deleted!"
+                break
+            fi
+
+            echo "   Still waiting... ($i/10, ${REMAINING} remaining)"
+            sleep 30
+        done
     fi
 
     # Delete NAT Gateways
