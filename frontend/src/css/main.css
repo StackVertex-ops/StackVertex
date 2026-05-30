@@ -3,13 +3,14 @@
 @import "tailwindcss";
 
 /* Component Stylesheets */
-@import "./components/smart-form.css";
-@import "./components/smart-forms.css";
-@import "./components/step-indicator.css";
-@import "./components/architecture-builder.css";
-@import "./components/live-cost-panel.css";
-@import "./components/infrastructure-canvas.css";
-@import "./components/configuration-tabs.css";
+/* TODO: Fix these component styles for Tailwind 4 */
+/* @import "./components/smart-form.css"; */
+/* @import "./components/smart-forms.css"; */
+/* @import "./components/step-indicator.css"; */
+/* @import "./components/architecture-builder.css"; */
+/* @import "./components/live-cost-panel.css"; */
+/* @import "./components/infrastructure-canvas.css"; */
+/* @import "./components/configuration-tabs.css"; */
 
 /* Tailwind 4: Custom Theme Config (CSS-based) */
 @theme {
