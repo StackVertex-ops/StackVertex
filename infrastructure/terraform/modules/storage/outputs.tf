@@ -56,3 +56,24 @@ output "large_items_bucket_arn" {
   description = "S3 bucket ARN for large items"
   value       = aws_s3_bucket.large_items.arn
 }
+
+# Frontend Outputs
+output "frontend_bucket_id" {
+  description = "S3 bucket name for frontend static website hosting"
+  value       = aws_s3_bucket.frontend.id
+}
+
+output "frontend_bucket_arn" {
+  description = "S3 bucket ARN for frontend"
+  value       = aws_s3_bucket.frontend.arn
+}
+
+output "frontend_bucket_domain_name" {
+  description = "S3 bucket domain name for frontend"
+  value       = aws_s3_bucket.frontend.bucket_domain_name
+}
+
+output "frontend_bucket_website_endpoint" {
+  description = "S3 bucket website endpoint for frontend"
+  value       = aws_s3_bucket_website_configuration.frontend.website_endpoint
+}

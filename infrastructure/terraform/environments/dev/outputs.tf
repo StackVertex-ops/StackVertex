@@ -59,6 +59,16 @@ output "customer_data_bucket" {
   value       = module.storage.customer_data_bucket_id
 }
 
+output "frontend_bucket_name" {
+  description = "S3 bucket name for frontend static hosting"
+  value       = module.storage.frontend_bucket_id
+}
+
+output "frontend_website_endpoint" {
+  description = "Frontend S3 website endpoint"
+  value       = module.storage.frontend_bucket_website_endpoint
+}
+
 # Monitoring
 output "cloudwatch_dashboard_url" {
   description = "CloudWatch Dashboard URL"
@@ -90,10 +100,12 @@ output "deployment_summary" {
 
     🌐 API Endpoint:       ${module.compute.http_api_invoke_url}
     🔌 WebSocket Endpoint: wss://${module.compute.websocket_api_invoke_url}
+    🌐 Frontend URL:       http://${module.storage.frontend_bucket_website_endpoint}
 
     📦 ECR Repository:     ${module.compute.ecr_repository_url}
     🗄️  Deployment Bucket:  ${module.storage.deployment_states_bucket_id}
     💾 Customer Data:      ${module.storage.customer_data_bucket_id}
+    🎨 Frontend Bucket:    ${module.storage.frontend_bucket_id}
 
     📊 DynamoDB Tables:
     - Main Table:         ${module.database_dynamodb.table_name}

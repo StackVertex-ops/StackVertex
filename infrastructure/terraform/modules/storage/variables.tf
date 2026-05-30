@@ -104,3 +104,22 @@ variable "lambda_execution_role_arn" {
   type        = string
   default     = ""
 }
+
+# Frontend Storage Variables
+variable "enable_frontend_versioning" {
+  description = "Enable versioning for frontend bucket (for rollbacks)"
+  type        = bool
+  default     = false
+}
+
+variable "enable_frontend_cors" {
+  description = "Enable CORS for frontend bucket"
+  type        = bool
+  default     = false
+}
+
+variable "frontend_cors_origins" {
+  description = "Allowed CORS origins for frontend bucket"
+  type        = list(string)
+  default     = ["*"]
+}
