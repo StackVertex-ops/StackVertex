@@ -78,7 +78,7 @@ module "storage" {
   create_customer_data_kms_key         = false    # Dev: kein KMS
   enable_customer_data_lifecycle       = true
   enable_customer_data_archival        = false # Dev: kein Glacier
-  customer_data_version_retention_days = 30    # Dev: 30 Tage Versionen
+  customer_data_version_retention_days = 60    # Dev: 60 Tage (muss > 30 sein wegen Transition)
 
   # Lambda execution role wird nach compute-Modul hinzugefügt (siehe unten)
 }
