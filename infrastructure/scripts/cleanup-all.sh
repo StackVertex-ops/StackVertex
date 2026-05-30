@@ -186,6 +186,117 @@ fi
 
 echo ""
 
+# VPC & Networking (Dev) - WICHTIG: Muss vor Bootstrap gelöscht werden!
+echo "7️⃣  Deleting Dev VPC & Networking..."
+
+# Find VPC by tags
+VPC_ID=$(aws ec2 describe-vpcs \
+  --filters "Name=tag:Project,Values=StackVertex" "Name=tag:Environment,Values=dev" \
+  --query "Vpcs[0].VpcId" --output text 2>/dev/null || echo "None")
+
+if [ "$VPC_ID" != "None" ] && [ -n "$VPC_ID" ]; then
+    echo "   Found VPC: $VPC_ID"
+
+    # Delete Lambda ENIs first (Elastic Network Interfaces from Lambda in VPC)
+    echo "   Deleting Lambda ENIs..."
+    ENIS=$(aws ec2 describe-network-interfaces \
+      --filters "Name=vpc-id,Values=$VPC_ID" "Name=description,Values=AWS Lambda VPC ENI*" \
+      --query "NetworkInterfaces[*].NetworkInterfaceId" --output text 2>/dev/null || echo "")
+    if [ -n "$ENIS" ]; then
+        for eni in $ENIS; do
+            echo "   Deleting ENI: $eni..."
+            aws ec2 delete-network-interface --network-interface-id "$eni" 2>/dev/null || {
+                echo "   Detaching ENI first..."
+                ATTACHMENT_ID=$(aws ec2 describe-network-interfaces --network-interface-ids "$eni" --query "NetworkInterfaces[0].Attachment.AttachmentId" --output text 2>/dev/null || echo "")
+                if [ -n "$ATTACHMENT_ID" ] && [ "$ATTACHMENT_ID" != "None" ]; then
+                    aws ec2 detach-network-interface --attachment-id "$ATTACHMENT_ID" --force 2>/dev/null || true
+                    sleep 5
+                    aws ec2 delete-network-interface --network-interface-id "$eni" 2>/dev/null || true
+                fi
+            }
+        done
+        echo "   Waiting for ENIs to be deleted (30s)..."
+        sleep 30
+    fi
+
+    # Delete NAT Gateways
+    NAT_GWS=$(aws ec2 describe-nat-gateways --filter "Name=vpc-id,Values=$VPC_ID" --query "NatGateways[*].NatGatewayId" --output text 2>/dev/null || echo "")
+    if [ -n "$NAT_GWS" ]; then
+        for nat in $NAT_GWS; do
+            echo "   Deleting NAT Gateway: $nat..."
+            aws ec2 delete-nat-gateway --nat-gateway-id "$nat" 2>/dev/null || true
+        done
+        echo "   Waiting for NAT Gateways to delete (60s)..."
+        sleep 60
+    fi
+
+    # Release Elastic IPs
+    EIPS=$(aws ec2 describe-addresses --filters "Name=domain,Values=vpc" --query "Addresses[?starts_with(Tags[?Key=='Project'].Value|[0], 'StackVertex')].AllocationId" --output text 2>/dev/null || echo "")
+    if [ -n "$EIPS" ]; then
+        for eip in $EIPS; do
+            echo "   Releasing EIP: $eip..."
+            aws ec2 release-address --allocation-id "$eip" 2>/dev/null || true
+        done
+    fi
+
+    # Delete VPC Endpoints
+    VPC_ENDPOINTS=$(aws ec2 describe-vpc-endpoints --filters "Name=vpc-id,Values=$VPC_ID" --query "VpcEndpoints[*].VpcEndpointId" --output text 2>/dev/null || echo "")
+    if [ -n "$VPC_ENDPOINTS" ]; then
+        for endpoint in $VPC_ENDPOINTS; do
+            echo "   Deleting VPC Endpoint: $endpoint..."
+            aws ec2 delete-vpc-endpoints --vpc-endpoint-ids "$endpoint" 2>/dev/null || true
+        done
+    fi
+
+    # Delete Internet Gateway
+    IGW_ID=$(aws ec2 describe-internet-gateways --filters "Name=attachment.vpc-id,Values=$VPC_ID" --query "InternetGateways[0].InternetGatewayId" --output text 2>/dev/null || echo "None")
+    if [ "$IGW_ID" != "None" ] && [ -n "$IGW_ID" ]; then
+        echo "   Detaching & deleting Internet Gateway: $IGW_ID..."
+        aws ec2 detach-internet-gateway --internet-gateway-id "$IGW_ID" --vpc-id "$VPC_ID" 2>/dev/null || true
+        aws ec2 delete-internet-gateway --internet-gateway-id "$IGW_ID" 2>/dev/null || true
+    fi
+
+    # Delete Subnets
+    SUBNETS=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" --query "Subnets[*].SubnetId" --output text 2>/dev/null || echo "")
+    if [ -n "$SUBNETS" ]; then
+        for subnet in $SUBNETS; do
+            echo "   Deleting Subnet: $subnet..."
+            aws ec2 delete-subnet --subnet-id "$subnet" 2>/dev/null || true
+        done
+    fi
+
+    # Delete Route Tables (außer main)
+    ROUTE_TABLES=$(aws ec2 describe-route-tables --filters "Name=vpc-id,Values=$VPC_ID" --query "RouteTables[?Associations[0].Main==\`false\`].RouteTableId" --output text 2>/dev/null || echo "")
+    if [ -n "$ROUTE_TABLES" ]; then
+        for rt in $ROUTE_TABLES; do
+            echo "   Deleting Route Table: $rt..."
+            aws ec2 delete-route-table --route-table-id "$rt" 2>/dev/null || true
+        done
+    fi
+
+    # Delete Security Groups (außer default)
+    SECURITY_GROUPS=$(aws ec2 describe-security-groups --filters "Name=vpc-id,Values=$VPC_ID" --query "SecurityGroups[?GroupName!='default'].GroupId" --output text 2>/dev/null || echo "")
+    if [ -n "$SECURITY_GROUPS" ]; then
+        for sg in $SECURITY_GROUPS; do
+            echo "   Deleting Security Group: $sg..."
+            aws ec2 delete-security-group --group-id "$sg" 2>/dev/null || true
+        done
+    fi
+
+    # Delete VPC
+    echo "   Deleting VPC: $VPC_ID..."
+    aws ec2 delete-vpc --vpc-id "$VPC_ID" 2>/dev/null && {
+        echo -e "${GREEN}✅ VPC & Networking deleted${NC}"
+    } || {
+        echo -e "${YELLOW}⚠️  VPC deletion failed - might have dependencies${NC}"
+        echo "   Retry manually: aws ec2 delete-vpc --vpc-id $VPC_ID"
+    }
+else
+    echo "   No dev VPC found"
+fi
+
+echo ""
+
 # =============================================================================
 # PHASE 3: Bootstrap-Ressourcen
 # =============================================================================
@@ -199,7 +310,7 @@ echo ""
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
 # Terraform State Bucket
-echo "7️⃣  Deleting Terraform State Bucket..."
+echo "8️⃣  Deleting Terraform State Bucket..."
 STATE_BUCKET="stackvertex-terraform-state-${AWS_ACCOUNT_ID}"
 if aws s3 ls "s3://$STATE_BUCKET" 2>/dev/null; then
     echo "   Emptying: s3://$STATE_BUCKET..."
@@ -222,7 +333,7 @@ fi
 echo ""
 
 # Deployment States Bucket
-echo "8️⃣  Deleting Deployment States Bucket..."
+echo "9️⃣  Deleting Deployment States Bucket..."
 DEPLOY_BUCKET="stackvertex-deployment-states-${AWS_ACCOUNT_ID}"
 if aws s3 ls "s3://$DEPLOY_BUCKET" 2>/dev/null; then
     echo "   Emptying: s3://$DEPLOY_BUCKET..."
