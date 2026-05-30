@@ -65,6 +65,16 @@ output "workspace_bucket" {
   value       = module.storage.workspace_bucket_id
 }
 
+output "frontend_bucket_name" {
+  description = "S3 bucket name for frontend static hosting"
+  value       = module.storage.frontend_bucket_id
+}
+
+output "frontend_website_endpoint" {
+  description = "Frontend S3 website endpoint (use CloudFront in staging)"
+  value       = module.storage.frontend_bucket_website_endpoint
+}
+
 # Monitoring
 output "cloudwatch_dashboard_url" {
   description = "CloudWatch Dashboard URL"
@@ -106,6 +116,7 @@ output "deployment_summary" {
     🗄️  Deployment Bucket:  ${module.storage.deployment_states_bucket_id}
     💾 Customer Data:      ${module.storage.customer_data_bucket_id}
     📁 Workspace Bucket:   ${module.storage.workspace_bucket_id}
+    🎨 Frontend Bucket:    ${module.storage.frontend_bucket_id}
 
     💾 Database Endpoint:  ${module.database.cluster_endpoint}
     🔐 Database Secret:    ${module.database.secret_arn}

@@ -64,6 +64,16 @@ output "workspace_bucket" {
   value       = module.storage.workspace_bucket_id
 }
 
+output "frontend_bucket_name" {
+  description = "S3 bucket name for frontend static hosting"
+  value       = module.storage.frontend_bucket_id
+}
+
+output "frontend_website_endpoint" {
+  description = "Frontend S3 website endpoint (use CloudFront in prod)"
+  value       = module.storage.frontend_bucket_website_endpoint
+}
+
 # Monitoring
 output "cloudwatch_dashboard_url" {
   description = "CloudWatch Dashboard URL"
@@ -141,11 +151,13 @@ output "deployment_summary" {
 
     🌐 API Endpoint:       ${module.compute.http_api_invoke_url}
     🔌 WebSocket Endpoint: ${module.compute.websocket_api_invoke_url}
+    ${!var.enable_cloudfront ? "⚠️  Frontend (S3):     http://${module.storage.frontend_bucket_website_endpoint} (Use CloudFront in production!)" : ""}
 
     📦 ECR Repository:     ${module.compute.ecr_repository_url}
     🗄️  Deployment Bucket:  ${module.storage.deployment_states_bucket_id}
     💾 Customer Data:      ${module.storage.customer_data_bucket_id}
     📁 Workspace Bucket:   ${module.storage.workspace_bucket_id}
+    🎨 Frontend Bucket:    ${module.storage.frontend_bucket_id}
 
     💾 DynamoDB Table:     ${module.database_dynamodb.table_name}
     🔑 KMS Key:            ${module.storage.customer_data_kms_key_id}

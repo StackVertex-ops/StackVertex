@@ -78,8 +78,11 @@ module "storage" {
   customer_data_encryption_type        = "aws:kms" # Staging: KMS encryption
   create_customer_data_kms_key         = true      # Staging: eigener KMS Key
   enable_customer_data_lifecycle       = true
-  enable_customer_data_archival        = true  # Staging: Glacier nach 90 Tagen
-  customer_data_version_retention_days = 60    # Staging: 60 Tage Versionen
+  enable_customer_data_archival        = true # Staging: Glacier nach 90 Tagen
+  customer_data_version_retention_days = 60   # Staging: 60 Tage Versionen (muss > 30 sein wegen Transition)
+
+  # Frontend Storage
+  enable_public_website_access = false # Staging: CloudFront (wie Prod)
 }
 
 # Database Module

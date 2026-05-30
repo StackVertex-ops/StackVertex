@@ -97,8 +97,11 @@ module "storage" {
   customer_data_encryption_type        = "aws:kms" # Prod: KMS encryption mandatory
   create_customer_data_kms_key         = true      # Prod: eigener KMS Key mit Rotation
   enable_customer_data_lifecycle       = true
-  enable_customer_data_archival        = true  # Prod: Glacier nach 90 Tagen
-  customer_data_version_retention_days = 90    # Prod: 90 Tage Versionen
+  enable_customer_data_archival        = true # Prod: Glacier nach 90 Tagen
+  customer_data_version_retention_days = 90   # Prod: 90 Tage Versionen (muss > 30 sein wegen Transition)
+
+  # Frontend Storage
+  enable_public_website_access = false # Prod: CloudFront only (kein direkter S3 Zugriff)
 }
 
 # Database Module (LEGACY - PostgreSQL)
