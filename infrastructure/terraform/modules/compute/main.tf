@@ -32,11 +32,12 @@ resource "aws_iam_role_policy_attachment" "lambda_basic" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
-# Lambda VPC Execution Policy (wenn Lambda in VPC)
-# NOTE: AWSLambdaVPCAccessExecutionPolicy wurde deprecated
-# ENI Management wird jetzt via Custom Policy oder AWSLambdaENIManagementAccess gehandhabt
-# Für jetzt: BasicExecutionRole reicht (CloudWatch Logs) + Custom Policy
-
+# Lambda VPC Execution Policy (für ENI Management)
+resource "aws_iam_role_policy_attachment" "lambda_vpc" {
+  count      = var.enable_vpc ? 1 : 0
+  role       = aws_iam_role.lambda.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+}
 
 # Custom IAM Policy für Lambda (Secrets Manager, S3, etc.)
 resource "aws_iam_policy" "lambda_custom" {
