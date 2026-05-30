@@ -112,6 +112,12 @@ variable "enable_frontend_versioning" {
   default     = false
 }
 
+variable "enable_public_website_access" {
+  description = "Enable public read access for S3 website (dev: true, prod: false with CloudFront)"
+  type        = bool
+  default     = false
+}
+
 variable "enable_frontend_cors" {
   description = "Enable CORS for frontend bucket"
   type        = bool

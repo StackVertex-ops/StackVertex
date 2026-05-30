@@ -11,14 +11,14 @@ resource "aws_s3_bucket" "frontend" {
   }
 }
 
-# Public Access Block (wird via CloudFront OAI gesteuert, nicht direkt public)
+# Public Access Block (für dev: public website, prod: CloudFront only)
 resource "aws_s3_bucket_public_access_block" "frontend" {
   bucket = aws_s3_bucket.frontend.id
 
-  block_public_acls       = true
-  block_public_policy     = false # CloudFront braucht Bucket Policy
-  ignore_public_acls      = true
-  restrict_public_buckets = false # CloudFront braucht Zugriff
+  block_public_acls       = !var.enable_public_website_access
+  block_public_policy     = false # Bucket Policy muss allowed sein
+  ignore_public_acls      = !var.enable_public_website_access
+  restrict_public_buckets = !var.enable_public_website_access
 }
 
 # Server-Side Encryption
@@ -54,23 +54,34 @@ resource "aws_s3_bucket_website_configuration" "frontend" {
   }
 }
 
-# Bucket Policy für CloudFront OAI
+# Bucket Policy - Public Read (dev) oder CloudFront only (prod)
 resource "aws_s3_bucket_policy" "frontend" {
   bucket = aws_s3_bucket.frontend.id
 
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "AllowCloudFrontOAI"
-        Effect = "Allow"
-        Principal = {
-          Service = "cloudfront.amazonaws.com"
+    Statement = concat(
+      var.enable_public_website_access ? [
+        {
+          Sid       = "PublicReadGetObject"
+          Effect    = "Allow"
+          Principal = "*"
+          Action    = "s3:GetObject"
+          Resource  = "${aws_s3_bucket.frontend.arn}/*"
         }
-        Action   = "s3:GetObject"
-        Resource = "${aws_s3_bucket.frontend.arn}/*"
-      }
-    ]
+      ] : [],
+      !var.enable_public_website_access ? [
+        {
+          Sid    = "AllowCloudFrontOAI"
+          Effect = "Allow"
+          Principal = {
+            Service = "cloudfront.amazonaws.com"
+          }
+          Action   = "s3:GetObject"
+          Resource = "${aws_s3_bucket.frontend.arn}/*"
+        }
+      ] : []
+    )
   })
 }
 

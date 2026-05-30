@@ -80,6 +80,9 @@ module "storage" {
   enable_customer_data_archival        = false # Dev: kein Glacier
   customer_data_version_retention_days = 60    # Dev: 60 Tage (muss > 30 sein wegen Transition)
 
+  # Frontend Storage
+  enable_public_website_access = true # Dev: Public S3 Website (Prod nutzt CloudFront)
+
   # Lambda execution role wird nach compute-Modul hinzugefügt (siehe unten)
 }
 
