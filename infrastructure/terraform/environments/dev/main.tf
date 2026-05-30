@@ -130,7 +130,7 @@ module "database_dynamodb" {
   enable_automated_backups = false
 
   # TTL enabled für auto-cleanup
-  enable_ttl = true
+  enable_ttl         = true
   ttl_attribute_name = "ttl"
 }
 
@@ -149,26 +149,26 @@ module "compute" {
   log_level          = "DEBUG" # Dev: Debug logging
 
   # VPC
-  enable_vpc                = true
-  private_subnet_ids        = module.networking.private_subnet_ids
-  lambda_security_group_id  = module.networking.lambda_security_group_id
+  enable_vpc               = true
+  private_subnet_ids       = module.networking.private_subnet_ids
+  lambda_security_group_id = module.networking.lambda_security_group_id
 
   # DynamoDB (ersetzt PostgreSQL)
   dynamodb_table_name = module.database_dynamodb.table_name
   dynamodb_table_arn  = module.database_dynamodb.table_arn
 
   # S3
-  deployment_bucket_name   = module.storage.deployment_states_bucket_id
-  deployment_bucket_arn    = module.storage.deployment_states_bucket_arn
+  deployment_bucket_name    = module.storage.deployment_states_bucket_id
+  deployment_bucket_arn     = module.storage.deployment_states_bucket_arn
   customer_data_bucket_name = module.storage.customer_data_bucket_id
-  customer_data_bucket_arn = module.storage.customer_data_bucket_arn
-  terraform_state_bucket   = var.terraform_state_bucket
+  customer_data_bucket_arn  = module.storage.customer_data_bucket_arn
+  terraform_state_bucket    = var.terraform_state_bucket
 
   # API Gateway
-  enable_api_gateway        = true
+  enable_api_gateway         = true
   enable_lambda_function_url = false
-  enable_websocket          = true
-  cors_origins              = "*" # Dev: Allow all origins
+  enable_websocket           = true
+  cors_origins               = "*" # Dev: Allow all origins
 
   # Monitoring
   enable_cloudwatch_alarms = false

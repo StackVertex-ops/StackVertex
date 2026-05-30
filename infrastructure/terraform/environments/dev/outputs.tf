@@ -84,7 +84,7 @@ output "security_monitoring_urls" {
 # Summary
 output "deployment_summary" {
   description = "Deployment summary with all important URLs and resources"
-  value = <<-EOT
+  value       = <<-EOT
 
     ✅ StackVertex Dev Environment Deployed!
 
