@@ -48,8 +48,67 @@ export class FaqAccordion {
                 this.render(this.filteredFaqs);
             }
         } catch (error) {
-            console.error('Error loading FAQs:', error);
-            this.showError();
+            console.warn('API not available, using mock FAQs:', error);
+
+            // Mock data fallback
+            const mockData = {
+                success: true,
+                data: {
+                    categories: [
+                        {
+                            name: 'Erste Schritte',
+                            slug: 'getting-started',
+                            icon: '🚀',
+                            faqs: [
+                                {
+                                    id: 1,
+                                    question: 'Was ist StackVertex?',
+                                    answer: 'StackVertex ist eine Multi-Cloud-Infrastruktur-Orchestrierungsplattform, die es ermöglicht, Cloud-Infrastruktur aus Anforderungen statt aus einzelnen Ressourcen zu modellieren. Alles ist JSON-basiert, versionierbar und transparent.'
+                                },
+                                {
+                                    id: 2,
+                                    question: 'Welche Cloud-Provider werden unterstützt?',
+                                    answer: 'Aktuell: AWS (MVP). Geplant: Azure (Phase 2), Google Cloud (Phase 3). Die Architektur ist von Anfang an multi-cloud-fähig.'
+                                }
+                            ]
+                        },
+                        {
+                            name: 'Sicherheit',
+                            slug: 'security',
+                            icon: '🔐',
+                            faqs: [
+                                {
+                                    id: 3,
+                                    question: 'Wie werden meine AWS-Zugangsdaten gespeichert?',
+                                    answer: 'Wir nutzen AWS AssumeRole (keine Access Keys). Alle Secrets werden verschlüsselt gespeichert (write-only) und niemals im Klartext angezeigt.'
+                                },
+                                {
+                                    id: 4,
+                                    question: 'Ist meine Infrastruktur-Konfiguration sicher?',
+                                    answer: 'Ja! Alle Daten werden verschlüsselt gespeichert. Audit-Logs für alle Aktionen. Least-Privilege IAM-Policies für maximale Sicherheit.'
+                                }
+                            ]
+                        },
+                        {
+                            name: 'Preise & Abrechnung',
+                            slug: 'pricing',
+                            icon: '💰',
+                            faqs: [
+                                {
+                                    id: 5,
+                                    question: 'Was kostet StackVertex?',
+                                    answer: 'Wir bieten einen kostenlosen Starter-Plan. Für Production-Deployments siehe unsere Pricing-Seite.'
+                                }
+                            ]
+                        }
+                    ]
+                }
+            };
+
+            const categories = mockData.data.categories || [];
+            this.allFaqs = this.flattenFaqs(categories);
+            this.filteredFaqs = [...this.allFaqs];
+            this.render(this.filteredFaqs);
         }
     }
 
