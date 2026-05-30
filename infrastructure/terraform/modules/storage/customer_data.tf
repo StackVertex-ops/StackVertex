@@ -6,7 +6,8 @@ resource "aws_s3_bucket" "customer_data" {
 
   tags = {
     Name        = "${var.project_name}-${var.environment}-customer-data"
-    Description = "Storage for customer application data (files, backups, assets)"
+    Description = "Customer application data storage"
+    Purpose     = "customer-data"
   }
 }
 
