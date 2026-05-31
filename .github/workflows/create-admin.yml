@@ -68,9 +68,14 @@ jobs:
           echo "ENVIRONMENT=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
           echo "AWS_REGION=${{ env.AWS_REGION }}" >> $GITHUB_ENV
           echo "ADMIN_CREATION_SECRET=${{ secrets.ADMIN_CREATION_SECRET }}" >> $GITHUB_ENV
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> $GITHUB_ENV
+          # Ensure we use real AWS DynamoDB, not local
+          unset DYNAMODB_ENDPOINT_URL
 
       - name: Create SuperAdmin
         working-directory: backend
+        env:
+          DYNAMODB_ENDPOINT_URL: ""  # Override .env to use real AWS DynamoDB
         run: |
           FORCE_FLAG=""
           if [ "${{ github.event.inputs.force }}" = "true" ]; then
