@@ -221,9 +221,15 @@ See [.claude/CLAUDE.md](./.claude/CLAUDE.md) for complete development guidelines
 - **[tasks/todo.md](./tasks/todo.md)** - Current tasks
 - **[tasks/decisions.md](./tasks/decisions.md)** - Architectural decisions
 
+### Security
+- **[SECURITY.md](./docs/SECURITY.md)** - 🔒 Security documentation, admin creation, auth protection
+- **Admin User Creation** - Post-deployment: `./infrastructure/scripts/create-admin-user.sh`
+- **Auth Protection** - All frontend pages & backend endpoints require authentication
+
 ### Testing
 - **[Testing Best Practices](./docs/TESTING_BEST_PRACTICES.md)** - Comprehensive testing guide (10 chapters)
 - **[Session Summary: Test Fixes](./docs/SESSION_2026-05-17_TEST_FIXES.md)** - Complete test suite fix documentation
+- **[Backend Tests README](./backend/tests/README.md)** - Test setup, coverage, examples
 
 ### Technical Documentation
 - **[CHANGELOG.md](./CHANGELOG.md)** - All changes, bugfixes, and features
