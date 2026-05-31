@@ -171,7 +171,7 @@ module "compute" {
   enable_api_gateway         = true
   enable_lambda_function_url = false
   enable_websocket           = true
-  cors_origins               = "*" # Dev: Allow all origins
+  cors_origins               = "http://stackvertex-dev-frontend.s3-website.eu-central-1.amazonaws.com" # Dev: Frontend origin
 
   # Security
   jwt_secret_key = var.jwt_secret_key
