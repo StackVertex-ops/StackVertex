@@ -59,7 +59,8 @@ class Settings(BaseSettings):
     USER_DATA_BUCKET: str = "stackvertex-user-data-dev"
 
     # AWS Settings (for Boto3)
-    AWS_REGION: str = "us-east-1"
+    # AWS_REGION wird automatisch von Lambda gesetzt, Default nur für lokale Entwicklung
+    AWS_REGION: str = "eu-central-1"  # Changed from us-east-1 to match deployment region
     AWS_ACCESS_KEY_ID: str | None = None  # Use IAM roles in production
     AWS_SECRET_ACCESS_KEY: str | None = None
 
