@@ -78,13 +78,11 @@ jobs:
           fi
 
           # Run with PYTHONPATH to ensure app modules are found
+          # Use tee to show output AND save to file
           PYTHONPATH=. poetry run python scripts/create_superadmin.py \
             --email "${{ github.event.inputs.admin_email }}" \
             --name "${{ github.event.inputs.admin_name }}" \
-            $FORCE_FLAG > admin_output.txt 2>&1
-
-          # Display output (password will be shown in logs - use with caution!)
-          cat admin_output.txt
+            $FORCE_FLAG 2>&1 | tee admin_output.txt
 
       - name: Save credentials (as artifact)
         uses: actions/upload-artifact@v4.6.0
