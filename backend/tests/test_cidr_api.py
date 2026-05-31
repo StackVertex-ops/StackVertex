@@ -4,15 +4,13 @@ import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 
-client = TestClient(app)
-
 
 class TestCIDRValidateEndpoint:
     """Tests für /api/v1/cidr/validate"""
 
-    def test_validate_valid_cidr(self):
+    def test_validate_valid_cidr(self, user_client):
         """Test Validierung eines gültigen CIDR Blocks"""
-        response = client.post(
+        response = user_client.post(
             "/api/v1/cidr/validate",
             json={"cidr": "10.0.0.0/16"}
         )
@@ -26,9 +24,9 @@ class TestCIDRValidateEndpoint:
         assert data["usable_ips"] == 65531
         assert data["error"] is None
 
-    def test_validate_invalid_cidr_too_small(self):
+    def test_validate_invalid_cidr_too_small(self, user_client):
         """Test Validierung eines zu kleinen CIDR Blocks"""
-        response = client.post(
+        response = user_client.post(
             "/api/v1/cidr/validate",
             json={"cidr": "10.0.0.0/8"}
         )
@@ -39,9 +37,9 @@ class TestCIDRValidateEndpoint:
         assert data["valid"] is False
         assert "mindestens /16" in data["error"]
 
-    def test_validate_invalid_cidr_format(self):
+    def test_validate_invalid_cidr_format(self, user_client):
         """Test Validierung eines ungültigen CIDR Formats"""
-        response = client.post(
+        response = user_client.post(
             "/api/v1/cidr/validate",
             json={"cidr": "not-a-cidr"}
         )
@@ -52,9 +50,9 @@ class TestCIDRValidateEndpoint:
         assert data["valid"] is False
         assert "Ungültige CIDR Notation" in data["error"]
 
-    def test_validate_public_ip_warning(self):
+    def test_validate_public_ip_warning(self, user_client):
         """Test Warnung bei öffentlicher IP-Range"""
-        response = client.post(
+        response = user_client.post(
             "/api/v1/cidr/validate",
             json={"cidr": "8.8.8.0/24"}
         )
@@ -70,9 +68,9 @@ class TestCIDRValidateEndpoint:
 class TestCIDRValidateSubnetEndpoint:
     """Tests für /api/v1/cidr/validate-subnet"""
 
-    def test_validate_subnet_within_vpc(self):
+    def test_validate_subnet_within_vpc(self, user_client):
         """Test Validierung eines Subnets innerhalb VPC"""
-        response = client.post(
+        response = user_client.post(
             "/api/v1/cidr/validate-subnet",
             json={
                 "subnet_cidr": "10.0.1.0/24",
@@ -89,9 +87,9 @@ class TestCIDRValidateSubnetEndpoint:
         assert data["total_ips"] == 256
         assert data["usable_ips"] == 251
 
-    def test_validate_subnet_outside_vpc(self):
+    def test_validate_subnet_outside_vpc(self, user_client):
         """Test Validierung eines Subnets außerhalb VPC"""
-        response = client.post(
+        response = user_client.post(
             "/api/v1/cidr/validate-subnet",
             json={
                 "subnet_cidr": "192.168.1.0/24",
@@ -105,9 +103,9 @@ class TestCIDRValidateSubnetEndpoint:
         assert data["valid"] is False
         assert "außerhalb der VPC" in data["error"]
 
-    def test_validate_subnet_invalid_vpc(self):
+    def test_validate_subnet_invalid_vpc(self, user_client):
         """Test Validierung mit ungültigem VPC CIDR"""
-        response = client.post(
+        response = user_client.post(
             "/api/v1/cidr/validate-subnet",
             json={
                 "subnet_cidr": "10.0.1.0/24",
@@ -123,9 +121,9 @@ class TestCIDRValidateSubnetEndpoint:
 class TestCIDRPlanEndpoint:
     """Tests für /api/v1/cidr/plan"""
 
-    def test_plan_vpc_no_subnets(self):
+    def test_plan_vpc_no_subnets(self, user_client):
         """Test VPC Plan ohne Subnets"""
-        response = client.post(
+        response = user_client.post(
             "/api/v1/cidr/plan",
             json={
                 "vpc_cidr": "10.0.0.0/16",
@@ -143,9 +141,9 @@ class TestCIDRPlanEndpoint:
         assert data["unallocated_ips"] == 65536
         assert data["has_overlaps"] is False
 
-    def test_plan_vpc_with_valid_subnets(self):
+    def test_plan_vpc_with_valid_subnets(self, user_client):
         """Test VPC Plan mit gültigen Subnets"""
-        response = client.post(
+        response = user_client.post(
             "/api/v1/cidr/plan",
             json={
                 "vpc_cidr": "10.0.0.0/16",
@@ -183,9 +181,9 @@ class TestCIDRPlanEndpoint:
         assert subnet1["usable_ips"] == 251
         assert len(subnet1["reserved_ips"]) == 5
 
-    def test_plan_vpc_with_overlapping_subnets(self):
+    def test_plan_vpc_with_overlapping_subnets(self, user_client):
         """Test VPC Plan mit überlappenden Subnets"""
-        response = client.post(
+        response = user_client.post(
             "/api/v1/cidr/plan",
             json={
                 "vpc_cidr": "10.0.0.0/16",
@@ -211,9 +209,9 @@ class TestCIDRPlanEndpoint:
         assert len(data["overlap_details"]) > 0
         assert "Overlap" in data["overlap_details"][0]
 
-    def test_plan_vpc_invalid_vpc_cidr(self):
+    def test_plan_vpc_invalid_vpc_cidr(self, user_client):
         """Test VPC Plan mit ungültigem VPC CIDR"""
-        response = client.post(
+        response = user_client.post(
             "/api/v1/cidr/plan",
             json={
                 "vpc_cidr": "10.0.0.0/8",  # Zu klein
@@ -225,9 +223,9 @@ class TestCIDRPlanEndpoint:
         data = response.json()
         assert "mindestens /16" in data["detail"]
 
-    def test_plan_vpc_subnet_outside_range(self):
+    def test_plan_vpc_subnet_outside_range(self, user_client):
         """Test VPC Plan mit Subnet außerhalb VPC"""
-        response = client.post(
+        response = user_client.post(
             "/api/v1/cidr/plan",
             json={
                 "vpc_cidr": "10.0.0.0/16",
@@ -251,9 +249,9 @@ class TestCIDRPlanEndpoint:
 class TestCIDRSuggestEndpoint:
     """Tests für /api/v1/cidr/suggest"""
 
-    def test_suggest_default_parameters(self):
+    def test_suggest_default_parameters(self, user_client):
         """Test Subnet-Vorschläge mit Standard-Parametern"""
-        response = client.post(
+        response = user_client.post(
             "/api/v1/cidr/suggest",
             json={
                 "vpc_cidr": "10.0.0.0/16"
@@ -275,9 +273,9 @@ class TestCIDRSuggestEndpoint:
         assert "type" in subnet
         assert "az" in subnet
 
-    def test_suggest_custom_azs(self):
+    def test_suggest_custom_azs(self, user_client):
         """Test Subnet-Vorschläge mit custom AZ-Anzahl"""
-        response = client.post(
+        response = user_client.post(
             "/api/v1/cidr/suggest",
             json={
                 "vpc_cidr": "10.0.0.0/16",
@@ -291,9 +289,9 @@ class TestCIDRSuggestEndpoint:
         # 2 AZs * 3 Typen = 6 Subnets
         assert len(data["suggested_subnets"]) == 6
 
-    def test_suggest_custom_subnet_types(self):
+    def test_suggest_custom_subnet_types(self, user_client):
         """Test Subnet-Vorschläge mit custom Subnet-Typen"""
-        response = client.post(
+        response = user_client.post(
             "/api/v1/cidr/suggest",
             json={
                 "vpc_cidr": "10.0.0.0/16",
@@ -308,9 +306,9 @@ class TestCIDRSuggestEndpoint:
         # 3 AZs * 2 Typen = 6 Subnets
         assert len(data["suggested_subnets"]) == 6
 
-    def test_suggest_invalid_vpc_cidr(self):
+    def test_suggest_invalid_vpc_cidr(self, user_client):
         """Test Subnet-Vorschläge mit ungültigem VPC CIDR"""
-        response = client.post(
+        response = user_client.post(
             "/api/v1/cidr/suggest",
             json={
                 "vpc_cidr": "invalid"
@@ -321,9 +319,9 @@ class TestCIDRSuggestEndpoint:
         data = response.json()
         assert "Ungültige CIDR Notation" in data["detail"]
 
-    def test_suggest_invalid_num_azs(self):
+    def test_suggest_invalid_num_azs(self, user_client):
         """Test Subnet-Vorschläge mit ungültiger AZ-Anzahl"""
-        response = client.post(
+        response = user_client.post(
             "/api/v1/cidr/suggest",
             json={
                 "vpc_cidr": "10.0.0.0/16",
@@ -337,11 +335,11 @@ class TestCIDRSuggestEndpoint:
 class TestCIDREndpointsIntegration:
     """Integrationstests für CIDR API"""
 
-    def test_full_workflow(self):
+    def test_full_workflow(self, user_client):
         """Test kompletter Workflow: Validate → Suggest → Plan"""
 
         # 1. Validate VPC
-        validate_response = client.post(
+        validate_response = user_client.post(
             "/api/v1/cidr/validate",
             json={"cidr": "10.0.0.0/16"}
         )
@@ -349,7 +347,7 @@ class TestCIDREndpointsIntegration:
         assert validate_response.json()["valid"] is True
 
         # 2. Get suggestions
-        suggest_response = client.post(
+        suggest_response = user_client.post(
             "/api/v1/cidr/suggest",
             json={
                 "vpc_cidr": "10.0.0.0/16",
@@ -361,7 +359,7 @@ class TestCIDREndpointsIntegration:
         suggested_subnets = suggest_response.json()["suggested_subnets"]
 
         # 3. Plan VPC with suggestions
-        plan_response = client.post(
+        plan_response = user_client.post(
             "/api/v1/cidr/plan",
             json={
                 "vpc_cidr": "10.0.0.0/16",

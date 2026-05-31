@@ -417,8 +417,8 @@ async def compare_versions_endpoint(
     },
 )
 async def validate_architecture_endpoint(
-    architecture_json: Dict[str, Any] = Body(..., description="Zu validierendes Architecture JSON"),
     current_user: Annotated[dict, Depends(get_current_user)],
+    architecture_json: Dict[str, Any] = Body(..., description="Zu validierendes Architecture JSON"),
     version: Optional[str] = Query(None, description="Schema Version (default: 1.0.0)"),
 ) -> Dict[str, Any]:
     """Validiert Architecture JSON gegen Schema.

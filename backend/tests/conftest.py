@@ -49,6 +49,17 @@ def mock_superadmin_user():
 
 
 @pytest.fixture
+def mock_regular_user():
+    """Mock Regular User für User-Tests."""
+    return {
+        "id": "user-123",
+        "email": "user@example.com",
+        "role": "user",
+        "is_active": True
+    }
+
+
+@pytest.fixture
 def authenticated_client(mock_dynamodb_table, mock_superadmin_user) -> TestClient:
     """Provide FastAPI test client with SuperAdmin authentication.
 
@@ -60,6 +71,25 @@ def authenticated_client(mock_dynamodb_table, mock_superadmin_user) -> TestClien
     # Override dependencies
     app.dependency_overrides[get_dynamodb_table] = lambda: mock_dynamodb_table
     app.dependency_overrides[get_current_superadmin] = lambda: mock_superadmin_user
+
+    yield TestClient(app)
+
+    # Cleanup
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def user_client(mock_dynamodb_table, mock_regular_user) -> TestClient:
+    """Provide FastAPI test client with regular user authentication.
+
+    Automatically overrides get_dynamodb_table and get_current_user.
+    """
+    from app.db.dynamodb import get_dynamodb_table
+    from app.api.auth import get_current_user
+
+    # Override dependencies
+    app.dependency_overrides[get_dynamodb_table] = lambda: mock_dynamodb_table
+    app.dependency_overrides[get_current_user] = lambda: mock_regular_user
 
     yield TestClient(app)
 

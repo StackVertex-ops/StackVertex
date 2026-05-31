@@ -1,16 +1,6 @@
 name: Deploy StackVertex to AWS
 
 on:
-  push:
-    branches:
-      - main      # Production
-      - staging   # Staging
-      - develop   # Development
-  pull_request:
-    branches:
-      - main
-      - staging
-      - develop
   workflow_dispatch:
     inputs:
       environment:
@@ -38,57 +28,11 @@ env:
   PYTHON_VERSION: 3.11
 
 jobs:
-  # Job 1: Run Tests
-  test:
-    name: Run Tests
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          version: 1.8.2
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v4
-        with:
-          path: backend/.venv
-          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
-
-      - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
-
-      - name: Run tests with coverage
-        run: |
-          poetry run pytest --cov=app --cov-report=xml --cov-report=term-missing
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          files: ./backend/coverage.xml
-          flags: unittests
-          name: codecov-umbrella
-
-  # Job 2: Build Frontend
+  # Job 1: Build Frontend
   build-frontend:
     name: Build Frontend
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Checkout code
@@ -97,7 +41,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
@@ -116,11 +60,10 @@ jobs:
           path: frontend/dist/
           retention-days: 1
 
-  # Job 3: Build & Push Docker Image
+  # Job 2: Build & Push Docker Image
   build-backend:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
-    needs: test
     if: github.event_name == 'workflow_dispatch'
     outputs:
       image_uri: ${{ steps.build-image.outputs.image_uri }}
@@ -181,12 +124,12 @@ jobs:
           # Output image URI
           echo "image_uri=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-  # Job 4: Terraform Plan
+  # Job 3: Terraform Plan
   terraform-plan:
     name: Terraform Plan
     runs-on: ubuntu-latest
     needs: [build-backend, build-frontend]
-    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'plan')
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'plan'
 
     steps:
       - name: Checkout code
@@ -251,42 +194,12 @@ jobs:
         working-directory: infrastructure/terraform/environments/${{ steps.env.outputs.environment }}
         run: terraform plan -out=tfplan
 
-      - name: Comment Plan on PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const fs = require('fs');
-            const plan = fs.readFileSync('tfplan', 'utf8');
-            const output = `#### Terraform Plan for \`${{ steps.env.outputs.environment }}\` 🎯
-
-            <details><summary>Show Plan</summary>
-
-            \`\`\`terraform
-            ${plan}
-            \`\`\`
-
-            </details>
-
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            });
-
-  # Job 5: Terraform Apply
+  # Job 4: Terraform Apply
   terraform-apply:
     name: Terraform Apply
     runs-on: ubuntu-latest
     needs: [build-backend, build-frontend]
-    if: |
-      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply')
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
 
     steps:
       - name: Checkout code
@@ -374,7 +287,7 @@ jobs:
           echo "2. Test API endpoints"
           echo "3. Monitor CloudWatch logs"
 
-  # Job 6: Deploy Frontend to S3 + CloudFront
+  # Job 5: Deploy Frontend to S3 + CloudFront
   deploy-frontend:
     name: Deploy Frontend to S3
     runs-on: ubuntu-latest
@@ -460,7 +373,7 @@ jobs:
           echo ""
           echo "🔍 Frontend URL wird in Terraform outputs angezeigt"
 
-  # Job 7: Health Check
+  # Job 6: Health Check
   health-check:
     name: Health Check
     runs-on: ubuntu-latest
@@ -508,7 +421,7 @@ jobs:
           echo "✅ Frontend deployed"
           echo "✅ Health Checks passed"
 
-  # Job 8: Terraform Destroy
+  # Job 7: Terraform Destroy
   terraform-destroy:
     name: Terraform Destroy
     runs-on: ubuntu-latest

@@ -25,10 +25,7 @@ from app.services.terraform_generator_v2 import TerraformGeneratorV2
 # =============================================================================
 
 
-@pytest.fixture
-def client():
-    """Provide FastAPI test client."""
-    return TestClient(app)
+# Note: Using user_client fixture from conftest.py instead of local client
 
 
 @pytest.fixture
@@ -129,7 +126,7 @@ def mock_terraform_generator():
 # =============================================================================
 
 
-def test_save_designer_architecture_success(client, sample_designer_architecture, mock_architecture_repo):
+def test_save_designer_architecture_success(user_client, sample_designer_architecture, mock_architecture_repo):
     """Test successful architecture save."""
     # Mock repository response
     arch_id = str(uuid4())
@@ -148,7 +145,7 @@ def test_save_designer_architecture_success(client, sample_designer_architecture
     app.dependency_overrides[get_architecture_repo] = lambda: mock_architecture_repo
 
     # API request
-    response = client.post(
+    response = user_client.post(
         "/api/v1/designer/save",
         json={
             "name": "Test Web App",
@@ -174,12 +171,12 @@ def test_save_designer_architecture_success(client, sample_designer_architecture
     mock_architecture_repo.create.assert_called_once()
 
 
-def test_save_designer_architecture_missing_components(client, sample_invalid_architecture, mock_architecture_repo):
+def test_save_designer_architecture_missing_components(user_client, sample_invalid_architecture, mock_architecture_repo):
     """Test save with missing components field."""
     from app.api.designer import get_architecture_repo
     app.dependency_overrides[get_architecture_repo] = lambda: mock_architecture_repo
 
-    response = client.post(
+    response = user_client.post(
         "/api/v1/designer/save",
         json={
             "name": "Invalid Architecture",
@@ -194,7 +191,7 @@ def test_save_designer_architecture_missing_components(client, sample_invalid_ar
     assert "components" in response.json()["detail"].lower()
 
 
-def test_save_designer_architecture_empty_components(client, sample_empty_architecture, mock_architecture_repo):
+def test_save_designer_architecture_empty_components(user_client, sample_empty_architecture, mock_architecture_repo):
     """Test save with empty components (edge case - should succeed)."""
     arch_id = str(uuid4())
     now = datetime.now(timezone.utc)
@@ -209,7 +206,7 @@ def test_save_designer_architecture_empty_components(client, sample_empty_archit
     from app.api.designer import get_architecture_repo
     app.dependency_overrides[get_architecture_repo] = lambda: mock_architecture_repo
 
-    response = client.post(
+    response = user_client.post(
         "/api/v1/designer/save",
         json={
             "name": "Empty Architecture",
@@ -223,14 +220,14 @@ def test_save_designer_architecture_empty_components(client, sample_empty_archit
     assert response.status_code == status.HTTP_201_CREATED
 
 
-def test_save_designer_architecture_repository_error(client, sample_designer_architecture, mock_architecture_repo):
+def test_save_designer_architecture_repository_error(user_client, sample_designer_architecture, mock_architecture_repo):
     """Test save when repository raises exception."""
     mock_architecture_repo.create.side_effect = Exception("Database error")
 
     from app.api.designer import get_architecture_repo
     app.dependency_overrides[get_architecture_repo] = lambda: mock_architecture_repo
 
-    response = client.post(
+    response = user_client.post(
         "/api/v1/designer/save",
         json={
             "name": "Test",
@@ -249,7 +246,7 @@ def test_save_designer_architecture_repository_error(client, sample_designer_arc
 # =============================================================================
 
 
-def test_load_designer_architecture_success(client, sample_designer_architecture, mock_architecture_repo):
+def test_load_designer_architecture_success(user_client, sample_designer_architecture, mock_architecture_repo):
     """Test successful architecture load."""
     arch_id = str(uuid4())
     mock_architecture_repo.get.return_value = {
@@ -263,7 +260,7 @@ def test_load_designer_architecture_success(client, sample_designer_architecture
     from app.api.designer import get_architecture_repo
     app.dependency_overrides[get_architecture_repo] = lambda: mock_architecture_repo
 
-    response = client.get(f"/api/v1/designer/load/{arch_id}")
+    response = user_client.get(f"/api/v1/designer/load/{arch_id}")
 
     app.dependency_overrides.clear()
 
@@ -274,7 +271,7 @@ def test_load_designer_architecture_success(client, sample_designer_architecture
     assert len(data["components"]) == 3
 
 
-def test_load_designer_architecture_not_found(client, mock_architecture_repo):
+def test_load_designer_architecture_not_found(user_client, mock_architecture_repo):
     """Test load when architecture not found."""
     arch_id = str(uuid4())
     mock_architecture_repo.get.return_value = None
@@ -282,7 +279,7 @@ def test_load_designer_architecture_not_found(client, mock_architecture_repo):
     from app.api.designer import get_architecture_repo
     app.dependency_overrides[get_architecture_repo] = lambda: mock_architecture_repo
 
-    response = client.get(f"/api/v1/designer/load/{arch_id}")
+    response = user_client.get(f"/api/v1/designer/load/{arch_id}")
 
     app.dependency_overrides.clear()
 
@@ -290,15 +287,15 @@ def test_load_designer_architecture_not_found(client, mock_architecture_repo):
     assert "not found" in response.json()["detail"].lower()
 
 
-def test_load_designer_architecture_invalid_uuid(client):
+def test_load_designer_architecture_invalid_uuid(user_client):
     """Test load with invalid UUID format."""
-    response = client.get("/api/v1/designer/load/not-a-uuid")
+    response = user_client.get("/api/v1/designer/load/not-a-uuid")
 
     # FastAPI returns 422 for invalid UUID path parameter
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
-def test_load_designer_architecture_repository_error(client, mock_architecture_repo):
+def test_load_designer_architecture_repository_error(user_client, mock_architecture_repo):
     """Test load when repository raises exception."""
     arch_id = str(uuid4())
     mock_architecture_repo.get.side_effect = Exception("Database error")
@@ -306,7 +303,7 @@ def test_load_designer_architecture_repository_error(client, mock_architecture_r
     from app.api.designer import get_architecture_repo
     app.dependency_overrides[get_architecture_repo] = lambda: mock_architecture_repo
 
-    response = client.get(f"/api/v1/designer/load/{arch_id}")
+    response = user_client.get(f"/api/v1/designer/load/{arch_id}")
 
     app.dependency_overrides.clear()
 
@@ -318,7 +315,7 @@ def test_load_designer_architecture_repository_error(client, mock_architecture_r
 # =============================================================================
 
 
-def test_generate_terraform_success(client, sample_designer_architecture, mock_terraform_generator):
+def test_generate_terraform_success(user_client, sample_designer_architecture, mock_terraform_generator):
     """Test successful Terraform generation."""
     # Mock generator response
     mock_terraform_generator.generate.return_value = {
@@ -330,7 +327,7 @@ def test_generate_terraform_success(client, sample_designer_architecture, mock_t
     from app.api.designer import get_terraform_generator
     app.dependency_overrides[get_terraform_generator] = lambda: mock_terraform_generator
 
-    response = client.post(
+    response = user_client.post(
         "/api/v1/designer/generate-terraform",
         json={"architecture_json": sample_designer_architecture}
     )
@@ -348,12 +345,12 @@ def test_generate_terraform_success(client, sample_designer_architecture, mock_t
     assert isinstance(data["warnings"], list)
 
 
-def test_generate_terraform_missing_components(client, sample_invalid_architecture, mock_terraform_generator):
+def test_generate_terraform_missing_components(user_client, sample_invalid_architecture, mock_terraform_generator):
     """Test generation with missing components."""
     from app.api.designer import get_terraform_generator
     app.dependency_overrides[get_terraform_generator] = lambda: mock_terraform_generator
 
-    response = client.post(
+    response = user_client.post(
         "/api/v1/designer/generate-terraform",
         json={"architecture_json": sample_invalid_architecture}
     )
@@ -364,14 +361,14 @@ def test_generate_terraform_missing_components(client, sample_invalid_architectu
     assert "components" in response.json()["detail"].lower()
 
 
-def test_generate_terraform_generator_error(client, sample_designer_architecture, mock_terraform_generator):
+def test_generate_terraform_generator_error(user_client, sample_designer_architecture, mock_terraform_generator):
     """Test generation when generator raises exception."""
     mock_terraform_generator.generate.side_effect = Exception("Template error")
 
     from app.api.designer import get_terraform_generator
     app.dependency_overrides[get_terraform_generator] = lambda: mock_terraform_generator
 
-    response = client.post(
+    response = user_client.post(
         "/api/v1/designer/generate-terraform",
         json={"architecture_json": sample_designer_architecture}
     )
@@ -382,7 +379,7 @@ def test_generate_terraform_generator_error(client, sample_designer_architecture
     assert "error" in response.json()["detail"].lower()
 
 
-def test_generate_terraform_empty_components(client, sample_empty_architecture, mock_terraform_generator):
+def test_generate_terraform_empty_components(user_client, sample_empty_architecture, mock_terraform_generator):
     """Test generation with empty components."""
     # Empty components dict should still validate but might fail in generator
     mock_terraform_generator.generate.return_value = {
@@ -393,7 +390,7 @@ def test_generate_terraform_empty_components(client, sample_empty_architecture, 
     from app.api.designer import get_terraform_generator
     app.dependency_overrides[get_terraform_generator] = lambda: mock_terraform_generator
 
-    response = client.post(
+    response = user_client.post(
         "/api/v1/designer/generate-terraform",
         json={"architecture_json": sample_empty_architecture}
     )
@@ -410,9 +407,9 @@ def test_generate_terraform_empty_components(client, sample_empty_architecture, 
 # =============================================================================
 
 
-def test_validate_architecture_success(client, sample_designer_architecture):
+def test_validate_architecture_success(user_client, sample_designer_architecture):
     """Test successful validation."""
-    response = client.post(
+    response = user_client.post(
         "/api/v1/designer/validate",
         json={"architecture_json": sample_designer_architecture}
     )
@@ -430,12 +427,12 @@ def test_validate_architecture_success(client, sample_designer_architecture):
     assert data["connection_count"] == 2
 
 
-def test_validate_architecture_missing_version(client, sample_designer_architecture):
+def test_validate_architecture_missing_version(user_client, sample_designer_architecture):
     """Test validation with missing version."""
     arch = sample_designer_architecture.copy()
     del arch["version"]
 
-    response = client.post(
+    response = user_client.post(
         "/api/v1/designer/validate",
         json={"architecture_json": arch}
     )
@@ -446,9 +443,9 @@ def test_validate_architecture_missing_version(client, sample_designer_architect
     assert any("version" in error.lower() for error in data["errors"])
 
 
-def test_validate_architecture_missing_components(client, sample_invalid_architecture):
+def test_validate_architecture_missing_components(user_client, sample_invalid_architecture):
     """Test validation with missing components."""
-    response = client.post(
+    response = user_client.post(
         "/api/v1/designer/validate",
         json={"architecture_json": sample_invalid_architecture}
     )
@@ -459,12 +456,12 @@ def test_validate_architecture_missing_components(client, sample_invalid_archite
     assert any("components" in error.lower() for error in data["errors"])
 
 
-def test_validate_architecture_invalid_connection(client, sample_designer_architecture):
+def test_validate_architecture_invalid_connection(user_client, sample_designer_architecture):
     """Test validation with connection referencing non-existent component."""
     arch = sample_designer_architecture.copy()
     arch["connections"].append({"from": "vpc-1", "to": "non-existent-id"})
 
-    response = client.post(
+    response = user_client.post(
         "/api/v1/designer/validate",
         json={"architecture_json": arch}
     )
@@ -475,7 +472,7 @@ def test_validate_architecture_invalid_connection(client, sample_designer_archit
     assert any("non-existent-id" in error for error in data["errors"])
 
 
-def test_validate_architecture_component_missing_type(client):
+def test_validate_architecture_component_missing_type(user_client):
     """Test validation with component missing type field."""
     arch = {
         "version": "1.0.0",
@@ -490,7 +487,7 @@ def test_validate_architecture_component_missing_type(client):
         "connections": []
     }
 
-    response = client.post(
+    response = user_client.post(
         "/api/v1/designer/validate",
         json={"architecture_json": arch}
     )
@@ -501,7 +498,7 @@ def test_validate_architecture_component_missing_type(client):
     assert any("type" in error.lower() for error in data["errors"])
 
 
-def test_validate_architecture_subnet_missing_vpc(client):
+def test_validate_architecture_subnet_missing_vpc(user_client):
     """Test VPC-specific validation: subnet without vpc_id."""
     arch = {
         "version": "1.0.0",
@@ -524,7 +521,7 @@ def test_validate_architecture_subnet_missing_vpc(client):
         "connections": []
     }
 
-    response = client.post(
+    response = user_client.post(
         "/api/v1/designer/validate",
         json={"architecture_json": arch}
     )
@@ -535,7 +532,7 @@ def test_validate_architecture_subnet_missing_vpc(client):
     assert any("vpc_id" in error.lower() for error in data["errors"])
 
 
-def test_validate_architecture_subnet_invalid_vpc(client):
+def test_validate_architecture_subnet_invalid_vpc(user_client):
     """Test VPC-specific validation: subnet referencing unknown VPC."""
     arch = {
         "version": "1.0.0",
@@ -553,7 +550,7 @@ def test_validate_architecture_subnet_invalid_vpc(client):
         "connections": []
     }
 
-    response = client.post(
+    response = user_client.post(
         "/api/v1/designer/validate",
         json={"architecture_json": arch}
     )
@@ -564,7 +561,7 @@ def test_validate_architecture_subnet_invalid_vpc(client):
     assert any("vpc" in error.lower() and "non-existent-vpc" in error for error in data["errors"])
 
 
-def test_validate_architecture_warnings(client):
+def test_validate_architecture_warnings(user_client):
     """Test validation warnings (missing metadata, name)."""
     arch = {
         "version": "1.0.0",
@@ -579,7 +576,7 @@ def test_validate_architecture_warnings(client):
         "connections": []
     }
 
-    response = client.post(
+    response = user_client.post(
         "/api/v1/designer/validate",
         json={"architecture_json": arch}
     )
@@ -590,9 +587,9 @@ def test_validate_architecture_warnings(client):
     assert any("metadata" in warning.lower() for warning in data["warnings"])
 
 
-def test_validate_architecture_empty_components(client, sample_empty_architecture):
+def test_validate_architecture_empty_components(user_client, sample_empty_architecture):
     """Test validation with empty components."""
-    response = client.post(
+    response = user_client.post(
         "/api/v1/designer/validate",
         json={"architecture_json": sample_empty_architecture}
     )
@@ -610,7 +607,7 @@ def test_validate_architecture_empty_components(client, sample_empty_architectur
 
 
 def test_full_flow_save_load_validate_generate(
-    client,
+    user_client,
     sample_designer_architecture,
     mock_architecture_repo,
     mock_terraform_generator
@@ -643,7 +640,7 @@ def test_full_flow_save_load_validate_generate(
     app.dependency_overrides[get_terraform_generator] = lambda: mock_terraform_generator
 
     # Step 1: Save
-    save_response = client.post(
+    save_response = user_client.post(
         "/api/v1/designer/save",
         json={
             "name": "Test Web App",
@@ -655,12 +652,12 @@ def test_full_flow_save_load_validate_generate(
     saved_id = save_response.json()["architecture_id"]
 
     # Step 2: Load
-    load_response = client.get(f"/api/v1/designer/load/{saved_id}")
+    load_response = user_client.get(f"/api/v1/designer/load/{saved_id}")
     assert load_response.status_code == status.HTTP_200_OK
     loaded_arch = load_response.json()
 
     # Step 3: Validate
-    validate_response = client.post(
+    validate_response = user_client.post(
         "/api/v1/designer/validate",
         json={"architecture_json": loaded_arch}
     )
@@ -669,7 +666,7 @@ def test_full_flow_save_load_validate_generate(
     assert validation["valid"] is True
 
     # Step 4: Generate
-    generate_response = client.post(
+    generate_response = user_client.post(
         "/api/v1/designer/generate-terraform",
         json={"architecture_json": loaded_arch}
     )
@@ -681,7 +678,7 @@ def test_full_flow_save_load_validate_generate(
     app.dependency_overrides.clear()
 
 
-def test_complex_architecture_with_all_validations(client):
+def test_complex_architecture_with_all_validations(user_client):
     """Test complex architecture with multiple validation rules."""
     complex_arch = {
         "version": "1.0.0",
@@ -746,7 +743,7 @@ def test_complex_architecture_with_all_validations(client):
         ]
     }
 
-    response = client.post(
+    response = user_client.post(
         "/api/v1/designer/validate",
         json={"architecture_json": complex_arch}
     )

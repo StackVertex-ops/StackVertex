@@ -5,13 +5,11 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 
-client = TestClient(app)
-
 
 class TestValidationEndpoint:
     """Tests für POST /api/v1/validate/architecture."""
 
-    def test_validate_valid_architecture(self):
+    def test_validate_valid_architecture(self, user_client):
         """Test: Valide Architektur wird akzeptiert."""
         data = {
             "data": {
@@ -31,7 +29,7 @@ class TestValidationEndpoint:
             }
         }
 
-        response = client.post("/api/v1/validate/architecture", json=data)
+        response = user_client.post("/api/v1/validate/architecture", json=data)
 
         assert response.status_code == 200
         result = response.json()
@@ -40,7 +38,7 @@ class TestValidationEndpoint:
         assert result["error_count"] == 0
         assert len(result["errors"]) == 0
 
-    def test_validate_invalid_architecture_missing_field(self):
+    def test_validate_invalid_architecture_missing_field(self, user_client):
         """Test: Fehlende Pflichtfelder führen zu Validierungsfehler."""
         data = {
             "data": {
@@ -54,7 +52,7 @@ class TestValidationEndpoint:
             }
         }
 
-        response = client.post("/api/v1/validate/architecture", json=data)
+        response = user_client.post("/api/v1/validate/architecture", json=data)
 
         assert response.status_code == 200
         result = response.json()
@@ -69,7 +67,7 @@ class TestValidationEndpoint:
         assert "path" in error
         assert "validator" in error
 
-    def test_validate_invalid_version_format(self):
+    def test_validate_invalid_version_format(self, user_client):
         """Test: Ungültiges Versionsformat wird erkannt."""
         data = {
             "data": {
@@ -89,14 +87,14 @@ class TestValidationEndpoint:
             }
         }
 
-        response = client.post("/api/v1/validate/architecture", json=data)
+        response = user_client.post("/api/v1/validate/architecture", json=data)
 
         assert response.status_code == 200
         result = response.json()
         assert result["valid"] is False
         assert result["error_count"] > 0
 
-    def test_validate_invalid_provider_enum(self):
+    def test_validate_invalid_provider_enum(self, user_client):
         """Test: Ungültiger Provider-Wert wird abgelehnt."""
         data = {
             "data": {
@@ -116,13 +114,13 @@ class TestValidationEndpoint:
             }
         }
 
-        response = client.post("/api/v1/validate/architecture", json=data)
+        response = user_client.post("/api/v1/validate/architecture", json=data)
 
         assert response.status_code == 200
         result = response.json()
         assert result["valid"] is False
 
-    def test_validate_complex_valid_architecture(self):
+    def test_validate_complex_valid_architecture(self, user_client):
         """Test: Komplexe valide Architektur mit Components."""
         data = {
             "data": {
@@ -167,23 +165,23 @@ class TestValidationEndpoint:
             }
         }
 
-        response = client.post("/api/v1/validate/architecture", json=data)
+        response = user_client.post("/api/v1/validate/architecture", json=data)
 
         assert response.status_code == 200
         result = response.json()
         assert result["valid"] is True
         assert result["error_count"] == 0
 
-    def test_validate_empty_request_body(self):
+    def test_validate_empty_request_body(self, user_client):
         """Test: Leerer Request-Body führt zu FastAPI-Validierungsfehler."""
-        response = client.post("/api/v1/validate/architecture", json={})
+        response = user_client.post("/api/v1/validate/architecture", json={})
 
         # FastAPI sollte 422 für fehlende Pflichtfelder zurückgeben
         assert response.status_code == 422
 
-    def test_validate_malformed_json(self):
+    def test_validate_malformed_json(self, user_client):
         """Test: Ungültiges JSON im Request."""
-        response = client.post(
+        response = user_client.post(
             "/api/v1/validate/architecture",
             data="not-valid-json",
             headers={"Content-Type": "application/json"},
@@ -195,9 +193,9 @@ class TestValidationEndpoint:
 class TestValidationHealthEndpoint:
     """Tests für GET /api/v1/validate/health."""
 
-    def test_health_check_success(self):
+    def test_health_check_success(self, user_client):
         """Test: Health-Check ist erfolgreich."""
-        response = client.get("/api/v1/validate/health")
+        response = user_client.get("/api/v1/validate/health")
 
         assert response.status_code == 200
         result = response.json()
@@ -206,9 +204,9 @@ class TestValidationHealthEndpoint:
         assert "schema_version" in result
         assert "schema_title" in result
 
-    def test_health_check_returns_schema_info(self):
+    def test_health_check_returns_schema_info(self, user_client):
         """Test: Health-Check gibt Schema-Informationen zurück."""
-        response = client.get("/api/v1/validate/health")
+        response = user_client.get("/api/v1/validate/health")
 
         assert response.status_code == 200
         result = response.json()
@@ -219,7 +217,7 @@ class TestValidationHealthEndpoint:
 class TestValidationErrorDetails:
     """Tests für Fehlerdetails in der Response."""
 
-    def test_error_contains_all_required_fields(self):
+    def test_error_contains_all_required_fields(self, user_client):
         """Test: Fehler enthalten alle erforderlichen Felder."""
         data = {
             "data": {
@@ -239,7 +237,7 @@ class TestValidationErrorDetails:
             }
         }
 
-        response = client.post("/api/v1/validate/architecture", json=data)
+        response = user_client.post("/api/v1/validate/architecture", json=data)
 
         assert response.status_code == 200
         result = response.json()
@@ -254,7 +252,7 @@ class TestValidationErrorDetails:
         assert "validator" in error
         assert "validator_value" in error
 
-    def test_error_path_format(self):
+    def test_error_path_format(self, user_client):
         """Test: Fehler-Pfade sind korrekt formatiert."""
         data = {
             "data": {
@@ -274,7 +272,7 @@ class TestValidationErrorDetails:
             }
         }
 
-        response = client.post("/api/v1/validate/architecture", json=data)
+        response = user_client.post("/api/v1/validate/architecture", json=data)
 
         assert response.status_code == 200
         result = response.json()
