@@ -176,10 +176,7 @@ resource "aws_lambda_function" "api" {
     Name = "${var.project_name}-${var.environment}-api-lambda"
   }
 
-  # Lifecycle: ignoriere image_uri changes (wird via CI/CD deployed)
-  lifecycle {
-    ignore_changes = [image_uri]
-  }
+  # Note: image_uri wird via CI/CD updated (terraform apply updated Lambda)
 }
 
 # Lambda Function URL (Alternative zu API Gateway für einfachere Setups)

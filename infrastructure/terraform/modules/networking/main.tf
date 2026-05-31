@@ -205,3 +205,18 @@ resource "aws_vpc_endpoint" "s3" {
     Name = "${var.project_name}-${var.environment}-s3-endpoint"
   }
 }
+
+# VPC Endpoint für DynamoDB (Gateway Endpoint - kein zusätzlicher Cost)
+resource "aws_vpc_endpoint" "dynamodb" {
+  count        = var.enable_vpc_endpoints ? 1 : 0
+  vpc_id       = aws_vpc.main.id
+  service_name = "com.amazonaws.${var.aws_region}.dynamodb"
+  route_table_ids = concat(
+    [aws_route_table.public.id],
+    [aws_route_table.private.id]
+  )
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-dynamodb-endpoint"
+  }
+}
