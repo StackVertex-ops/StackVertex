@@ -80,7 +80,7 @@ export class ArchitectureCanvas {
                 <svg
                     id="canvas-svg"
                     class="w-full h-full cursor-move"
-                    style="background-image: radial-gradient(circle, #e5e7eb 1px, transparent 1px); background-size: 20px 20px;"
+                    style="background-image: radial-gradient(circle, #d1d5db 1px, transparent 1px); background-size: 20px 20px;"
                 >
                     <defs>
                         <!-- Arrow Marker for Relationships -->

@@ -98,7 +98,7 @@ export function requireAuth(redirectAfterLogin = null) {
     if (!isAuthenticated()) {
         const returnUrl = redirectAfterLogin || window.location.pathname;
         localStorage.setItem('return_url', returnUrl);
-        window.location.href = '/src/login.html';
+        window.location.href = '/login.html';
         return false;
     }
     return true;
@@ -108,7 +108,7 @@ export function requireAuth(redirectAfterLogin = null) {
  * Redirect if already authenticated
  * @param {string} redirectTo - URL to redirect to (default: dashboard)
  */
-export function redirectIfAuthenticated(redirectTo = '/src/index.html') {
+export function redirectIfAuthenticated(redirectTo = '/dashboard.html') {
     if (isAuthenticated()) {
         window.location.href = redirectTo;
         return true;
@@ -123,7 +123,7 @@ export function redirectIfAuthenticated(redirectTo = '/src/index.html') {
 export function getReturnUrl() {
     const returnUrl = localStorage.getItem('return_url');
     localStorage.removeItem('return_url');
-    return returnUrl || '/src/index.html';
+    return returnUrl || '/dashboard.html';
 }
 
 /**
@@ -140,7 +140,7 @@ export async function logout() {
 
     // Clear local auth data
     clearAuthData();
-    window.location.href = '/src/login.html';
+    window.location.href = '/login.html';
 }
 
 /**
