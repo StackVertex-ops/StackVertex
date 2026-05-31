@@ -52,6 +52,7 @@ echo "  ✗ Dev CloudWatch Logs, Alarms"
 echo "  ✗ Dev SNS Topics"
 echo "  ✗ Dev CloudTrail Trail"
 echo "  ✗ Dev GuardDuty Detector"
+echo "  ✗ Dev IAM Roles & Policies (Lambda, CloudTrail)"
 echo ""
 echo -e "${GREEN}Bootstrap-Ressourcen bleiben erhalten!${NC}"
 echo "  ✓ stackvertex-terraform-state-* Bucket"
@@ -222,6 +223,22 @@ fi
 
 echo ""
 
+# CloudWatch Query Definitions
+echo "6️⃣a  Deleting Dev CloudWatch Query Definitions..."
+QUERY_DEFS=$(aws logs describe-query-definitions --query "queryDefinitions[?contains(name, 'stackvertex-dev')].queryDefinitionId" --output text 2>/dev/null || echo "")
+
+if [ -n "$QUERY_DEFS" ]; then
+    for query_id in $QUERY_DEFS; do
+        echo "   Deleting query definition: $query_id..."
+        aws logs delete-query-definition --query-definition-id "$query_id" 2>/dev/null || true
+    done
+    echo -e "${GREEN}✅ Dev CloudWatch Query Definitions deleted${NC}"
+else
+    echo "   No dev query definitions found"
+fi
+
+echo ""
+
 # CloudWatch Alarms
 echo "7️⃣  Deleting Dev CloudWatch Alarms..."
 DEV_ALARMS=$(aws cloudwatch describe-alarms --query "MetricAlarms[?starts_with(AlarmName, 'stackvertex-dev-')].AlarmName" --output text 2>/dev/null || echo "")
@@ -284,8 +301,79 @@ fi
 
 echo ""
 
+# IAM Roles & Policies (nur Dev!)
+echo "1️⃣1️⃣  Deleting Dev IAM Roles & Policies..."
+
+# Lambda Role
+LAMBDA_ROLE="stackvertex-dev-lambda-role"
+if aws iam get-role --role-name "$LAMBDA_ROLE" 2>/dev/null; then
+    echo "   Detaching managed policies from role: $LAMBDA_ROLE..."
+    ATTACHED_POLICIES=$(aws iam list-attached-role-policies --role-name "$LAMBDA_ROLE" --query 'AttachedPolicies[].PolicyArn' --output text 2>/dev/null || echo "")
+    if [ -n "$ATTACHED_POLICIES" ]; then
+        for policy_arn in $ATTACHED_POLICIES; do
+            echo "     Detaching policy: $policy_arn..."
+            aws iam detach-role-policy --role-name "$LAMBDA_ROLE" --policy-arn "$policy_arn" 2>/dev/null || true
+        done
+    fi
+
+    echo "   Deleting inline policies from role: $LAMBDA_ROLE..."
+    INLINE_POLICIES=$(aws iam list-role-policies --role-name "$LAMBDA_ROLE" --query 'PolicyNames' --output text 2>/dev/null || echo "")
+    if [ -n "$INLINE_POLICIES" ]; then
+        for policy_name in $INLINE_POLICIES; do
+            echo "     Deleting inline policy: $policy_name..."
+            aws iam delete-role-policy --role-name "$LAMBDA_ROLE" --policy-name "$policy_name" 2>/dev/null || true
+        done
+    fi
+
+    echo "   Deleting role: $LAMBDA_ROLE..."
+    aws iam delete-role --role-name "$LAMBDA_ROLE" 2>/dev/null || true
+    echo -e "${GREEN}✅ Lambda IAM Role deleted${NC}"
+else
+    echo "   Lambda role not found"
+fi
+
+# CloudTrail Role
+CLOUDTRAIL_ROLE="stackvertex-dev-cloudtrail-cloudwatch"
+if aws iam get-role --role-name "$CLOUDTRAIL_ROLE" 2>/dev/null; then
+    echo "   Detaching managed policies from role: $CLOUDTRAIL_ROLE..."
+    ATTACHED_POLICIES=$(aws iam list-attached-role-policies --role-name "$CLOUDTRAIL_ROLE" --query 'AttachedPolicies[].PolicyArn' --output text 2>/dev/null || echo "")
+    if [ -n "$ATTACHED_POLICIES" ]; then
+        for policy_arn in $ATTACHED_POLICIES; do
+            echo "     Detaching policy: $policy_arn..."
+            aws iam detach-role-policy --role-name "$CLOUDTRAIL_ROLE" --policy-arn "$policy_arn" 2>/dev/null || true
+        done
+    fi
+
+    echo "   Deleting inline policies from role: $CLOUDTRAIL_ROLE..."
+    INLINE_POLICIES=$(aws iam list-role-policies --role-name "$CLOUDTRAIL_ROLE" --query 'PolicyNames' --output text 2>/dev/null || echo "")
+    if [ -n "$INLINE_POLICIES" ]; then
+        for policy_name in $INLINE_POLICIES; do
+            echo "     Deleting inline policy: $policy_name..."
+            aws iam delete-role-policy --role-name "$CLOUDTRAIL_ROLE" --policy-name "$policy_name" 2>/dev/null || true
+        done
+    fi
+
+    echo "   Deleting role: $CLOUDTRAIL_ROLE..."
+    aws iam delete-role --role-name "$CLOUDTRAIL_ROLE" 2>/dev/null || true
+    echo -e "${GREEN}✅ CloudTrail IAM Role deleted${NC}"
+else
+    echo "   CloudTrail role not found"
+fi
+
+# Custom Lambda Policy (falls standalone existiert)
+LAMBDA_POLICY_ARN=$(aws iam list-policies --query "Policies[?PolicyName=='stackvertex-dev-lambda-custom-policy'].Arn" --output text 2>/dev/null || echo "")
+if [ -n "$LAMBDA_POLICY_ARN" ] && [ "$LAMBDA_POLICY_ARN" != "None" ]; then
+    echo "   Deleting custom Lambda policy: $LAMBDA_POLICY_ARN..."
+    aws iam delete-policy --policy-arn "$LAMBDA_POLICY_ARN" 2>/dev/null || true
+    echo -e "${GREEN}✅ Custom Lambda Policy deleted${NC}"
+else
+    echo "   Custom Lambda policy not found"
+fi
+
+echo ""
+
 # VPC Endpoints
-echo "1️⃣1️⃣  Deleting Dev VPC Endpoints..."
+echo "1️⃣2️⃣  Deleting Dev VPC Endpoints..."
 VPC_ENDPOINTS=$(aws ec2 describe-vpc-endpoints --query "VpcEndpoints[?Tags[?Key=='Project' && Value=='StackVertex'] && Tags[?Key=='Environment' && Value=='dev']].VpcEndpointId" --output text 2>/dev/null || echo "")
 
 if [ -n "$VPC_ENDPOINTS" ]; then
@@ -301,7 +389,7 @@ fi
 echo ""
 
 # NAT Gateways (falls vorhanden)
-echo "1️⃣2️⃣  Deleting NAT Gateways..."
+echo "1️⃣3️⃣  Deleting NAT Gateways..."
 NAT_GATEWAYS=$(aws ec2 describe-nat-gateways --filter "Name=tag:Project,Values=StackVertex" "Name=tag:Environment,Values=dev" --query 'NatGateways[?State==`available`].NatGatewayId' --output text 2>/dev/null || echo "")
 
 if [ -n "$NAT_GATEWAYS" ]; then
@@ -319,7 +407,7 @@ fi
 echo ""
 
 # Internet Gateways
-echo "1️⃣3️⃣  Deleting Internet Gateways..."
+echo "1️⃣4️⃣  Deleting Internet Gateways..."
 VPC_ID=$(aws ec2 describe-vpcs --filters "Name=tag:Project,Values=StackVertex" "Name=tag:Environment,Values=dev" --query 'Vpcs[0].VpcId' --output text 2>/dev/null || echo "")
 
 if [ "$VPC_ID" != "None" ] && [ -n "$VPC_ID" ]; then
@@ -342,7 +430,7 @@ fi
 echo ""
 
 # Subnets
-echo "1️⃣4️⃣  Deleting Subnets..."
+echo "1️⃣5️⃣  Deleting Subnets..."
 if [ "$VPC_ID" != "None" ] && [ -n "$VPC_ID" ]; then
     SUBNETS=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" --query 'Subnets[].SubnetId' --output text 2>/dev/null || echo "")
 
@@ -360,7 +448,7 @@ fi
 echo ""
 
 # Route Tables
-echo "1️⃣5️⃣  Deleting Route Tables..."
+echo "1️⃣6️⃣  Deleting Route Tables..."
 if [ "$VPC_ID" != "None" ] && [ -n "$VPC_ID" ]; then
     ROUTE_TABLES=$(aws ec2 describe-route-tables --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Project,Values=StackVertex" --query 'RouteTables[].RouteTableId' --output text 2>/dev/null || echo "")
 
@@ -378,7 +466,7 @@ fi
 echo ""
 
 # Security Groups
-echo "1️⃣6️⃣  Deleting Security Groups..."
+echo "1️⃣7️⃣  Deleting Security Groups..."
 if [ "$VPC_ID" != "None" ] && [ -n "$VPC_ID" ]; then
     SECURITY_GROUPS=$(aws ec2 describe-security-groups --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Project,Values=StackVertex" --query 'SecurityGroups[?GroupName!=`default`].GroupId' --output text 2>/dev/null || echo "")
 
@@ -396,7 +484,7 @@ fi
 echo ""
 
 # VPC
-echo "1️⃣7️⃣  Deleting VPC..."
+echo "1️⃣8️⃣  Deleting VPC..."
 if [ "$VPC_ID" != "None" ] && [ -n "$VPC_ID" ]; then
     echo "   Deleting VPC: $VPC_ID..."
     aws ec2 delete-vpc --vpc-id "$VPC_ID" 2>/dev/null || {
@@ -483,6 +571,7 @@ echo "  ✓ Dev CloudWatch Logs & Alarms"
 echo "  ✓ Dev SNS Topics"
 echo "  ✓ Dev CloudTrail"
 echo "  ✓ Dev GuardDuty"
+echo "  ✓ Dev IAM Roles & Policies"
 echo ""
 
 if [ "$BOOTSTRAP_OK" = true ]; then
