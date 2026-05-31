@@ -146,6 +146,10 @@ function renderBlueprintCard(blueprint) {
 function renderBlueprints(blueprints) {
     const grid = document.getElementById('blueprintsGrid');
     const emptyState = document.getElementById('emptyState');
+    const errorState = document.getElementById('errorState');
+
+    // Verstecke Error State
+    errorState.classList.add('hidden');
 
     if (blueprints.length === 0) {
         grid.classList.add('hidden');

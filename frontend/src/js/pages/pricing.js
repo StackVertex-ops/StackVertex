@@ -311,12 +311,11 @@ window.handleUpgrade = async function(plan, interval) {
  */
 function initPricingCalculator() {
     const tierSelect = document.getElementById('tier-select');
-    const awsCostsInput = document.getElementById('aws-costs');
     const numDeploymentsInput = document.getElementById('num-deployments');
     const voucherCodeInput = document.getElementById('voucher-code');
     const applyVoucherBtn = document.getElementById('apply-voucher-btn');
 
-    if (!tierSelect || !awsCostsInput) {
+    if (!tierSelect) {
         return;
     }
 
@@ -324,7 +323,6 @@ function initPricingCalculator() {
     loadHybridPricing().then(() => {
         // Attach event listeners
         tierSelect.addEventListener('change', calculateCosts);
-        awsCostsInput.addEventListener('input', calculateCosts);
         if (numDeploymentsInput) {
             numDeploymentsInput.addEventListener('input', calculateCosts);
         }
@@ -460,13 +458,11 @@ function showVoucherStatus(type, message) {
  */
 function calculateCosts() {
     const tierSelect = document.getElementById('tier-select');
-    const awsCostsInput = document.getElementById('aws-costs');
     const numDeploymentsInput = document.getElementById('num-deployments');
 
-    if (!tierSelect || !awsCostsInput) return;
+    if (!tierSelect) return;
 
     const tier = tierSelect.value;
-    const awsCosts = parseFloat(awsCostsInput.value) || 0;
     const numDeployments = numDeploymentsInput ? parseInt(numDeploymentsInput.value) || 0 : 0;
 
     // Find pricing config
@@ -475,14 +471,13 @@ function calculateCosts() {
 
     const basePrice = config.base_price_monthly;
     const markupPercent = config.aws_cost_percentage;
-    const markupFee = awsCosts * (markupPercent / 100);
 
     let deploymentFees = 0;
     if (tier === 'payg' && numDeployments > 0) {
         deploymentFees = numDeployments * 5.00;
     }
 
-    let subtotal = basePrice + markupFee + deploymentFees;
+    let subtotal = basePrice + deploymentFees;
 
     // Apply voucher discount if available
     let voucherDiscountAmount = 0;
@@ -498,28 +493,32 @@ function calculateCosts() {
 
     // Update UI
     const baseFeeEl = document.getElementById('base-fee');
-    const awsCostDisplayEl = document.getElementById('aws-cost-display');
     const markupPercentEl = document.getElementById('markup-percent');
-    const markupFeeEl = document.getElementById('markup-fee');
-    const subtotalCostEl = document.getElementById('subtotal-cost');
     const voucherDiscountRow = document.getElementById('voucher-discount-row');
     const voucherDiscountPercentEl = document.getElementById('voucher-discount-percent');
     const voucherDiscountAmountEl = document.getElementById('voucher-discount-amount');
     const totalCostEl = document.getElementById('total-cost');
 
     if (baseFeeEl) baseFeeEl.textContent = `€${basePrice.toFixed(2)}`;
-    if (awsCostDisplayEl) awsCostDisplayEl.textContent = `€${awsCosts.toFixed(2)}`;
-    if (markupPercentEl) markupPercentEl.textContent = markupPercent;
-    if (markupFeeEl) markupFeeEl.textContent = `€${markupFee.toFixed(2)}`;
-    if (subtotalCostEl) subtotalCostEl.textContent = `€${(basePrice + markupFee + deploymentFees).toFixed(2)}`;
+    if (markupPercentEl) {
+        // Update all elements with id="markup-percent"
+        const markupPercentEls = document.querySelectorAll('#markup-percent');
+        markupPercentEls.forEach(el => el.textContent = markupPercent);
+    }
 
     // Show/hide voucher discount
     if (appliedVoucher && appliedVoucher.valid && voucherDiscountAmount > 0) {
-        if (voucherDiscountRow) voucherDiscountRow.classList.remove('hidden');
+        if (voucherDiscountRow) {
+            voucherDiscountRow.style.display = 'flex';
+            voucherDiscountRow.classList.remove('hidden');
+        }
         if (voucherDiscountPercentEl) voucherDiscountPercentEl.textContent = voucherDiscountPercent;
         if (voucherDiscountAmountEl) voucherDiscountAmountEl.textContent = `-€${voucherDiscountAmount.toFixed(2)}`;
     } else {
-        if (voucherDiscountRow) voucherDiscountRow.classList.add('hidden');
+        if (voucherDiscountRow) {
+            voucherDiscountRow.style.display = 'none';
+            voucherDiscountRow.classList.add('hidden');
+        }
     }
 
     if (totalCostEl) totalCostEl.textContent = `€${total.toFixed(2)}`;
