@@ -4,7 +4,7 @@ REST API für Cost Estimation.
 """
 
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status, Body
@@ -13,6 +13,7 @@ from app.repositories.architecture import ArchitectureRepository
 from app.schemas.cost import CostEstimateResponse, ComponentCostResponse
 from app.services.cost_estimator import CostEstimator
 from app.services.cost_calculator import calculate_blueprint_cost
+from app.api.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,7 @@ cost_estimator = CostEstimator()
 )
 async def estimate_cost_from_json(
     architecture_json: Dict[str, Any] = Body(..., description="Architecture JSON"),
+    current_user: Annotated[dict, Depends(get_current_user)] = None,
 ) -> CostEstimateResponse:
     """Berechnet Kosten für Architecture JSON.
 
@@ -94,6 +96,7 @@ async def estimate_cost_from_json(
 )
 async def estimate_cost_for_architecture(
     architecture_id: UUID,
+    current_user: Annotated[dict, Depends(get_current_user)] = None,
 ) -> CostEstimateResponse:
     """Berechnet Kosten für gespeicherte Architecture.
 

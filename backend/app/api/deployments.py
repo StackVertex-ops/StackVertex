@@ -4,7 +4,7 @@ REST API für Deployment Management.
 """
 
 import logging
-from typing import Optional
+from typing import Optional, Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Body, Request
@@ -22,6 +22,7 @@ from app.schemas.deployment import (
 )
 from app.services.deployment_manager import DeploymentManager
 from app.services.deployment_progress import get_progress_info
+from app.api.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,7 @@ async def deploy_architecture(
     request: Request,
     architecture_id: UUID,
     deployment_data: DeploymentCreate,
+    current_user: Annotated[dict, Depends(get_current_user)],
     repo: DeploymentRepository = Depends(get_deployment_repo),
 ) -> DeploymentResponse:
     """Deployed eine Architecture.
@@ -120,6 +122,7 @@ async def deploy_architecture(
 )
 async def get_deployment_status(
     deployment_id: UUID,
+    current_user: Annotated[dict, Depends(get_current_user)],
     repo: DeploymentRepository = Depends(get_deployment_repo),
 ) -> DeploymentStatusResponse:
     """Holt Deployment Details mit Progress Informationen.
@@ -170,6 +173,7 @@ async def get_deployment_status(
     },
 )
 async def list_deployments(
+    current_user: Annotated[dict, Depends(get_current_user)],
     skip: int = Query(0, ge=0, description="Offset"),
     limit: int = Query(100, ge=1, le=1000, description="Limit"),
     architecture_id: Optional[UUID] = Query(None, description="Filter by Architecture"),
@@ -216,6 +220,7 @@ async def list_deployments(
 )
 async def destroy_deployment_endpoint(
     deployment_id: UUID,
+    current_user: Annotated[dict, Depends(get_current_user)],
     aws_credentials: Optional[dict] = Body(None, description="AWS Credentials"),
     repo: DeploymentRepository = Depends(get_deployment_repo),
 ) -> None:
@@ -268,6 +273,7 @@ async def destroy_deployment_endpoint(
 )
 async def get_deployment_logs(
     deployment_id: UUID,
+    current_user: Annotated[dict, Depends(get_current_user)],
     repo: DeploymentRepository = Depends(get_deployment_repo),
 ) -> dict:
     """Holt Deployment Logs.
@@ -311,6 +317,7 @@ async def get_deployment_logs(
 )
 async def cancel_deployment_endpoint(
     deployment_id: UUID,
+    current_user: Annotated[dict, Depends(get_current_user)],
     repo: DeploymentRepository = Depends(get_deployment_repo),
 ) -> dict:
     """Cancelt ein laufendes Deployment.
@@ -370,6 +377,7 @@ async def cancel_deployment_endpoint(
 )
 async def retry_deployment_endpoint(
     deployment_id: UUID,
+    current_user: Annotated[dict, Depends(get_current_user)],
     aws_credentials: Optional[dict] = Body(None, description="AWS Credentials (optional)"),
     repo: DeploymentRepository = Depends(get_deployment_repo),
 ) -> DeploymentResponse:

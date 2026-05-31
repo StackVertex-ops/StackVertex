@@ -4,7 +4,7 @@ REST API für CRUD-Operationen auf Architecture-Definitionen.
 """
 
 import logging
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Body, Request
@@ -25,6 +25,7 @@ from app.core.json_engine import (
     VersionNotFoundError,
     CircularReferenceError
 )
+from app.api.auth import get_current_user, get_current_superadmin
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +58,7 @@ def get_architecture_repo() -> ArchitectureRepository:
 async def create_architecture_endpoint(
     request: Request,
     architecture: ArchitectureCreate,
+    current_user: Annotated[dict, Depends(get_current_user)],
     repo: ArchitectureRepository = Depends(get_architecture_repo),
 ) -> ArchitectureResponse:
     """Erstellt eine neue Architektur.
@@ -95,6 +97,7 @@ async def create_architecture_endpoint(
     },
 )
 async def list_architectures_endpoint(
+    current_user: Annotated[dict, Depends(get_current_user)],
     skip: int = Query(0, ge=0, description="Anzahl zu überspringender Einträge"),
     limit: int = Query(100, ge=1, le=1000, description="Maximale Anzahl Einträge"),
     owner: Optional[str] = Query(None, description="Filter nach Owner"),
@@ -147,6 +150,7 @@ async def list_architectures_endpoint(
 )
 async def get_architecture_endpoint(
     architecture_id: UUID,
+    current_user: Annotated[dict, Depends(get_current_user)],
     repo: ArchitectureRepository = Depends(get_architecture_repo),
 ) -> ArchitectureResponse:
     """Ruft eine einzelne Architektur ab.
@@ -200,6 +204,7 @@ async def update_architecture_endpoint(
     request: Request,
     architecture_id: UUID,
     architecture_update: ArchitectureUpdate,
+    current_user: Annotated[dict, Depends(get_current_user)],
     repo: ArchitectureRepository = Depends(get_architecture_repo),
 ) -> ArchitectureResponse:
     """Aktualisiert eine bestehende Architektur.
@@ -254,6 +259,7 @@ async def update_architecture_endpoint(
 async def delete_architecture_endpoint(
     request: Request,
     architecture_id: UUID,
+    current_user: Annotated[dict, Depends(get_current_user)],
     repo: ArchitectureRepository = Depends(get_architecture_repo),
 ) -> None:
     """Löscht eine Architektur.
@@ -306,6 +312,7 @@ versioning_service = VersioningService()
 )
 async def get_version_history_endpoint(
     architecture_id: UUID,
+    current_user: Annotated[dict, Depends(get_current_user)],
     limit: Optional[int] = Query(None, description="Max. Anzahl Versionen"),
 ) -> List[ArchitectureResponse]:
     """Holt Version History einer Architecture.
@@ -361,6 +368,7 @@ async def get_version_history_endpoint(
 async def compare_versions_endpoint(
     architecture_id: UUID,
     other_id: UUID,
+    current_user: Annotated[dict, Depends(get_current_user)],
     component_level: bool = Query(False, description="Component-Level Diff generieren"),
 ) -> Dict[str, Any]:
     """Vergleicht zwei Architecture Versionen.
@@ -410,6 +418,7 @@ async def compare_versions_endpoint(
 )
 async def validate_architecture_endpoint(
     architecture_json: Dict[str, Any] = Body(..., description="Zu validierendes Architecture JSON"),
+    current_user: Annotated[dict, Depends(get_current_user)],
     version: Optional[str] = Query(None, description="Schema Version (default: 1.0.0)"),
 ) -> Dict[str, Any]:
     """Validiert Architecture JSON gegen Schema.

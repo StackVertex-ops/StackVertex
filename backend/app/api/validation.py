@@ -5,9 +5,9 @@ Erweitert um AWS-spezifische Field-Level-Validation für Smart Forms.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Annotated
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel, Field
 
 from app.utils.validation import validate_json, SchemaValidationError
@@ -24,6 +24,7 @@ from app.data import (
     RDS_STORAGE_TYPES,
     S3_STORAGE_CLASSES,
 )
+from app.api.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +109,10 @@ class ValidationResponse(BaseModel):
         500: {"description": "Interner Serverfehler (z.B. Schema nicht gefunden)"},
     },
 )
-async def validate_architecture(request: ValidationRequest) -> ValidationResponse:
+async def validate_architecture(
+    request: ValidationRequest,
+    current_user: Annotated[dict, Depends(get_current_user)] = None,
+) -> ValidationResponse:
     """Validiert eine Architekturdefinition gegen das JSON Schema.
 
     Args:

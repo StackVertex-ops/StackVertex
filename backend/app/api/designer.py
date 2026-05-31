@@ -4,7 +4,7 @@ REST API für den Infrastructure Designer (Visual Canvas + Component-based Archi
 """
 
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Body, Request
@@ -17,6 +17,7 @@ from app.config import settings
 from app.repositories.architecture import ArchitectureRepository
 from app.services.terraform_generator_v2 import TerraformGeneratorV2
 from app.core.json_engine import ValidationError
+from app.api.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -108,6 +109,7 @@ def get_terraform_generator() -> TerraformGeneratorV2:
 async def save_designer_architecture(
     request: Request,
     data: DesignerSaveRequest,
+    current_user: Annotated[dict, Depends(get_current_user)],
     repo: ArchitectureRepository = Depends(get_architecture_repo),
 ) -> DesignerSaveResponse:
     """Speichert Designer-Architektur in Datenbank.
@@ -181,6 +183,7 @@ async def save_designer_architecture(
 )
 async def load_designer_architecture(
     architecture_id: UUID,
+    current_user: Annotated[dict, Depends(get_current_user)],
     repo: ArchitectureRepository = Depends(get_architecture_repo),
 ) -> Dict[str, Any]:
     """Lädt Designer-Architektur aus Datenbank.
@@ -236,6 +239,7 @@ async def load_designer_architecture(
 async def generate_terraform(
     request: Request,
     data: TerraformGenerateRequest,
+    current_user: Annotated[dict, Depends(get_current_user)],
     generator: TerraformGeneratorV2 = Depends(get_terraform_generator),
 ) -> TerraformGenerateResponse:
     """Generiert Terraform aus Architecture JSON.

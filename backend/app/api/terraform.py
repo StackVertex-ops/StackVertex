@@ -4,13 +4,14 @@ REST API für Terraform Code-Generierung aus Blueprints und Architecture JSON.
 """
 
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, Annotated
 from datetime import datetime
 
-from fastapi import APIRouter, Body, HTTPException, status
+from fastapi import APIRouter, Body, HTTPException, status, Depends
 
 from app.services.terraform_generator import generate_terraform_from_blueprint
 from app.services.terraform_generator_v2 import TerraformGeneratorV2
+from app.api.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,7 @@ router = APIRouter()
 async def generate_terraform(
     blueprint_id: str = Body(..., description="Blueprint ID"),
     configuration: Dict[str, Any] = Body(..., description="Blueprint Configuration"),
+    current_user: Annotated[dict, Depends(get_current_user)] = None,
 ) -> Dict[str, Any]:
     """Generiert Terraform Code aus Blueprint + Configuration.
 
@@ -90,6 +92,7 @@ async def generate_terraform(
 )
 async def validate_terraform(
     terraform_code: str = Body(..., description="Terraform HCL Code"),
+    current_user: Annotated[dict, Depends(get_current_user)] = None,
 ) -> Dict[str, Any]:
     """Validiert Terraform Code.
 
@@ -145,6 +148,7 @@ async def validate_terraform(
 )
 async def generate_terraform_from_json(
     architecture: Dict[str, Any] = Body(..., description="Architecture JSON from Infrastructure Designer"),
+    current_user: Annotated[dict, Depends(get_current_user)] = None,
 ) -> Dict[str, Any]:
     """Generiert Terraform Code aus Architecture JSON (Component-based).
 

@@ -1,8 +1,8 @@
 """API Endpoints für CIDR Calculator."""
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Annotated
 
 from app.utils.cidr_calculator import (
     validate_vpc_cidr,
@@ -12,6 +12,7 @@ from app.utils.cidr_calculator import (
     suggest_subnet_split,
     VPCPlan
 )
+from app.api.auth import get_current_user
 
 router = APIRouter()
 
@@ -62,7 +63,10 @@ class SubnetSuggestionRequest(BaseModel):
 
 
 @router.post("/cidr/validate", response_model=CIDRValidationResponse)
-async def validate_cidr(request: CIDRValidationRequest):
+async def validate_cidr(
+    request: CIDRValidationRequest,
+    current_user: Annotated[dict, Depends(get_current_user)] = None,
+):
     """
     Validiert einen VPC CIDR Block.
 
@@ -90,7 +94,10 @@ async def validate_cidr(request: CIDRValidationRequest):
 
 
 @router.post("/cidr/validate-subnet")
-async def validate_subnet(request: SubnetValidationRequest):
+async def validate_subnet(
+    request: SubnetValidationRequest,
+    current_user: Annotated[dict, Depends(get_current_user)] = None,
+):
     """
     Validiert ob ein Subnet CIDR innerhalb eines VPC CIDR liegt.
     """
