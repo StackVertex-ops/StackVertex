@@ -81,6 +81,18 @@ export DYNAMODB_TABLE_NAME="stackvertex-${ENV}-main"
 export ENVIRONMENT="$ENV"
 export AWS_REGION="eu-central-1"
 
+# Check for ADMIN_CREATION_SECRET
+if [ -z "$ADMIN_CREATION_SECRET" ]; then
+    echo ""
+    echo -e "${YELLOW}⚠️  ADMIN_CREATION_SECRET not set${NC}"
+    echo ""
+    echo "This secret prevents unauthorized admin creation."
+    echo "Set a random 32+ character value and store it securely."
+    echo ""
+    read -p "Enter ADMIN_CREATION_SECRET: " ADMIN_SECRET
+    export ADMIN_CREATION_SECRET="$ADMIN_SECRET"
+fi
+
 echo ""
 echo "🚀 Creating admin user..."
 echo ""

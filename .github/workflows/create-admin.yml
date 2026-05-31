@@ -66,6 +66,8 @@ jobs:
         run: |
           echo "DYNAMODB_TABLE_NAME=stackvertex-${{ github.event.inputs.environment }}-main" >> $GITHUB_ENV
           echo "ENVIRONMENT=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+          echo "AWS_REGION=${{ env.AWS_REGION }}" >> $GITHUB_ENV
+          echo "ADMIN_CREATION_SECRET=${{ secrets.ADMIN_CREATION_SECRET }}" >> $GITHUB_ENV
 
       - name: Create SuperAdmin
         working-directory: backend

@@ -5,6 +5,7 @@ Usage:
 
 Wichtig:
     - Läuft nur wenn noch KEIN SuperAdmin existiert (Safety)
+    - Braucht ADMIN_CREATION_SECRET als Env Variable (zusätzlicher Schutz)
     - Generiert ein zufälliges Passwort (wird ausgegeben)
     - Speichert User in DynamoDB
     - Logt Action im Audit Trail
@@ -12,6 +13,7 @@ Wichtig:
 
 import argparse
 import logging
+import os
 from uuid import uuid4
 
 from app.db.dynamodb import get_dynamodb_table
@@ -22,6 +24,36 @@ from app.utils.password import generate_secure_password
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def verify_admin_secret() -> bool:
+    """Verify ADMIN_CREATION_SECRET is set (security layer).
+
+    This prevents unauthorized admin creation even if someone has AWS access.
+
+    Returns:
+        True if secret is set, False otherwise
+    """
+    secret = os.getenv('ADMIN_CREATION_SECRET')
+
+    if not secret:
+        logger.error(
+            "ADMIN_CREATION_SECRET environment variable not set. "
+            "This is required to prevent unauthorized admin creation."
+        )
+        logger.error(
+            "Set it to a random secure value known only to authorized personnel."
+        )
+        return False
+
+    if len(secret) < 32:
+        logger.error(
+            "ADMIN_CREATION_SECRET is too short (minimum 32 characters). "
+            "Use a strong random value."
+        )
+        return False
+
+    return True
 
 
 def check_existing_superadmin(user_repo: UserRepository) -> bool:
@@ -150,6 +182,11 @@ def main():
     )
 
     args = parser.parse_args()
+
+    # Verify admin secret (security layer)
+    if not verify_admin_secret():
+        logger.error("Admin creation aborted - secret verification failed")
+        exit(1)
 
     try:
         result = create_superadmin(
