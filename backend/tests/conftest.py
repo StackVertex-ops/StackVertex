@@ -51,11 +51,18 @@ def mock_superadmin_user():
 @pytest.fixture
 def mock_regular_user():
     """Mock Regular User für User-Tests."""
+    from uuid import uuid4
+    from datetime import datetime
     return {
-        "id": "user-123",
+        "id": str(uuid4()),
         "email": "user@example.com",
-        "role": "user",
-        "is_active": True
+        "name": "Test User",
+        "status": "active",
+        "system_role": "user",
+        "personal_org_id": str(uuid4()),
+        "auth_provider": "email",
+        "created_at": datetime.utcnow().isoformat(),
+        "updated_at": datetime.utcnow().isoformat()
     }
 
 
@@ -79,17 +86,31 @@ def authenticated_client(mock_dynamodb_table, mock_superadmin_user) -> TestClien
 
 
 @pytest.fixture
-def user_client(mock_dynamodb_table, mock_regular_user) -> TestClient:
+def user_client(mock_dynamodb_table, mock_regular_user, mock_s3_bucket) -> TestClient:
     """Provide FastAPI test client with regular user authentication.
 
-    Automatically overrides get_dynamodb_table and get_current_user.
+    Automatically overrides get_dynamodb_table, get_current_user, and repositories.
     """
     from app.db.dynamodb import get_dynamodb_table
+    from app.db.s3_storage import S3Storage
     from app.api.auth import get_current_user
+    from app.api.architectures import get_architecture_repo
+    from app.api.deployments import get_deployment_repo
+    from app.repositories.architecture import ArchitectureRepository
+    from app.repositories.deployment import DeploymentRepository
+
+    # Create S3Storage with mocked bucket
+    s3_storage = S3Storage(bucket_name="stackvertex-test-bucket")
 
     # Override dependencies
     app.dependency_overrides[get_dynamodb_table] = lambda: mock_dynamodb_table
     app.dependency_overrides[get_current_user] = lambda: mock_regular_user
+    app.dependency_overrides[get_architecture_repo] = lambda: ArchitectureRepository(
+        table=mock_dynamodb_table, s3_storage=s3_storage
+    )
+    app.dependency_overrides[get_deployment_repo] = lambda: DeploymentRepository(
+        table=mock_dynamodb_table, s3_storage=s3_storage
+    )
 
     yield TestClient(app)
 

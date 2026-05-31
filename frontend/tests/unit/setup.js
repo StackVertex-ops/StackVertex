@@ -10,7 +10,8 @@ import { vi } from 'vitest';
 global.window = window;
 global.document = document;
 global.navigator = {
-    userAgent: 'node.js'
+    userAgent: 'node.js',
+    onLine: true
 };
 
 // Mock fetch API
@@ -34,11 +35,40 @@ const sessionStorageMock = {
 };
 global.sessionStorage = sessionStorageMock;
 
+// Mock window.location
+delete window.location;
+window.location = {
+    href: '',
+    pathname: '/',
+    search: ''
+};
+
+// Mock import.meta.env
+global.import = {
+    meta: {
+        env: {
+            VITE_API_URL: 'http://localhost:8000'
+        }
+    }
+};
+
 // Reset mocks before each test
 beforeEach(() => {
     vi.clearAllMocks();
     localStorageMock.getItem.mockClear();
     localStorageMock.setItem.mockClear();
+    localStorageMock.removeItem.mockClear();
+    localStorageMock.clear.mockClear();
     sessionStorageMock.getItem.mockClear();
     sessionStorageMock.setItem.mockClear();
+    sessionStorageMock.removeItem.mockClear();
+    sessionStorageMock.clear.mockClear();
+
+    // Reset window.location
+    window.location.href = '';
+    window.location.pathname = '/';
+    window.location.search = '';
+
+    // Reset navigator
+    global.navigator.onLine = true;
 });

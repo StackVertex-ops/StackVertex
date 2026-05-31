@@ -8,8 +8,12 @@
     "preview": "vite preview",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:unit": "playwright test tests/unit",
-    "test": "playwright test"
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "test:unit:ui": "vitest --ui",
+    "test:unit:coverage": "vitest run --coverage",
+    "test:auth": "vitest run tests/unit/auth",
+    "test": "vitest run && playwright test"
   },
   "keywords": [
     "cloud",
@@ -23,9 +27,12 @@
   "devDependencies": {
     "@playwright/test": "^1.60.0",
     "@tailwindcss/vite": "^4.2.2",
+    "@vitest/ui": "^4.1.7",
+    "jsdom": "^29.1.1",
     "playwright": "^1.60.0",
     "tailwindcss": "^4.2.2",
-    "vite": "^8.0.1"
+    "vite": "^8.0.1",
+    "vitest": "^4.1.7"
   },
   "dependencies": {
     "cytoscape": "^3.33.3",
