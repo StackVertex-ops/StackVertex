@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0  # Full history for secret scanning
 
@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -62,7 +62,7 @@ jobs:
             --confidence-level medium
 
       - name: Upload Bandit Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.0
         if: always()
         with:
           name: bandit-security-report
@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -98,7 +98,7 @@ jobs:
           safety check --file=requirements.txt
 
       - name: Upload Safety Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.0
         if: always()
         with:
           name: safety-vulnerability-report
@@ -113,7 +113,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Run Semgrep
         run: |
@@ -131,7 +131,7 @@ jobs:
             backend/app
 
       - name: Upload Semgrep Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.0
         if: always()
         with:
           name: semgrep-sast-report
@@ -153,7 +153,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3

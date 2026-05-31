@@ -30,7 +30,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Run Trivy vulnerability scanner - Filesystem
         uses: aquasecurity/trivy-action@master
@@ -111,7 +111,7 @@ jobs:
 
       - name: Upload Trivy Report as Artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.0
         with:
           name: trivy-security-report
           path: trivy-report.md
@@ -127,7 +127,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -169,7 +169,7 @@ jobs:
 
       - name: Upload Safety Report as Artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.0
         with:
           name: python-security-report
           path: backend/safety-report.md
@@ -191,7 +191,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0 # Full history for secret scanning
 
@@ -231,7 +231,7 @@ jobs:
 
       - name: Upload Secret Scan Report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.0
         with:
           name: secret-scan-report
           path: gitleaks-report.md
@@ -246,7 +246,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Determine environment
         id: env
@@ -283,7 +283,7 @@ jobs:
 
       - name: Upload ZAP Report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.0
         with:
           name: zap-scan-report-${{ steps.env.outputs.environment }}
           path: |
@@ -301,7 +301,7 @@ jobs:
 
     steps:
       - name: Download all reports
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.1.8
         with:
           path: reports
 
@@ -346,7 +346,7 @@ jobs:
           echo "4. Re-run security scans to verify fixes" >> SECURITY_SUMMARY.md
 
       - name: Upload Security Summary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.0
         with:
           name: security-summary
           path: SECURITY_SUMMARY.md
