@@ -1,0 +1,106 @@
+name: Create Admin User
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment (dev, staging, prod)'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+      admin_email:
+        description: 'Admin email address'
+        required: true
+        type: string
+      admin_name:
+        description: 'Admin display name'
+        required: true
+        type: string
+        default: 'Admin User'
+      force:
+        description: 'Force creation (even if admin exists)'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  AWS_REGION: eu-central-1
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  create-admin:
+    name: Create Admin User
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          poetry install --no-root --only main
+
+      - name: Set environment variables
+        run: |
+          echo "DYNAMODB_TABLE_NAME=stackvertex-${{ github.event.inputs.environment }}-main" >> $GITHUB_ENV
+          echo "ENVIRONMENT=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+
+      - name: Create SuperAdmin
+        working-directory: backend
+        run: |
+          FORCE_FLAG=""
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            FORCE_FLAG="--force"
+          fi
+
+          poetry run python scripts/create_superadmin.py \
+            --email "${{ github.event.inputs.admin_email }}" \
+            --name "${{ github.event.inputs.admin_name }}" \
+            $FORCE_FLAG > admin_output.txt 2>&1
+
+          # Display output (password will be shown in logs - use with caution!)
+          cat admin_output.txt
+
+      - name: Save credentials (as artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-credentials-${{ github.event.inputs.environment }}
+          path: backend/admin_output.txt
+          retention-days: 1
+
+      - name: Summary
+        run: |
+          echo "=================================================="
+          echo "Admin User Created"
+          echo "=================================================="
+          echo "Environment: ${{ github.event.inputs.environment }}"
+          echo "Email: ${{ github.event.inputs.admin_email }}"
+          echo ""
+          echo "⚠️  IMPORTANT:"
+          echo "- Download the artifact 'admin-credentials-${{ github.event.inputs.environment }}' to get the password"
+          echo "- Artifact expires in 24 hours"
+          echo "- Change password after first login"
+          echo "- Enable 2FA (when available)"
+          echo "=================================================="
