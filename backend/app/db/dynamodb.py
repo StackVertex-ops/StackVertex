@@ -4,6 +4,7 @@ Provides configured DynamoDB resource and table for the application.
 """
 
 
+import os
 import boto3
 from mypy_boto3_dynamodb.service_resource import DynamoDBServiceResource, Table
 
@@ -17,14 +18,17 @@ def get_dynamodb_resource(
     """Get configured DynamoDB resource.
 
     Args:
-        region_name: AWS region (defaults to settings.AWS_REGION)
+        region_name: AWS region (defaults to Lambda runtime AWS_REGION or settings.AWS_REGION)
         endpoint_url: Custom endpoint URL (for DynamoDB Local testing)
 
     Returns:
         DynamoDB service resource
     """
+    # Priority: 1. Explicit param, 2. Lambda runtime env var, 3. Settings default
+    region = region_name or os.environ.get("AWS_REGION") or settings.AWS_REGION
+
     kwargs = {
-        "region_name": region_name or settings.AWS_REGION,
+        "region_name": region,
     }
 
     # Use custom endpoint if provided (for DynamoDB Local)
