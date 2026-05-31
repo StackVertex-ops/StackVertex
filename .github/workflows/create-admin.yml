@@ -77,7 +77,8 @@ jobs:
             FORCE_FLAG="--force"
           fi
 
-          poetry run python scripts/create_superadmin.py \
+          # Run with PYTHONPATH to ensure app modules are found
+          PYTHONPATH=. poetry run python scripts/create_superadmin.py \
             --email "${{ github.event.inputs.admin_email }}" \
             --name "${{ github.event.inputs.admin_name }}" \
             $FORCE_FLAG > admin_output.txt 2>&1
