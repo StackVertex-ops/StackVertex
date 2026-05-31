@@ -158,6 +158,7 @@ resource "aws_lambda_function" "api" {
         TERRAFORM_STATE_BUCKET  = var.terraform_state_bucket
         CORS_ORIGINS            = var.cors_origins
         LOG_LEVEL               = var.log_level
+        SECRET_KEY              = var.jwt_secret_key != "" ? var.jwt_secret_key : "CHANGE_ME_IN_PRODUCTION"
       },
       var.additional_environment_variables
     )

@@ -162,9 +162,16 @@ variable "ecs_security_group_id" {
 # ==========================================
 
 variable "jwt_secret_arn" {
-  description = "Secrets Manager ARN for JWT Secret"
+  description = "Secrets Manager ARN for JWT Secret (optional, use jwt_secret_key for dev)"
   type        = string
   default     = ""
+}
+
+variable "jwt_secret_key" {
+  description = "JWT Secret Key (plain text, use for dev only - use jwt_secret_arn for prod)"
+  type        = string
+  default     = ""
+  sensitive   = true
 }
 
 variable "jwt_algorithm" {

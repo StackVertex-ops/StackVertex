@@ -85,3 +85,9 @@ variable "enable_security_hub" {
   type        = bool
   default     = false
 }
+
+variable "jwt_secret_key" {
+  description = "JWT Secret Key for authentication (plain text for dev, use Secrets Manager for prod)"
+  type        = string
+  sensitive   = true
+}

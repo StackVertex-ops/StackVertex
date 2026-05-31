@@ -169,6 +169,7 @@ jobs:
           aws_region             = "${{ env.AWS_REGION }}"
           terraform_state_bucket = "${{ secrets.TERRAFORM_STATE_BUCKET }}"
           lambda_image_uri       = "${{ needs.build-backend.outputs.image_uri }}"
+          jwt_secret_key         = "${{ secrets.SECRET_KEY }}"
           alert_emails           = [$(echo "${{ secrets.ALERT_EMAILS }}" | sed 's/,/", "/g' | sed 's/^/"/' | sed 's/$/"/')]
           slack_webhook_url      = "${{ secrets.SLACK_WEBHOOK_URL }}"
           EOF
@@ -245,6 +246,7 @@ jobs:
           aws_region             = "${{ env.AWS_REGION }}"
           terraform_state_bucket = "${{ secrets.TERRAFORM_STATE_BUCKET }}"
           lambda_image_uri       = "${{ needs.build-backend.outputs.image_uri }}"
+          jwt_secret_key         = "${{ secrets.SECRET_KEY }}"
           alert_emails           = [$(echo "${{ secrets.ALERT_EMAILS }}" | sed 's/,/", "/g' | sed 's/^/"/' | sed 's/$/"/')]
           slack_webhook_url      = "${{ secrets.SLACK_WEBHOOK_URL }}"
           EOF

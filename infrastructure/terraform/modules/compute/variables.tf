@@ -150,3 +150,9 @@ variable "alarm_sns_topic_arn" {
   type        = string
   default     = null
 }
+variable "jwt_secret_key" {
+  description = "JWT Secret Key (plain text, for dev)"
+  type        = string
+  default     = ""
+  sensitive   = true
+}

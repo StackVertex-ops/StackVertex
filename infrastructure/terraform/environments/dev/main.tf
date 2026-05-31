@@ -173,6 +173,9 @@ module "compute" {
   enable_websocket           = true
   cors_origins               = "*" # Dev: Allow all origins
 
+  # Security
+  jwt_secret_key = var.jwt_secret_key
+
   # Monitoring
   enable_cloudwatch_alarms = false
   log_retention_days       = 7 # Dev: 7 Tage Log Retention

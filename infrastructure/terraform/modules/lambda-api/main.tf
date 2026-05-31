@@ -66,7 +66,7 @@ resource "aws_lambda_function" "api_handler" {
       AWS_REGION                    = var.aws_region
 
       # Security
-      SECRET_KEY                    = var.jwt_secret_arn != "" ? data.aws_secretsmanager_secret_version.jwt_secret[0].secret_string : ""
+      SECRET_KEY                    = var.jwt_secret_key != "" ? var.jwt_secret_key : (var.jwt_secret_arn != "" ? data.aws_secretsmanager_secret_version.jwt_secret[0].secret_string : "")
       ALGORITHM                     = var.jwt_algorithm
       ACCESS_TOKEN_EXPIRE_MINUTES   = var.access_token_expire_minutes
       REFRESH_TOKEN_EXPIRE_DAYS     = var.refresh_token_expire_days
