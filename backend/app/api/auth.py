@@ -20,6 +20,7 @@ from app.repositories.refresh_token import RefreshTokenRepository
 from app.services.account_lockout import AccountLockoutService, get_account_lockout_service
 from app.schemas.user import (
     UserCreate,
+    UserLogin,
     UserResponse,
     UserWithOrganisationsResponse,
     TokenResponse,
@@ -432,6 +433,125 @@ async def login(
 
     # Authenticate user
     user = user_repo.authenticate(email, form_data.password)
+
+    if not user:
+        # Record failed login attempt
+        is_now_locked, failed_count, locked_until = lockout_service.record_failed_login(
+            email, ip_address
+        )
+
+        logger.warning(
+            f"Failed login attempt for {email}",
+            extra={"email": email, "ip": ip_address, "failed_count": failed_count}
+        )
+
+        if is_now_locked:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Too many failed login attempts. Account locked for {lockout_service.LOCKOUT_DURATION_MINUTES} minutes."
+            )
+        else:
+            remaining_attempts = lockout_service.MAX_FAILED_ATTEMPTS - failed_count
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"Incorrect email or password. {remaining_attempts} attempts remaining.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+    # Successful login - clear failed attempts
+    lockout_service.record_successful_login(email)
+
+    logger.info(
+        f"User logged in: {user['id']}",
+        extra={"user_id": user["id"], "email": user["email"]}
+    )
+
+    # Create Access Token (15 min)
+    access_token = create_access_token({"sub": user["id"], "email": user["email"]})
+
+    # Create Refresh Token (7 days)
+    refresh_token = create_refresh_token({"sub": user["id"]})
+
+    # Store Refresh Token in DB
+    from uuid import UUID
+    expires_at = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    refresh_token_repo.create(
+        user_id=UUID(user["id"]),
+        token=refresh_token,
+        expires_at=expires_at
+    )
+
+    # Set Access Token cookie
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=settings.ENV == "production",
+        samesite="lax",
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        path="/",
+    )
+
+    # Set Refresh Token cookie
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=settings.ENV == "production",
+        samesite="lax",
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
+        path="/",
+    )
+
+    return TokenResponse(
+        access_token=access_token,
+        token_type="bearer",
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        user=UserResponse(**user)
+    )
+
+
+@router.post("/login/json", response_model=TokenResponse)
+@limiter.limit("1000/minute" if settings.TESTING else "10/minute")
+async def login_json(
+    request: Request,
+    response: Response,
+    credentials: UserLogin,
+    user_repo: UserRepository = Depends(get_user_repository),
+    refresh_token_repo: RefreshTokenRepository = Depends(get_refresh_token_repository),
+    table=Depends(get_dynamodb_table)
+):
+    """Login with email + password (JSON body instead of form-data).
+
+    This endpoint accepts JSON instead of OAuth2 form-data for modern frontend apps.
+    Use /login for OAuth2-compatible clients.
+
+    Returns Access Token (15 min) + Refresh Token (7 days) as HttpOnly Cookies.
+
+    Security:
+        - Rate limited to 10 attempts/minute per IP
+        - Account locked after 5 failed attempts (15 min lockout)
+        - Failed attempts reset after 30min window
+        - CSRF Protection via SameSite cookies
+        - Token Rotation: Every refresh returns new refresh token
+    """
+    email = credentials.email.lower()
+    ip_address = request.client.host if request.client else "unknown"
+
+    # Create lockout service
+    lockout_service = AccountLockoutService(table=table)
+
+    # Check if account is locked
+    is_locked, locked_until = lockout_service.is_account_locked(email)
+    if is_locked:
+        minutes_remaining = int((locked_until - datetime.utcnow()).total_seconds() / 60)
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Account locked due to too many failed login attempts. Try again in {minutes_remaining} minutes."
+        )
+
+    # Authenticate user
+    user = user_repo.authenticate(email, credentials.password)
 
     if not user:
         # Record failed login attempt

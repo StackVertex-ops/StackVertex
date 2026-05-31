@@ -35,17 +35,10 @@ export class AuthAPI {
      * @returns {Promise<Object>} Token response with user data
      */
     async login(email, password) {
-        // OAuth2PasswordRequestForm expects form data
-        const formData = new URLSearchParams();
-        formData.append('username', email.toLowerCase());
-        formData.append('password', password);
-
-        return this.client.request('/api/v1/auth/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: formData
+        // Use JSON endpoint for modern frontends
+        return this.client.post('/api/v1/auth/login/json', {
+            email: email.toLowerCase(),
+            password: password
         });
     }
 
