@@ -67,11 +67,164 @@ jobs:
           echo "⏳ Waiting for manual approval..."
           echo "Environment: ${{ github.event.inputs.environment }}"
 
-  # Job 3: Terraform Destroy
+  # Job 3: Pre-Destroy Cleanup (ENIs, stuck resources)
+  pre_destroy_cleanup:
+    name: Pre-Destroy Cleanup
+    runs-on: ubuntu-latest
+    needs: [validate, approval]
+    if: |
+      always() &&
+      needs.validate.outputs.can_proceed == 'true' &&
+      (needs.approval.result == 'success' || github.event.inputs.skip_approval == 'true')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.0.2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Detach and delete ENIs
+        continue-on-error: true
+        run: |
+          echo "🔌 Detaching and deleting ENIs..."
+
+          # Find all ENIs for this environment
+          ENIS=$(aws ec2 describe-network-interfaces \
+            --filters "Name=tag:Environment,Values=${{ github.event.inputs.environment }}" \
+            --query 'NetworkInterfaces[].NetworkInterfaceId' \
+            --output text)
+
+          if [ -n "$ENIS" ]; then
+            for eni in $ENIS; do
+              echo "   Processing ENI: $eni"
+
+              # Get attachment ID
+              ATTACHMENT_ID=$(aws ec2 describe-network-interfaces \
+                --network-interface-ids "$eni" \
+                --query 'NetworkInterfaces[0].Attachment.AttachmentId' \
+                --output text 2>/dev/null || echo "")
+
+              # Detach if attached
+              if [ -n "$ATTACHMENT_ID" ] && [ "$ATTACHMENT_ID" != "None" ]; then
+                echo "     Detaching (ID: $ATTACHMENT_ID)..."
+                aws ec2 detach-network-interface --attachment-id "$ATTACHMENT_ID" --force || true
+                sleep 2
+              fi
+
+              # Delete ENI
+              echo "     Deleting..."
+              aws ec2 delete-network-interface --network-interface-id "$eni" || true
+            done
+          else
+            echo "   No ENIs found"
+          fi
+
+      - name: Delete stuck Lambda ENIs (by description)
+        continue-on-error: true
+        run: |
+          echo "🔌 Cleaning Lambda ENIs..."
+
+          # Lambda ENIs have specific description pattern
+          LAMBDA_ENIS=$(aws ec2 describe-network-interfaces \
+            --filters "Name=description,Values=AWS Lambda VPC ENI*" \
+            --query 'NetworkInterfaces[].NetworkInterfaceId' \
+            --output text)
+
+          if [ -n "$LAMBDA_ENIS" ]; then
+            for eni in $LAMBDA_ENIS; do
+              echo "   Deleting Lambda ENI: $eni"
+
+              # Try to detach first
+              ATTACHMENT_ID=$(aws ec2 describe-network-interfaces \
+                --network-interface-ids "$eni" \
+                --query 'NetworkInterfaces[0].Attachment.AttachmentId' \
+                --output text 2>/dev/null || echo "")
+
+              if [ -n "$ATTACHMENT_ID" ] && [ "$ATTACHMENT_ID" != "None" ]; then
+                aws ec2 detach-network-interface --attachment-id "$ATTACHMENT_ID" --force || true
+                sleep 2
+              fi
+
+              aws ec2 delete-network-interface --network-interface-id "$eni" || true
+            done
+          fi
+
+      - name: Delete Lambda Functions (before VPC cleanup)
+        continue-on-error: true
+        run: |
+          echo "λ Deleting Lambda Functions..."
+
+          FUNCTIONS=$(aws lambda list-functions \
+            --query "Functions[?starts_with(FunctionName, 'stackvertex-${{ github.event.inputs.environment }}')].FunctionName" \
+            --output text)
+
+          if [ -n "$FUNCTIONS" ]; then
+            for func in $FUNCTIONS; do
+              echo "   Deleting: $func"
+              aws lambda delete-function --function-name "$func" || true
+            done
+
+            # Wait for Lambda to release ENIs
+            echo "   Waiting 30s for ENI cleanup..."
+            sleep 30
+          fi
+
+      - name: Delete Security Groups (non-default)
+        continue-on-error: true
+        run: |
+          echo "🔒 Deleting Security Groups..."
+
+          # Get VPC ID for this environment
+          VPC_ID=$(aws ec2 describe-vpcs \
+            --filters "Name=tag:Environment,Values=${{ github.event.inputs.environment }}" \
+            --query 'Vpcs[0].VpcId' \
+            --output text 2>/dev/null || echo "")
+
+          if [ -n "$VPC_ID" ] && [ "$VPC_ID" != "None" ]; then
+            # Get all non-default security groups in VPC
+            SGS=$(aws ec2 describe-security-groups \
+              --filters "Name=vpc-id,Values=$VPC_ID" \
+              --query 'SecurityGroups[?GroupName!=`default`].GroupId' \
+              --output text)
+
+            if [ -n "$SGS" ]; then
+              # First, remove all ingress/egress rules
+              for sg in $SGS; do
+                echo "   Clearing rules from: $sg"
+                aws ec2 revoke-security-group-ingress --group-id "$sg" \
+                  --ip-permissions "$(aws ec2 describe-security-groups --group-ids "$sg" --query 'SecurityGroups[0].IpPermissions' --output json)" \
+                  2>/dev/null || true
+                aws ec2 revoke-security-group-egress --group-id "$sg" \
+                  --ip-permissions "$(aws ec2 describe-security-groups --group-ids "$sg" --query 'SecurityGroups[0].IpPermissionsEgress' --output json)" \
+                  2>/dev/null || true
+              done
+
+              # Then delete
+              for sg in $SGS; do
+                echo "   Deleting: $sg"
+                aws ec2 delete-security-group --group-id "$sg" || true
+              done
+            fi
+          fi
+
+      - name: Run cleanup script
+        continue-on-error: true
+        working-directory: infrastructure/scripts
+        run: |
+          echo "🧹 Running cleanup script..."
+          chmod +x cleanup-dev-only.sh
+          ./cleanup-dev-only.sh || true
+
+  # Job 4: Terraform Destroy
   terraform_destroy:
     name: Terraform Destroy
     runs-on: ubuntu-latest
-    needs: [validate, approval]
+    needs: [validate, approval, pre_destroy_cleanup]
     if: |
       always() &&
       needs.validate.outputs.can_proceed == 'true' &&
@@ -99,13 +252,14 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      - name: Terraform Destroy (with retries)
+      - name: Terraform Destroy (with timeout)
         id: destroy
         continue-on-error: true
+        timeout-minutes: 20
         run: |
           echo "🗑️  Starting Terraform Destroy..."
 
-          # Try normal destroy
+          # Try normal destroy with timeout
           terraform destroy -auto-approve || {
             echo "⚠️  First attempt failed, trying force-unlock..."
 
@@ -132,9 +286,9 @@ jobs:
             infrastructure/terraform/environments/${{ github.event.inputs.environment }}/.terraform/
           retention-days: 7
 
-  # Job 4: Manual Cleanup (Resources Terraform missed)
-  manual_cleanup:
-    name: Manual Cleanup
+  # Job 5: Post-Destroy Cleanup (Resources Terraform missed)
+  post_destroy_cleanup:
+    name: Post-Destroy Cleanup
     runs-on: ubuntu-latest
     needs: terraform_destroy
     if: always()
@@ -185,10 +339,10 @@ jobs:
             done
           fi
 
-      - name: Delete Lambda Functions
+      - name: Delete remaining Lambda Functions
         continue-on-error: true
         run: |
-          echo "🗑️  Deleting Lambda Functions..."
+          echo "🗑️  Deleting remaining Lambda Functions..."
 
           FUNCTIONS=$(aws lambda list-functions \
             --query "Functions[?starts_with(FunctionName, 'stackvertex-${{ github.event.inputs.environment }}')].FunctionName" \
@@ -199,6 +353,8 @@ jobs:
               echo "   Deleting function: $func..."
               aws lambda delete-function --function-name "$func" || true
             done
+          else
+            echo "   No Lambda functions remaining"
           fi
 
       - name: Delete API Gateways
@@ -253,11 +409,11 @@ jobs:
             done
           fi
 
-  # Job 5: Verification
+  # Job 6: Verification
   verify:
     name: Verify Cleanup
     runs-on: ubuntu-latest
-    needs: manual_cleanup
+    needs: post_destroy_cleanup
     if: always()
 
     steps:

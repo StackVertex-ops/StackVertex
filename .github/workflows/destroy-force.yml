@@ -1,0 +1,350 @@
+name: Force Destroy - Nuclear Option
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to FORCE destroy (dev, staging, prod)'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+      confirm_nuclear:
+        description: 'Type "NUCLEAR" to confirm complete destruction'
+        required: true
+        type: string
+
+env:
+  AWS_REGION: eu-central-1
+
+jobs:
+  validate:
+    name: Validate Nuclear Destroy
+    runs-on: ubuntu-latest
+    outputs:
+      can_proceed: ${{ steps.check.outputs.can_proceed }}
+
+    steps:
+      - name: Check confirmation
+        id: check
+        run: |
+          if [ "${{ github.event.inputs.confirm_nuclear }}" != "NUCLEAR" ]; then
+            echo "❌ Must type 'NUCLEAR' to proceed with force destroy"
+            exit 1
+          fi
+          echo "can_proceed=true" >> $GITHUB_OUTPUT
+
+      - name: Display warning
+        run: |
+          echo "☢️  NUCLEAR DESTROY INITIATED"
+          echo "Environment: ${{ github.event.inputs.environment }}"
+          echo "This will DELETE EVERYTHING without Terraform"
+          echo "State files will be orphaned!"
+
+  force_destroy:
+    name: Force Destroy Everything
+    runs-on: ubuntu-latest
+    needs: validate
+    if: needs.validate.outputs.can_proceed == 'true'
+
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.0.2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Delete Lambda Functions
+        continue-on-error: true
+        run: |
+          echo "☢️  [1/10] Deleting Lambda Functions..."
+          FUNCTIONS=$(aws lambda list-functions \
+            --query "Functions[?starts_with(FunctionName, 'stackvertex-${{ github.event.inputs.environment }}')].FunctionName" \
+            --output text)
+
+          for func in $FUNCTIONS; do
+            echo "  Deleting: $func"
+            aws lambda delete-function --function-name "$func" || true
+          done
+
+      - name: Wait for Lambda ENI cleanup
+        run: |
+          echo "⏳ Waiting 30s for Lambda ENI cleanup..."
+          sleep 30
+
+      - name: Delete API Gateways
+        continue-on-error: true
+        run: |
+          echo "☢️  [2/10] Deleting API Gateways..."
+          API_IDS=$(aws apigatewayv2 get-apis \
+            --query "Items[?contains(Name, 'stackvertex-${{ github.event.inputs.environment }}')].ApiId" \
+            --output text)
+
+          for api_id in $API_IDS; do
+            echo "  Deleting: $api_id"
+            aws apigatewayv2 delete-api --api-id "$api_id" || true
+          done
+
+      - name: Delete DynamoDB Tables
+        continue-on-error: true
+        run: |
+          echo "☢️  [3/10] Deleting DynamoDB Tables..."
+          TABLES=$(aws dynamodb list-tables \
+            --query "TableNames[?contains(@, 'stackvertex-${{ github.event.inputs.environment }}')]" \
+            --output text)
+
+          for table in $TABLES; do
+            echo "  Deleting: $table"
+            aws dynamodb delete-table --table-name "$table" || true
+          done
+
+      - name: Empty and delete S3 Buckets
+        continue-on-error: true
+        run: |
+          echo "☢️  [4/10] Emptying and deleting S3 Buckets..."
+          BUCKETS=$(aws s3api list-buckets \
+            --query "Buckets[?contains(Name, 'stackvertex-${{ github.event.inputs.environment }}')].Name" \
+            --output text)
+
+          for bucket in $BUCKETS; do
+            echo "  Emptying: s3://$bucket"
+            aws s3 rm "s3://$bucket" --recursive || true
+
+            echo "  Deleting: s3://$bucket"
+            aws s3 rb "s3://$bucket" --force || true
+          done
+
+      - name: Delete ECR Repositories
+        continue-on-error: true
+        run: |
+          echo "☢️  [5/10] Deleting ECR Repositories..."
+          REPOS=$(aws ecr describe-repositories \
+            --query "repositories[?contains(repositoryName, 'stackvertex-${{ github.event.inputs.environment }}')].repositoryName" \
+            --output text)
+
+          for repo in $REPOS; do
+            echo "  Deleting: $repo"
+            aws ecr delete-repository --repository-name "$repo" --force || true
+          done
+
+      - name: Detach and delete ENIs
+        continue-on-error: true
+        run: |
+          echo "☢️  [6/10] Cleaning up ENIs..."
+
+          # Tagged ENIs
+          ENIS=$(aws ec2 describe-network-interfaces \
+            --filters "Name=tag:Environment,Values=${{ github.event.inputs.environment }}" \
+            --query 'NetworkInterfaces[].NetworkInterfaceId' \
+            --output text)
+
+          # Lambda ENIs
+          LAMBDA_ENIS=$(aws ec2 describe-network-interfaces \
+            --filters "Name=description,Values=AWS Lambda VPC ENI*" \
+            --query 'NetworkInterfaces[].NetworkInterfaceId' \
+            --output text)
+
+          ALL_ENIS="$ENIS $LAMBDA_ENIS"
+
+          for eni in $ALL_ENIS; do
+            echo "  Processing: $eni"
+
+            # Detach
+            ATTACHMENT_ID=$(aws ec2 describe-network-interfaces \
+              --network-interface-ids "$eni" \
+              --query 'NetworkInterfaces[0].Attachment.AttachmentId' \
+              --output text 2>/dev/null || echo "")
+
+            if [ -n "$ATTACHMENT_ID" ] && [ "$ATTACHMENT_ID" != "None" ]; then
+              aws ec2 detach-network-interface --attachment-id "$ATTACHMENT_ID" --force || true
+              sleep 2
+            fi
+
+            # Delete
+            aws ec2 delete-network-interface --network-interface-id "$eni" || true
+          done
+
+      - name: Delete Security Groups
+        continue-on-error: true
+        run: |
+          echo "☢️  [7/10] Deleting Security Groups..."
+
+          VPC_ID=$(aws ec2 describe-vpcs \
+            --filters "Name=tag:Environment,Values=${{ github.event.inputs.environment }}" \
+            --query 'Vpcs[0].VpcId' \
+            --output text 2>/dev/null || echo "")
+
+          if [ -n "$VPC_ID" ] && [ "$VPC_ID" != "None" ]; then
+            SGS=$(aws ec2 describe-security-groups \
+              --filters "Name=vpc-id,Values=$VPC_ID" \
+              --query 'SecurityGroups[?GroupName!=`default`].GroupId' \
+              --output text)
+
+            # Clear rules first
+            for sg in $SGS; do
+              echo "  Clearing rules: $sg"
+              aws ec2 revoke-security-group-ingress --group-id "$sg" \
+                --ip-permissions "$(aws ec2 describe-security-groups --group-ids "$sg" --query 'SecurityGroups[0].IpPermissions' --output json)" \
+                2>/dev/null || true
+              aws ec2 revoke-security-group-egress --group-id "$sg" \
+                --ip-permissions "$(aws ec2 describe-security-groups --group-ids "$sg" --query 'SecurityGroups[0].IpPermissionsEgress' --output json)" \
+                2>/dev/null || true
+            done
+
+            # Delete
+            for sg in $SGS; do
+              echo "  Deleting: $sg"
+              aws ec2 delete-security-group --group-id "$sg" || true
+            done
+          fi
+
+      - name: Delete VPC Endpoints
+        continue-on-error: true
+        run: |
+          echo "☢️  [8/10] Deleting VPC Endpoints..."
+
+          VPC_ID=$(aws ec2 describe-vpcs \
+            --filters "Name=tag:Environment,Values=${{ github.event.inputs.environment }}" \
+            --query 'Vpcs[0].VpcId' \
+            --output text 2>/dev/null || echo "")
+
+          if [ -n "$VPC_ID" ] && [ "$VPC_ID" != "None" ]; then
+            ENDPOINTS=$(aws ec2 describe-vpc-endpoints \
+              --filters "Name=vpc-id,Values=$VPC_ID" \
+              --query 'VpcEndpoints[].VpcEndpointId' \
+              --output text)
+
+            for endpoint in $ENDPOINTS; do
+              echo "  Deleting: $endpoint"
+              aws ec2 delete-vpc-endpoints --vpc-endpoint-ids "$endpoint" || true
+            done
+          fi
+
+      - name: Delete Subnets, Route Tables, IGW, VPC
+        continue-on-error: true
+        run: |
+          echo "☢️  [9/10] Deleting VPC resources..."
+
+          VPC_ID=$(aws ec2 describe-vpcs \
+            --filters "Name=tag:Environment,Values=${{ github.event.inputs.environment }}" \
+            --query 'Vpcs[0].VpcId' \
+            --output text 2>/dev/null || echo "")
+
+          if [ -n "$VPC_ID" ] && [ "$VPC_ID" != "None" ]; then
+            # Delete subnets
+            SUBNETS=$(aws ec2 describe-subnets \
+              --filters "Name=vpc-id,Values=$VPC_ID" \
+              --query 'Subnets[].SubnetId' \
+              --output text)
+            for subnet in $SUBNETS; do
+              echo "  Deleting subnet: $subnet"
+              aws ec2 delete-subnet --subnet-id "$subnet" || true
+            done
+
+            # Delete route tables
+            RTS=$(aws ec2 describe-route-tables \
+              --filters "Name=vpc-id,Values=$VPC_ID" \
+              --query 'RouteTables[?Associations[0].Main!=`true`].RouteTableId' \
+              --output text)
+            for rt in $RTS; do
+              echo "  Deleting route table: $rt"
+              aws ec2 delete-route-table --route-table-id "$rt" || true
+            done
+
+            # Detach and delete IGW
+            IGWS=$(aws ec2 describe-internet-gateways \
+              --filters "Name=attachment.vpc-id,Values=$VPC_ID" \
+              --query 'InternetGateways[].InternetGatewayId' \
+              --output text)
+            for igw in $IGWS; do
+              echo "  Detaching IGW: $igw"
+              aws ec2 detach-internet-gateway --internet-gateway-id "$igw" --vpc-id "$VPC_ID" || true
+              echo "  Deleting IGW: $igw"
+              aws ec2 delete-internet-gateway --internet-gateway-id "$igw" || true
+            done
+
+            # Delete VPC
+            echo "  Deleting VPC: $VPC_ID"
+            aws ec2 delete-vpc --vpc-id "$VPC_ID" || true
+          fi
+
+      - name: Delete CloudWatch resources
+        continue-on-error: true
+        run: |
+          echo "☢️  [10/10] Deleting CloudWatch resources..."
+
+          # Log groups
+          LOG_GROUPS=$(aws logs describe-log-groups \
+            --query "logGroups[?contains(logGroupName, 'stackvertex-${{ github.event.inputs.environment }}')].logGroupName" \
+            --output text)
+
+          for log_group in $LOG_GROUPS; do
+            echo "  Deleting log group: $log_group"
+            aws logs delete-log-group --log-group-name "$log_group" || true
+          done
+
+          # Alarms
+          ALARMS=$(aws cloudwatch describe-alarms \
+            --query "MetricAlarms[?contains(AlarmName, 'stackvertex-${{ github.event.inputs.environment }}')].AlarmName" \
+            --output text)
+
+          if [ -n "$ALARMS" ]; then
+            echo "  Deleting alarms..."
+            aws cloudwatch delete-alarms --alarm-names $ALARMS || true
+          fi
+
+      - name: Delete IAM Roles and Policies
+        continue-on-error: true
+        run: |
+          echo "☢️  [BONUS] Deleting IAM Roles..."
+
+          ROLES=$(aws iam list-roles \
+            --query "Roles[?contains(RoleName, 'stackvertex-${{ github.event.inputs.environment }}')].RoleName" \
+            --output text)
+
+          for role in $ROLES; do
+            echo "  Processing role: $role"
+
+            # Detach managed policies
+            POLICIES=$(aws iam list-attached-role-policies \
+              --role-name "$role" \
+              --query 'AttachedPolicies[].PolicyArn' \
+              --output text)
+            for policy in $POLICIES; do
+              echo "    Detaching: $policy"
+              aws iam detach-role-policy --role-name "$role" --policy-arn "$policy" || true
+            done
+
+            # Delete inline policies
+            INLINE=$(aws iam list-role-policies \
+              --role-name "$role" \
+              --query 'PolicyNames[]' \
+              --output text)
+            for policy_name in $INLINE; do
+              echo "    Deleting inline: $policy_name"
+              aws iam delete-role-policy --role-name "$role" --policy-name "$policy_name" || true
+            done
+
+            # Delete role
+            echo "    Deleting role: $role"
+            aws iam delete-role --role-name "$role" || true
+          done
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "=================================================="
+          echo "☢️  FORCE DESTROY COMPLETE"
+          echo "=================================================="
+          echo "Environment: ${{ github.event.inputs.environment }}"
+          echo ""
+          echo "⚠️  TERRAFORM STATE IS NOW ORPHANED"
+          echo "⚠️  Run 'terraform init -reconfigure' if needed"
+          echo ""
+          echo "Remaining cleanup (if any):"
+          echo "  - Check AWS Console manually"
+          echo "  - Delete Terraform state from S3"
