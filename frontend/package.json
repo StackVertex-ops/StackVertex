@@ -39,7 +39,7 @@
     "vitest": "^4.1.7"
   },
   "dependencies": {
-    "cytoscape": "^3.33.3",
+    "cytoscape": "^3.34.0",
     "jsonlint-mod": "^1.7.6"
   }
 }
