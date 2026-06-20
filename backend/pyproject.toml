@@ -27,7 +27,7 @@ boto3-stubs = {extras = ["dynamodb", "s3"], version = ">=1.42.73,<2.0.0"}
 email-validator = "^2.3.0"
 slowapi = "^0.1.9"
 stripe = "^15.1.0"
-python-json-logger = "^3.2.1"
+python-json-logger = "^4.1.0"
 watchtower = {version = "^3.3.1", optional = true}
 sentry-sdk = {version = "^2.21.0", extras = ["fastapi"], optional = true}
 
